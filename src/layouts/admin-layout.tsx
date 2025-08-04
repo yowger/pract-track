@@ -1,12 +1,17 @@
+import Cookies from "js-cookie"
 import { Outlet } from "react-router-dom"
 
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
+const sidebarState = Cookies.get("sidebar_state")
+const defaultOpen = sidebarState === "true"
+
 export default function AdminLayout() {
     return (
         <SidebarProvider
+            defaultOpen={defaultOpen}
             style={
                 {
                     "--sidebar-width": "calc(var(--spacing) * 72)",

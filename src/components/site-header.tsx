@@ -6,9 +6,19 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
+import { LogOut, Settings, User } from "lucide-react"
+import { ModeToggle } from "./mode-toggle"
 
 export function SiteHeader() {
     return (
@@ -35,21 +45,31 @@ export function SiteHeader() {
                 </Breadcrumb>
 
                 <div className="ml-auto flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        asChild
-                        size="sm"
-                        className="hidden sm:flex"
-                    >
-                        <a
-                            href="https://github.com/shadcn-ui/ui/tree/main/apps/v4/app/(examples)/dashboard"
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            className="dark:text-foreground"
-                        >
-                            GitHub
-                        </a>
-                    </Button>
+                    <ModeToggle />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger>
+                            <Avatar>
+                                <AvatarImage src="https://picsum.photos/200/300" />
+                                <AvatarFallback>CN</AvatarFallback>
+                            </Avatar>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent sideOffset={10}>
+                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                                <User className="h-[1.2rem] w-[1.2rem] mr-2" />
+                                Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
+                                Settings
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive">
+                                <LogOut className="h-[1.2rem] w-[1.2rem] mr-2" />
+                                Logout
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </header>
