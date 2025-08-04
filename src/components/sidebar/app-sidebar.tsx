@@ -1,183 +1,173 @@
-"use client"
-
 import * as React from "react"
 import {
-    IconCamera,
-    IconChartBar,
-    IconDashboard,
-    IconDatabase,
-    IconFileAi,
-    IconFileDescription,
-    IconFileWord,
-    IconFolder,
-    IconHelp,
-    IconInnerShadowTop,
-    IconListDetails,
-    IconReport,
-    IconSearch,
-    IconSettings,
-    IconUsers,
-} from "@tabler/icons-react"
+    AudioWaveform,
+    BookOpen,
+    Bot,
+    Command,
+    Frame,
+    GalleryVerticalEnd,
+    Map,
+    PieChart,
+    Settings2,
+    SquareTerminal,
+} from "lucide-react"
 
-import { NavDocuments } from "./nav-documents"
-import { NavMain } from "@/components/sidebar/nav-main"
-import { NavSecondary } from "./nav-seconday"
+import { AppNavMain } from "./app-nav-main"
+import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
+import { TeamSwitcher } from "./team-switcher"
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+    SidebarRail,
 } from "@/components/ui/sidebar"
 
+// This is sample data.
 const data = {
     user: {
         name: "shadcn",
         email: "m@example.com",
         avatar: "/avatars/shadcn.jpg",
     },
+    teams: [
+        {
+            name: "Acme Inc",
+            logo: GalleryVerticalEnd,
+            plan: "Enterprise",
+        },
+        {
+            name: "Acme Corp.",
+            logo: AudioWaveform,
+            plan: "Startup",
+        },
+        {
+            name: "Evil Corp.",
+            logo: Command,
+            plan: "Free",
+        },
+    ],
     navMain: [
         {
-            title: "Dashboard",
+            title: "Playground",
             url: "#",
-            icon: IconDashboard,
-        },
-        {
-            title: "Lifecycle",
-            url: "#",
-            icon: IconListDetails,
-        },
-        {
-            title: "Analytics",
-            url: "#",
-            icon: IconChartBar,
-        },
-        {
-            title: "Projects",
-            url: "#",
-            icon: IconFolder,
-        },
-        {
-            title: "Team",
-            url: "#",
-            icon: IconUsers,
-        },
-    ],
-    navClouds: [
-        {
-            title: "Capture",
-            icon: IconCamera,
+            icon: SquareTerminal,
             isActive: true,
-            url: "#",
             items: [
                 {
-                    title: "Active Proposals",
+                    title: "History",
                     url: "#",
                 },
                 {
-                    title: "Archived",
+                    title: "Starred",
+                    url: "#",
+                },
+                {
+                    title: "Settings",
                     url: "#",
                 },
             ],
         },
         {
-            title: "Proposal",
-            icon: IconFileDescription,
+            title: "Models",
             url: "#",
+            icon: Bot,
             items: [
                 {
-                    title: "Active Proposals",
+                    title: "Genesis",
                     url: "#",
                 },
                 {
-                    title: "Archived",
+                    title: "Explorer",
+                    url: "#",
+                },
+                {
+                    title: "Quantum",
                     url: "#",
                 },
             ],
         },
         {
-            title: "Prompts",
-            icon: IconFileAi,
+            title: "Documentation",
             url: "#",
+            icon: BookOpen,
             items: [
                 {
-                    title: "Active Proposals",
+                    title: "Introduction",
                     url: "#",
                 },
                 {
-                    title: "Archived",
+                    title: "Get Started",
+                    url: "#",
+                },
+                {
+                    title: "Tutorials",
+                    url: "#",
+                },
+                {
+                    title: "Changelog",
                     url: "#",
                 },
             ],
         },
-    ],
-    navSecondary: [
         {
             title: "Settings",
             url: "#",
-            icon: IconSettings,
-        },
-        {
-            title: "Get Help",
-            url: "#",
-            icon: IconHelp,
-        },
-        {
-            title: "Search",
-            url: "#",
-            icon: IconSearch,
+            icon: Settings2,
+            items: [
+                {
+                    title: "General",
+                    url: "#",
+                },
+                {
+                    title: "Team",
+                    url: "#",
+                },
+                {
+                    title: "Billing",
+                    url: "#",
+                },
+                {
+                    title: "Limits",
+                    url: "#",
+                },
+            ],
         },
     ],
-    documents: [
+    projects: [
         {
-            name: "Data Library",
+            name: "Design Engineering",
             url: "#",
-            icon: IconDatabase,
+            icon: Frame,
         },
         {
-            name: "Reports",
+            name: "Sales & Marketing",
             url: "#",
-            icon: IconReport,
+            icon: PieChart,
         },
         {
-            name: "Word Assistant",
+            name: "Travel",
             url: "#",
-            icon: IconFileWord,
+            icon: Map,
         },
     ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar collapsible="offcanvas" {...props}>
+        <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                            asChild
-                            className="data-[slot=sidebar-menu-button]:!p-1.5"
-                        >
-                            <a href="#">
-                                <IconInnerShadowTop className="!size-5" />
-                                <span className="text-base font-semibold">
-                                    Acme Inc.
-                                </span>
-                            </a>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+                <TeamSwitcher teams={data.teams} />
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
-                <NavDocuments items={data.documents} />
-                <NavSecondary items={data.navSecondary} className="mt-auto" />
+                <AppNavMain items={data.navMain} />
+                <NavProjects projects={data.projects} />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
             </SidebarFooter>
+            <SidebarRail />
         </Sidebar>
     )
 }
