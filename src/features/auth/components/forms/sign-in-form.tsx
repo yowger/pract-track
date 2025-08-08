@@ -48,7 +48,7 @@ export default function SignInForm({
         console.log("🚀 ~ SignInForm ~ values:", values)
         setLoading(true)
         try {
-            // Firebase auth logic here
+            console.log("firebase login")
         } catch (error) {
             console.error("Login error:", error)
         }

@@ -1,9 +1,11 @@
 "use client"
 
+import { cn } from "@/lib/utils"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { Link } from "react-router-dom"
 import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
 
 import {
     Form,
@@ -22,8 +24,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
 
 // import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 // import { setDoc, doc } from "firebase/firestore"
@@ -31,7 +31,7 @@ import { Link } from "react-router-dom"
 
 const signUpSchema = z
     .object({
-        email: z.string().email({ message: "Invalid email address" }),
+        email: z.email({ message: "Invalid email address" }),
         password: z
             .string()
             .min(6, { message: "Password must be at least 6 characters" }),
