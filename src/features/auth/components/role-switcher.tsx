@@ -15,29 +15,33 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import PreServiceStudentForm from "./forms/pre-service-student-form"
 
-// const EmployeeForm = lazy(() => import("./forms/EmployeeForm"))
-// const ManagerForm = lazy(() => import("./forms/ManagerForm"))
-const PreServiceStudentForm = lazy(
-    () => import("./forms/pre-service-student-form")
+const PracticumAdviserForm = lazy(
+    () => import("./forms/practical-adviser-form")
+)
+const ChairpersonForm = lazy(() => import("./forms/chair-person-form"))
+const AgencySupervisorForm = lazy(
+    () => import("./forms/agency-supervisor-form")
 )
 
 export default function RoleSwitcher({
     className,
     ...props
 }: React.ComponentProps<"div">) {
-    const [role, setRole] = useState<string | null>(null)
+    const [role, setRole] = useState<string>("student") // default to student
 
     const renderForm = () => {
         switch (role) {
+            case "agency_supervisor":
+                return <AgencySupervisorForm />
+            case "chair_person":
+                return <ChairpersonForm />
+            case "adviser":
+                return <PracticumAdviserForm />
+            default:
             case "student":
                 return <PreServiceStudentForm />
-            // case "manager":
-            //     return <ManagerForm />
-            // case "admin":
-            //     return <AdminForm />
-            default:
-                return null
         }
     }
 
@@ -54,7 +58,7 @@ export default function RoleSwitcher({
                 <CardContent className="space-y-4">
                     <div className="mb-6">
                         <Label className="mb-2">Select role</Label>
-                        <Select onValueChange={setRole}>
+                        <Select value={role} onValueChange={setRole}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
@@ -62,13 +66,19 @@ export default function RoleSwitcher({
                                 <SelectItem value="student">
                                     Pre-service Student
                                 </SelectItem>
-                                {/* <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem> */}
+                                <SelectItem value="adviser">
+                                    Practicum Adviser
+                                </SelectItem>
+                                <SelectItem value="chair_person">
+                                    Chair person
+                                </SelectItem>
+                                <SelectItem value="agency_supervisor">
+                                    Agency person
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
-                    {/* Lazy-loaded form */}
                     <Suspense fallback={<div>Loading form...</div>}>
                         {renderForm()}
                     </Suspense>

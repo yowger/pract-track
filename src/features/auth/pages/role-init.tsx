@@ -1,6 +1,6 @@
 import { Timer } from "lucide-react"
 
-import RoleSwitcher from "@/features/auth/components/role"
+import RoleSwitcher from "@/features/auth/components/role-switcher"
 
 export default function RoleInitPage() {
     return (
