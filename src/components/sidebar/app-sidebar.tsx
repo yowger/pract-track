@@ -1,19 +1,21 @@
-import * as React from "react"
 import {
     AudioWaveform,
-    BookOpen,
     Bot,
     Command,
-    Frame,
     GalleryVerticalEnd,
-    Map,
-    PieChart,
     Settings2,
-    SquareTerminal,
+    FileUp,
+    History,
+    UserCheck,
+    CalendarDays,
+    Map,
+    BookOpen,
+    QrCode,
+    Users,
+    type LucideIcon,
 } from "lucide-react"
 
 import { AppNavMain } from "./app-nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 import {
@@ -24,150 +26,180 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
-const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
+interface SidebarItem {
+    title: string
+    url: string
+    icon: LucideIcon
+}
+
+type UserRole =
+    | "student"
+    | "practicumAdviser"
+    | "agencySupervisor"
+    | "programCoordinator"
+    | "chairperson"
+
+type SidebarConfig = {
+    [key in UserRole]: SidebarItem[]
+}
+
+interface User {
+    name: string
+    email: string
+    avatar: string
+    role: UserRole
+}
+
+const currentUser: User = {
+    name: "Yowger",
+    email: "yowger@example.com",
+    avatar: "/avatars/shadcn.jpg",
+    role: "student",
+}
+
+const teams = [
+    {
+        name: "Acme Inc",
+        logo: GalleryVerticalEnd,
+        plan: "Enterprise",
     },
-    teams: [
+    {
+        name: "Acme Corp.",
+        logo: AudioWaveform,
+        plan: "Startup",
+    },
+    {
+        name: "Evil Corp.",
+        logo: Command,
+        plan: "Free",
+    },
+]
+
+const sidebarConfig: SidebarConfig = {
+    student: [
         {
-            name: "Acme Inc",
-            logo: GalleryVerticalEnd,
-            plan: "Enterprise",
+            title: "Files & Reports",
+            url: "/files",
+            icon: FileUp,
         },
         {
-            name: "Acme Corp.",
-            logo: AudioWaveform,
-            plan: "Startup",
+            title: "Evaluation History",
+            url: "/evaluation/history",
+            icon: History,
         },
         {
-            name: "Evil Corp.",
-            logo: Command,
-            plan: "Free",
+            title: "Daily Time Record",
+            url: "/dtr",
+            icon: CalendarDays,
+        },
+        {
+            title: "Attendance",
+            url: "/attendance",
+            icon: UserCheck,
         },
     ],
-    navMain: [
+
+    practicumAdviser: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
-            isActive: true,
-            items: [
-                {
-                    title: "History",
-                    url: "#",
-                },
-                {
-                    title: "Starred",
-                    url: "#",
-                },
-                {
-                    title: "Settings",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Models",
-            url: "#",
+            title: "Provide Feedback & Grades",
+            url: "/adviser/feedback",
             icon: Bot,
-            items: [
-                {
-                    title: "Genesis",
-                    url: "#",
-                },
-                {
-                    title: "Explorer",
-                    url: "#",
-                },
-                {
-                    title: "Quantum",
-                    url: "#",
-                },
-            ],
         },
         {
-            title: "Documentation",
-            url: "#",
+            title: "Track Student Deployment",
+            url: "/adviser/deployment",
+            icon: Map,
+        },
+        {
+            title: "View Submitted Documents",
+            url: "/adviser/documents",
+            icon: FileUp,
+        },
+        {
+            title: "Monitor All Students’ Records",
+            url: "/adviser/records",
             icon: BookOpen,
-            items: [
-                {
-                    title: "Introduction",
-                    url: "#",
-                },
-                {
-                    title: "Get Started",
-                    url: "#",
-                },
-                {
-                    title: "Tutorials",
-                    url: "#",
-                },
-                {
-                    title: "Changelog",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
         },
     ],
-    projects: [
+
+    agencySupervisor: [
         {
-            name: "Design Engineering",
-            url: "#",
-            icon: Frame,
+            title: "Generate Attendance QR Code",
+            url: "/supervisor/qr",
+            icon: QrCode,
         },
         {
-            name: "Sales & Marketing",
-            url: "#",
-            icon: PieChart,
+            title: "View Assigned Students",
+            url: "/supervisor/students",
+            icon: Users,
         },
         {
-            name: "Travel",
-            url: "#",
-            icon: Map,
+            title: "Provide Feedback & Grades",
+            url: "/supervisor/feedback",
+            icon: Bot,
+        },
+    ],
+
+    programCoordinator: [
+        {
+            title: "Assign Students to Agencies",
+            url: "/coordinator/assign",
+            icon: UserCheck,
+        },
+        {
+            title: "Overall Internship Status",
+            url: "/coordinator/status",
+            icon: CalendarDays,
+        },
+    ],
+
+    chairperson: [
+        {
+            title: "Chairperson Panel",
+            url: "/chair/dashboard",
+            icon: Settings2,
         },
     ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const nav: SidebarItem[] = sidebarConfig[currentUser.role] || []
+
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
-                <TeamSwitcher teams={data.teams} />
+                <TeamSwitcher teams={teams} />
             </SidebarHeader>
             <SidebarContent>
-                <AppNavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
+                <AppNavMain items={nav} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser user={currentUser} />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
     )
 }
+
+/*
+const projects = [
+    {
+        name: "Design Engineering",
+        url: "#",
+        icon: Frame,
+    },
+    {
+        name: "Sales & Marketing",
+        url: "#",
+        icon: PieChart,
+    },
+    {
+        name: "Travel",
+        url: "#",
+        icon: Map,
+    },
+]
+
+   <AppNavMain items={nav} />
+    <NavProjects projects={projects} />
+*/
