@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label"
 import { GeoFenceMap } from "./map"
 import AttendanceHistory from "../components/attendance-history"
 import GeoPermissionHandler from "../components/geo-permission-handler"
+import CameraCapture from "../components/camera-capture"
 
 const agencyLocation = {
     lat: 6.748454,
-    lng: 125.35038,
+    lng: 125.35138,
 }
 const allowedRadius = 75
 
@@ -58,6 +59,8 @@ export default function DtrPage() {
     const isInside = userPosition
         ? isWithinBounds(userPosition, agencyLocation, allowedRadius)
         : false
+
+    const [captureMessage, setCaptureMessage] = useState<string | null>(null)
 
     return (
         <div className="max-w-3xl mx-auto p-6 space-y-8 relative">
@@ -147,13 +150,38 @@ export default function DtrPage() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Button variant="ghost" disabled>
+                        {/* <Button variant="ghost" disabled>
                             Scan QR Code (coming soon)
-                        </Button>
-                        <Button variant="ghost" disabled>
+                        </Button> */}
+                        {/* <Button variant="ghost" disabled>
                             Capture Photo (coming soon)
-                        </Button>
+                        </Button> */}
+                        <CameraCapture
+                            onCapture={(imageDataUrl: string) => {
+                                if (isInside) {
+                                    setCaptureMessage(
+                                        "Picture taken within bounds."
+                                    )
+                                } else {
+                                    setCaptureMessage(
+                                        "Warning: Picture taken outside of attendance zone."
+                                    )
+                                }
+
+                                console.log({ imageDataUrl, userPosition })
+                            }}
+                        />
                     </div>
+
+                    {captureMessage && (
+                        <p
+                            className={`mt-2 font-semibold ${
+                                isInside ? "text-green-600" : "text-red-600"
+                            }`}
+                        >
+                            {captureMessage}
+                        </p>
+                    )}
                 </CardContent>
             </Card>
 

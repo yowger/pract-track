@@ -1,41 +1,34 @@
 import { Route, Routes } from "react-router-dom"
+import { lazy, Suspense } from "react"
 
 import ProtectedRoute from "@/components/routes/protected-routes"
 import AdminLayout from "@/layouts/admin-layout"
-import SignInPage from "@/features/auth/pages/sign-in"
-import Dashboard from "@/features/dashboard/pages/dashboard"
-import SignUpPage from "@/features/auth/pages/sign-up"
-import RoleInitPage from "@/features/auth/pages/role-init"
-import DtrPage from "@/features/dtr/pages/dtr"
+import { LoadingFallback } from "./components/loading-fallback"
+
+const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
+const SignUpPage = lazy(() => import("@/features/auth/pages/sign-up"))
+const RoleInitPage = lazy(() => import("@/features/auth/pages/role-init"))
+const DtrPage = lazy(() => import("@/features/dtr/pages/dtr"))
+const Dashboard = lazy(() => import("@/features/dashboard/pages/dashboard"))
+const NotFoundPage = lazy(() => import("@/pages/not-found"))
 
 export default function App() {
     return (
-        <Routes>
-            <Route path="/dtr" element={<DtrPage />} />
-            <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/sign-up" element={<SignUpPage />} />
-            <Route path="/role-sign-up" element={<RoleInitPage />} />
+        <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+                <Route path="/dtr" element={<DtrPage />} />
+                <Route path="/sign-in" element={<SignInPage />} />
+                <Route path="/sign-up" element={<SignUpPage />} />
+                <Route path="/role-sign-up" element={<RoleInitPage />} />
 
-            <Route element={<ProtectedRoute />}>
-                <Route element={<AdminLayout />}>
-                    <Route path="/" element={<Dashboard />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route element={<AdminLayout />}>
+                        <Route path="/" element={<Dashboard />} />
+                    </Route>
                 </Route>
-            </Route>
 
-            <Route path="*" element={<Placeholder />} />
-        </Routes>
-    )
-}
-
-function Placeholder() {
-    return (
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-                <div className="bg-muted/50 aspect-video rounded-xl" />
-            </div>
-            <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
-        </div>
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+        </Suspense>
     )
 }
