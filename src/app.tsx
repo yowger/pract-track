@@ -1,21 +1,24 @@
 import { Route, Routes } from "react-router-dom"
 
-import ProtectedRoute from "./components/routes/protected-routes"
-import AdminLayout from "./layouts/admin-layout"
-// import Dashboard from "./features/dashboard/pages/dashboard"
-import LoginPage from "./features/auth/pages/login"
+import ProtectedRoute from "@/components/routes/protected-routes"
+import AdminLayout from "@/layouts/admin-layout"
+import SignInPage from "@/features/auth/pages/sign-in"
+import Dashboard from "@/features/dashboard/pages/dashboard"
+import SignUpPage from "@/features/auth/pages/sign-up"
 
 export default function App() {
     return (
         <Routes>
-            <Route path="/sign-up" element={<LoginPage />} />
+            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/sign-up" element={<SignUpPage />} />
 
             <Route element={<ProtectedRoute />}>
                 <Route element={<AdminLayout />}>
-                    {/* <Route path="/" element={<Dashboard />} /> */}
-                    <Route path="/" element={<Placeholder />} />
+                    <Route path="/" element={<Dashboard />} />
                 </Route>
             </Route>
+
+            <Route path="*" element={<Placeholder />} />
         </Routes>
     )
 }

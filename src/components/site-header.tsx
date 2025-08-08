@@ -53,6 +53,7 @@ export function SiteHeader() {
                                 <AvatarFallback>CN</AvatarFallback>
                             </Avatar>
                         </DropdownMenuTrigger>
+
                         <DropdownMenuContent sideOffset={10}>
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
