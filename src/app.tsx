@@ -6,10 +6,12 @@ import SignInPage from "@/features/auth/pages/sign-in"
 import Dashboard from "@/features/dashboard/pages/dashboard"
 import SignUpPage from "@/features/auth/pages/sign-up"
 import RoleInitPage from "@/features/auth/pages/role-init"
+import DtrPage from "@/features/dtr/pages/dtr"
 
 export default function App() {
     return (
         <Routes>
+            <Route path="/dtr" element={<DtrPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/role-sign-up" element={<RoleInitPage />} />
