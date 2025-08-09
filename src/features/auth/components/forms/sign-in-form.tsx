@@ -31,6 +31,10 @@ import {
 import { auth, db } from "@/service/firebase/firebase"
 import { cn } from "@/lib/utils"
 import { doc, getDoc, setDoc } from "firebase/firestore"
+import {
+    firebaseAuthErrorMessages,
+    firebaseFirestoreErrorMessages,
+} from "@/service/firebase/error-messages"
 
 const signInSchema = z.object({
     email: z.email({ message: "Invalid email address" }),
@@ -80,7 +84,7 @@ export default function SignInForm({
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
-                    firebaseErrorMessages[error.code] ||
+                    firebaseFirestoreErrorMessages[error.code] ||
                     "An unexpected error occurred."
 
                 setErrorMessage(friendlyMessage)
@@ -105,7 +109,7 @@ export default function SignInForm({
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
-                    firebaseErrorMessages[error.code] ||
+                    firebaseAuthErrorMessages[error.code] ||
                     "An unexpected error occurred."
                 setErrorMessage(friendlyMessage)
             } else {
@@ -239,17 +243,4 @@ export default function SignInForm({
             </Card>
         </div>
     )
-}
-
-const firebaseErrorMessages: Record<string, string> = {
-    "auth/invalid-credential": "Invalid email or password.",
-    "auth/invalid-email": "The email address is badly formatted.",
-    "auth/user-disabled":
-        "This account has been disabled. Please contact support.",
-    "auth/user-not-found": "No user found with this email address.",
-    "auth/wrong-password": "Incorrect password. Please try again.",
-    "auth/too-many-requests":
-        "Too many failed attempts. Please try again later.",
-    "auth/operation-not-allowed": "Email/password sign-in is not enabled.",
-    "auth/internal-error": "An internal error occurred. Please try again.",
 }

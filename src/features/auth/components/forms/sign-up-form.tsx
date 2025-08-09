@@ -31,6 +31,10 @@ import {
 } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { auth, db } from "@/service/firebase/firebase"
+import {
+    firebaseAuthErrorMessages,
+    firebaseFirestoreErrorMessages,
+} from "@/service/firebase/error-messages"
 
 const signUpSchema = z
     .object({
@@ -91,7 +95,7 @@ export default function SignUpForm({
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
-                    firebaseErrorMessages[error.code] ||
+                    firebaseFirestoreErrorMessages[error.code] ||
                     "An unexpected error occurred."
 
                 setErrorMessage(friendlyMessage)
@@ -119,13 +123,14 @@ export default function SignUpForm({
                 email: values.email,
                 role: "",
                 createdAt: new Date(),
+                updatedAt: new Date(),
             })
 
             navigate("/role-sign-up")
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
-                    firebaseErrorMessages[error.code] ||
+                    firebaseAuthErrorMessages[error.code] ||
                     "An unexpected error occurred."
 
                 setErrorMessage(friendlyMessage)
@@ -280,14 +285,4 @@ export default function SignUpForm({
             </Card>
         </div>
     )
-}
-
-const firebaseErrorMessages: Record<string, string> = {
-    "auth/email-already-in-use": "This email address is already registered.",
-    "auth/invalid-email": "The email address is badly formatted.",
-    "auth/operation-not-allowed": "Email/password sign-up is not enabled.",
-    "auth/weak-password": "Password should be at least 6 characters.",
-    "auth/too-many-requests":
-        "Too many sign-up attempts. Please try again later.",
-    "auth/internal-error": "An internal error occurred. Please try again.",
 }

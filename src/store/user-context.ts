@@ -1,18 +1,6 @@
 import { createContext } from "react"
 
-export interface Profile {
-    email: string
-    role: string
-    createdAt: Date
-}
-
-export interface AppUser {
-    uid: string
-    email: string | null
-    displayName: string | null
-    photoUrl: string | null
-    profile: Profile | null
-}
+import type { AppUser } from "@/components/types/user"
 
 export interface UserContextType {
     user: AppUser | null

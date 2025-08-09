@@ -1,8 +1,13 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { FirebaseError } from "firebase/app"
+import { doc, setDoc } from "firebase/firestore"
+import { useNavigate } from "react-router-dom"
 import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
 
+import { db } from "@/service/firebase/firebase"
+import { useUser } from "@/hooks/use-user"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,6 +25,8 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
+import { firebaseFirestoreErrorMessages } from "@/service/firebase/error-messages"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const preServiceSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -35,7 +42,11 @@ const preServiceSchema = z.object({
 type PreServiceStudentData = z.infer<typeof preServiceSchema>
 
 export default function PreServiceStudentForm() {
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate()
+    const { user } = useUser()
 
     const form = useForm<PreServiceStudentData>({
         resolver: zodResolver(preServiceSchema),
@@ -52,10 +63,46 @@ export default function PreServiceStudentForm() {
     })
 
     async function onSubmit(values: PreServiceStudentData) {
+        if (!user) return
+
         setLoading(true)
-        console.log("Form submitted:", values)
-        // TODO: Firebase create account logic
-        setLoading(false)
+
+        try {
+            await setDoc(
+                doc(db, "users", user.uid),
+                {
+                    username: values.username,
+                    firstName: values.firstName,
+                    middleName: values.middleName || "",
+                    lastName: values.lastName,
+                    role: "student",
+                    updatedAt: new Date(),
+                },
+                { merge: true }
+            )
+
+            await setDoc(doc(db, "students", user.uid), {
+                studentID: values.studentID,
+                program: values.program,
+                yearLevel: values.yearLevel,
+                section: values.section,
+                status: "",
+                assignAgencyID: "",
+            })
+
+            navigate("/")
+        } catch (error) {
+            if (error instanceof FirebaseError) {
+                const friendlyMessage =
+                    firebaseFirestoreErrorMessages[error.code] ||
+                    "An unexpected error occurred."
+                setErrorMessage(friendlyMessage)
+            } else {
+                setErrorMessage("Something went wrong. Please try again later.")
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -218,6 +265,13 @@ export default function PreServiceStudentForm() {
                             )}
                         />
                     </div>
+
+                    {errorMessage && (
+                        <Alert variant="destructive" className="py-6">
+                            <AlertTitle>Student Form Error</AlertTitle>
+                            <AlertDescription>{errorMessage}</AlertDescription>
+                        </Alert>
+                    )}
 
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Creating..." : "Create Account"}

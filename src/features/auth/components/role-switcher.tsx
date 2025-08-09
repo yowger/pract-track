@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import PreServiceStudentForm from "./forms/pre-service-student-form"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const PracticumAdviserForm = lazy(
     () => import("./forms/practical-adviser-form")
@@ -29,7 +30,7 @@ export default function RoleSwitcher({
     className,
     ...props
 }: React.ComponentProps<"div">) {
-    const [role, setRole] = useState<string>("student") // default to student
+    const [role, setRole] = useState<string>("student")
 
     const renderForm = () => {
         switch (role) {
@@ -79,11 +80,21 @@ export default function RoleSwitcher({
                         </Select>
                     </div>
 
-                    <Suspense fallback={<div>Loading form...</div>}>
-                        {renderForm()}
-                    </Suspense>
+                    <Suspense fallback={<Fallback />}>{renderForm()}</Suspense>
                 </CardContent>
             </Card>
+        </div>
+    )
+}
+
+function Fallback() {
+    return (
+        <div className="space-y-4">
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-24" />
         </div>
     )
 }
