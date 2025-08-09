@@ -6,7 +6,7 @@ import type {
     PracticumAdviser,
     Profile,
     Student,
-} from "@/components/types/user"
+} from "@/types/user"
 import { db } from "@/service/firebase/firebase"
 
 export async function fetchUserProfile(uid: string) {

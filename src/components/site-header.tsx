@@ -22,10 +22,17 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { ModeToggle } from "./mode-toggle"
+import { useUser } from "@/hooks/use-user"
 import { auth } from "@/service/firebase/firebase"
+import { getInitials } from "@/lib/tools"
 
 export function SiteHeader() {
+    const { user } = useUser()
     const navigate = useNavigate()
+
+    if (!user) return null
+
+    const initials = getInitials(user.profile.firstName, user.profile.lastName)
 
     const handleLogout = async () => {
         try {
@@ -65,8 +72,8 @@ export function SiteHeader() {
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <Avatar>
-                                <AvatarImage src="https://picsum.photos/200/300" />
-                                <AvatarFallback>CN</AvatarFallback>
+                                <AvatarImage src={user.photoUrl || undefined} />
+                                <AvatarFallback>{initials}</AvatarFallback>
                             </Avatar>
                         </DropdownMenuTrigger>
 

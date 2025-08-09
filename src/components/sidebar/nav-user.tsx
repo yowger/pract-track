@@ -23,17 +23,21 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
+import { getInitials } from "@/lib/tools"
 
 export function NavUser({
     user,
 }: {
     user: {
-        name: string
-        email: string
+        firstName: string
+        lastName: string
+        role: string
         avatar: string
     }
 }) {
     const { isMobile } = useSidebar()
+    const fullName = `${user.firstName} ${user.lastName}`
+    const initials = getInitials(user.firstName, user.lastName)
 
     return (
         <SidebarMenu>
@@ -45,20 +49,17 @@ export function NavUser({
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage
-                                    src={user.avatar}
-                                    alt={user.name}
-                                />
+                                <AvatarImage src={user.avatar} alt={fullName} />
                                 <AvatarFallback className="rounded-lg">
-                                    CN
+                                    {initials}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-medium">
-                                    {user.name}
+                                    {fullName}
                                 </span>
                                 <span className="truncate text-xs">
-                                    {user.email}
+                                    {user.role}
                                 </span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
@@ -75,18 +76,18 @@ export function NavUser({
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage
                                         src={user.avatar}
-                                        alt={user.name}
+                                        alt={fullName}
                                     />
                                     <AvatarFallback className="rounded-lg">
-                                        CN
+                                        {initials}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-medium">
-                                        {user.name}
+                                        {fullName}
                                     </span>
                                     <span className="truncate text-xs">
-                                        {user.email}
+                                        {user.role}
                                     </span>
                                 </div>
                             </div>

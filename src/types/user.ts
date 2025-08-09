@@ -5,6 +5,9 @@ export type Role =
     | "agency_supervisor"
 
 export interface Profile {
+    firstName: string
+    middleName: string
+    lastName: string
     email: string
     role: Role
     createdAt: Date

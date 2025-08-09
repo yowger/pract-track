@@ -3,7 +3,7 @@ import { onAuthStateChanged } from "firebase/auth"
 
 import { auth } from "@/service/firebase/firebase"
 import { UserContext } from "@/store/user-context"
-import type { AppUser } from "@/components/types/user"
+import type { AppUser } from "@/types/user"
 import {
     fetchAgencySupervisorData,
     fetchChairPersonData,

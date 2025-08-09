@@ -25,6 +25,8 @@ import {
     SidebarHeader,
     SidebarRail,
 } from "@/components/ui/sidebar"
+import { useUser } from "@/hooks/use-user"
+import type { Role } from "@/types/user"
 
 interface SidebarItem {
     title: string
@@ -32,29 +34,8 @@ interface SidebarItem {
     icon: LucideIcon
 }
 
-type UserRole =
-    | "student"
-    | "practicumAdviser"
-    | "agencySupervisor"
-    | "programCoordinator"
-    | "chairperson"
-
 type SidebarConfig = {
-    [key in UserRole]: SidebarItem[]
-}
-
-interface User {
-    name: string
-    email: string
-    avatar: string
-    role: UserRole
-}
-
-const currentUser: User = {
-    name: "Yowger",
-    email: "yowger@example.com",
-    avatar: "/avatars/shadcn.jpg",
-    role: "student",
+    [key in Role]: SidebarItem[]
 }
 
 const teams = [
@@ -99,7 +80,7 @@ const sidebarConfig: SidebarConfig = {
         },
     ],
 
-    practicumAdviser: [
+    practicum_adviser: [
         {
             title: "Provide Feedback & Grades",
             url: "/adviser/feedback",
@@ -122,7 +103,7 @@ const sidebarConfig: SidebarConfig = {
         },
     ],
 
-    agencySupervisor: [
+    agency_supervisor: [
         {
             title: "Generate Attendance QR Code",
             url: "/supervisor/qr",
@@ -140,20 +121,20 @@ const sidebarConfig: SidebarConfig = {
         },
     ],
 
-    programCoordinator: [
-        {
-            title: "Assign Students to Agencies",
-            url: "/coordinator/assign",
-            icon: UserCheck,
-        },
-        {
-            title: "Overall Internship Status",
-            url: "/coordinator/status",
-            icon: CalendarDays,
-        },
-    ],
+    // programCoordinator: [
+    //     {
+    //         title: "Assign Students to Agencies",
+    //         url: "/coordinator/assign",
+    //         icon: UserCheck,
+    //     },
+    //     {
+    //         title: "Overall Internship Status",
+    //         url: "/coordinator/status",
+    //         icon: CalendarDays,
+    //     },
+    // ],
 
-    chairperson: [
+    chair_person: [
         {
             title: "Chairperson Panel",
             url: "/chair/dashboard",
@@ -163,7 +144,11 @@ const sidebarConfig: SidebarConfig = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const nav: SidebarItem[] = sidebarConfig[currentUser.role] || []
+    const { user } = useUser()
+
+    if (!user) return null
+
+    const nav: SidebarItem[] = sidebarConfig[user?.profile.role] || []
 
     return (
         <Sidebar collapsible="icon" {...props}>
@@ -174,7 +159,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <AppNavMain items={nav} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={currentUser} />
+                <NavUser
+                    user={{
+                        firstName: user.profile.firstName,
+                        lastName: user.profile.lastName,
+                        role: user.profile.role,
+                        avatar: user?.photoUrl || "",
+                    }}
+                />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
