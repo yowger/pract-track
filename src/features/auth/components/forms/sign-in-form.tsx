@@ -1,10 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import {
+    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+} from "firebase/auth"
+import { FirebaseError } from "firebase/app"
 
-import { cn } from "@/lib/utils"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -22,6 +28,9 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
+import { auth, db } from "@/service/firebase/firebase"
+import { cn } from "@/lib/utils"
+import { doc, getDoc, setDoc } from "firebase/firestore"
 
 const signInSchema = z.object({
     email: z.email({ message: "Invalid email address" }),
@@ -30,11 +39,15 @@ const signInSchema = z.object({
 
 type SignInFormData = z.infer<typeof signInSchema>
 
+const provider = new GoogleAuthProvider()
+
 export default function SignInForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
     const [loading, setLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const navigate = useNavigate()
 
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
@@ -44,15 +57,63 @@ export default function SignInForm({
         },
     })
 
-    async function onSubmit(values: SignInFormData) {
-        console.log("🚀 ~ SignInForm ~ values:", values)
+    async function handleGoogleSignUp() {
         setLoading(true)
+        setErrorMessage(null)
+
         try {
-            console.log("firebase login")
+            const result = await signInWithPopup(auth, provider)
+            const user = result.user
+
+            const userRef = doc(db, "users", user.uid)
+            const docSnap = await getDoc(userRef)
+
+            if (!docSnap.exists()) {
+                await setDoc(userRef, {
+                    email: user.email,
+                    role: "",
+                    createdAt: new Date(),
+                })
+            }
+
+            navigate("/role-sign-up")
         } catch (error) {
-            console.error("Login error:", error)
+            if (error instanceof FirebaseError) {
+                const friendlyMessage =
+                    firebaseErrorMessages[error.code] ||
+                    "An unexpected error occurred."
+
+                setErrorMessage(friendlyMessage)
+            } else {
+                setErrorMessage("Something went wrong. Please try again later.")
+            }
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
+    }
+
+    async function onSubmit(values: SignInFormData) {
+        setLoading(true)
+
+        try {
+            await signInWithEmailAndPassword(
+                auth,
+                values.email,
+                values.password
+            )
+            navigate("/")
+        } catch (error) {
+            if (error instanceof FirebaseError) {
+                const friendlyMessage =
+                    firebaseErrorMessages[error.code] ||
+                    "An unexpected error occurred."
+                setErrorMessage(friendlyMessage)
+            } else {
+                setErrorMessage("Something went wrong. Please try again later.")
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -73,6 +134,8 @@ export default function SignInForm({
                             <div className="grid gap-6">
                                 <div className="flex flex-col gap-4">
                                     <Button
+                                        onClick={handleGoogleSignUp}
+                                        disabled={loading}
                                         variant="outline"
                                         type="button"
                                         className="w-full"
@@ -121,12 +184,12 @@ export default function SignInForm({
                                         <FormItem>
                                             <div className="flex items-center">
                                                 <FormLabel>Password</FormLabel>
-                                                <a
+                                                {/* <a
                                                     href="#"
                                                     className="ml-auto text-sm underline-offset-4 hover:underline"
                                                 >
                                                     Forgot your password?
-                                                </a>
+                                                </a> */}
                                             </div>
                                             <FormControl>
                                                 <Input
@@ -139,6 +202,18 @@ export default function SignInForm({
                                         </FormItem>
                                     )}
                                 />
+
+                                {errorMessage && (
+                                    <Alert
+                                        variant="destructive"
+                                        className="py-6"
+                                    >
+                                        <AlertTitle>Sign In Error</AlertTitle>
+                                        <AlertDescription>
+                                            {errorMessage}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
 
                                 <Button
                                     type="submit"
@@ -164,4 +239,17 @@ export default function SignInForm({
             </Card>
         </div>
     )
+}
+
+const firebaseErrorMessages: Record<string, string> = {
+    "auth/invalid-credential": "Invalid email or password.",
+    "auth/invalid-email": "The email address is badly formatted.",
+    "auth/user-disabled":
+        "This account has been disabled. Please contact support.",
+    "auth/user-not-found": "No user found with this email address.",
+    "auth/wrong-password": "Incorrect password. Please try again.",
+    "auth/too-many-requests":
+        "Too many failed attempts. Please try again later.",
+    "auth/operation-not-allowed": "Email/password sign-in is not enabled.",
+    "auth/internal-error": "An internal error occurred. Please try again.",
 }

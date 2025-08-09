@@ -1,3 +1,7 @@
+import { useNavigate } from "react-router-dom"
+import { signOut } from "firebase/auth"
+import { LogOut, Settings, User } from "lucide-react"
+
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -17,10 +21,22 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-import { LogOut, Settings, User } from "lucide-react"
 import { ModeToggle } from "./mode-toggle"
+import { auth } from "@/service/firebase/firebase"
 
 export function SiteHeader() {
+    const navigate = useNavigate()
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth)
+
+            navigate("/sign-in")
+        } catch (error) {
+            console.error("Logout error:", error)
+        }
+    }
+
     return (
         <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
             <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -65,7 +81,10 @@ export function SiteHeader() {
                                 <Settings className="h-[1.2rem] w-[1.2rem] mr-2" />
                                 Settings
                             </DropdownMenuItem>
-                            <DropdownMenuItem variant="destructive">
+                            <DropdownMenuItem
+                                onClick={handleLogout}
+                                variant="destructive"
+                            >
                                 <LogOut className="h-[1.2rem] w-[1.2rem] mr-2" />
                                 Logout
                             </DropdownMenuItem>

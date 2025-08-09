@@ -1,12 +1,17 @@
-"use client"
-
-import { cn } from "@/lib/utils"
+import {
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+} from "firebase/auth"
+import { FirebaseError } from "firebase/app"
+import { setDoc, doc, getDoc } from "firebase/firestore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { z } from "zod"
 
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import {
     Form,
     FormField,
@@ -24,10 +29,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-
-// import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-// import { setDoc, doc } from "firebase/firestore"
-// import { auth, db } from "@/lib/firebase"
+import { cn } from "@/lib/utils"
+import { auth, db } from "@/service/firebase/firebase"
 
 const signUpSchema = z
     .object({
@@ -44,13 +47,17 @@ const signUpSchema = z
         path: ["confirmPassword"],
     })
 
+const provider = new GoogleAuthProvider()
+
 type SignUpFormData = z.infer<typeof signUpSchema>
 
 export default function SignUpForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
+    const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
     const form = useForm<SignUpFormData>({
         resolver: zodResolver(signUpSchema),
@@ -61,22 +68,73 @@ export default function SignUpForm({
         },
     })
 
-    async function onSubmit(values: z.infer<typeof signUpSchema>) {
-        console.log("🚀 ~ onSubmit ~ values:", values)
-
+    async function handleGoogleSignUp() {
         setLoading(true)
+        setErrorMessage(null)
 
         try {
-            // const userCredential = await createUserWithEmailAndPassword(
-            //   auth,
-            //   values.email,
-            //   values.password
-            // )
-        } catch (error) {
-            console.error("Error registering:", error)
-        }
+            const result = await signInWithPopup(auth, provider)
+            const user = result.user
 
-        setLoading(false)
+            const userRef = doc(db, "users", user.uid)
+            const docSnap = await getDoc(userRef)
+
+            if (!docSnap.exists()) {
+                await setDoc(userRef, {
+                    email: user.email,
+                    role: "",
+                    createdAt: new Date(),
+                })
+            }
+
+            navigate("/role-sign-up")
+        } catch (error) {
+            if (error instanceof FirebaseError) {
+                const friendlyMessage =
+                    firebaseErrorMessages[error.code] ||
+                    "An unexpected error occurred."
+
+                setErrorMessage(friendlyMessage)
+            } else {
+                setErrorMessage("Something went wrong. Please try again later.")
+            }
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function onSubmit(values: z.infer<typeof signUpSchema>) {
+        setLoading(true)
+        setErrorMessage(null)
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                values.email,
+                values.password
+            )
+            const user = userCredential.user
+
+            await setDoc(doc(db, "users", user.uid), {
+                email: values.email,
+                role: "",
+                createdAt: new Date(),
+            })
+
+            navigate("/role-sign-up")
+        } catch (error) {
+            if (error instanceof FirebaseError) {
+                const friendlyMessage =
+                    firebaseErrorMessages[error.code] ||
+                    "An unexpected error occurred."
+
+                setErrorMessage(friendlyMessage)
+            } else {
+                setErrorMessage("Something went wrong. Please try again later.")
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -95,9 +153,10 @@ export default function SignUpForm({
                             className="space-y-4"
                         >
                             <div className="grid gap-6">
-                                {/* Social Sign Up */}
                                 <div className="flex flex-col gap-4">
                                     <Button
+                                        onClick={handleGoogleSignUp}
+                                        disabled={loading}
                                         variant="outline"
                                         type="button"
                                         className="w-full"
@@ -183,6 +242,20 @@ export default function SignUpForm({
                                     />
                                 </div>
 
+                                {errorMessage && (
+                                    <Alert
+                                        variant="destructive"
+                                        className="py-6"
+                                    >
+                                        <AlertTitle>
+                                            Registration Error
+                                        </AlertTitle>
+                                        <AlertDescription>
+                                            {errorMessage}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+
                                 <Button
                                     type="submit"
                                     disabled={loading}
@@ -207,4 +280,14 @@ export default function SignUpForm({
             </Card>
         </div>
     )
+}
+
+const firebaseErrorMessages: Record<string, string> = {
+    "auth/email-already-in-use": "This email address is already registered.",
+    "auth/invalid-email": "The email address is badly formatted.",
+    "auth/operation-not-allowed": "Email/password sign-up is not enabled.",
+    "auth/weak-password": "Password should be at least 6 characters.",
+    "auth/too-many-requests":
+        "Too many sign-up attempts. Please try again later.",
+    "auth/internal-error": "An internal error occurred. Please try again.",
 }
