@@ -1,44 +1,88 @@
+import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function AttendanceHistory({
-    history,
-}: {
-    history: {
-        date: string
-        checkIn: string | null
-        checkOut: string | null
-        status: string
-    }[]
-}) {
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import DataTableColumnsVisibilityDemo from "./table-test"
+
+interface AttendanceRecord {
+    date: Date
+    morningIn?: Date
+    morningOut?: Date
+    afternoonIn?: Date
+    afternoonOut?: Date
+}
+
+interface AttendanceHistoryProps {
+    records: AttendanceRecord[]
+}
+
+export default function AttendanceHistory({ records }: AttendanceHistoryProps) {
     return (
-        <Card>
+        <Card className="@container/card">
             <CardHeader>
-                <CardTitle>Attendance History</CardTitle>
+                <CardTitle className="text-xl font-semibold tabular-nums @[250px]/card:text-2xl">
+                    Attendance History
+                </CardTitle>
             </CardHeader>
+
             <CardContent>
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-muted-foreground/20">
-                            <th className="py-2 px-3">Date</th>
-                            <th className="py-2 px-3">Check-In</th>
-                            <th className="py-2 px-3">Check-Out</th>
-                            <th className="py-2 px-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {history.map(({ date, checkIn, checkOut, status }) => (
-                            <tr
-                                key={date}
-                                className="border-b last:border-b-0 border-muted-foreground/10"
-                            >
-                                <td className="py-2 px-3">{date}</td>
-                                <td className="py-2 px-3">{checkIn || "-"}</td>
-                                <td className="py-2 px-3">{checkOut || "-"}</td>
-                                <td className="py-2 px-3">{status}</td>
-                            </tr>
+                <DataTableColumnsVisibilityDemo />
+                {/* <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="text-left">Date</TableHead>
+                            <TableHead className="text-left">
+                                Morning In
+                            </TableHead>
+                            <TableHead className="text-left">
+                                Morning Out
+                            </TableHead>
+                            <TableHead className="text-left">
+                                Afternoon In
+                            </TableHead>
+                            <TableHead className="text-left">
+                                Afternoon Out
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                        {records.map((record) => (
+                            <TableRow key={record.date.toISOString()}>
+                                <TableCell>
+                                    {format(record.date, "MMM d, yyyy")}
+                                </TableCell>
+                                <TableCell>
+                                    {record.morningIn
+                                        ? format(record.morningIn, "hh:mm a")
+                                        : "-"}
+                                </TableCell>
+                                <TableCell>
+                                    {record.morningOut
+                                        ? format(record.morningOut, "hh:mm a")
+                                        : "-"}
+                                </TableCell>
+                                <TableCell>
+                                    {record.afternoonIn
+                                        ? format(record.afternoonIn, "hh:mm a")
+                                        : "-"}
+                                </TableCell>
+                                <TableCell>
+                                    {record.afternoonOut
+                                        ? format(record.afternoonOut, "hh:mm a")
+                                        : "-"}
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table> */}
             </CardContent>
         </Card>
     )

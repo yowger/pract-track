@@ -14,12 +14,71 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { TimePair } from "@/features/dtr/components/time-pair"
+// import AttendanceHistory from "../components/attendance-history"
+// import DataTableDemo from "../components/table-test"
+import DataTable from "../components/tables/attendance-history/data-table"
+import {
+    type DTR,
+    type ShiftEntry,
+    getColumns,
+} from "../components/tables/attendance-history/columns"
+import { useEffect, useState } from "react"
 
 const attendanceTimes = {
     morningIn: new Date("2025-08-13T08:00:00"),
     morningOut: new Date("2025-08-13T12:00:00"),
     afternoonIn: new Date("2025-08-13T13:00:00"),
     afternoonOut: new Date("2025-08-13T17:00:00"),
+}
+
+export async function getData(): Promise<DTR[]> {
+    const data: DTR[] = Array.from({ length: 10 }).map((_, i) => {
+        const date = new Date()
+        date.setDate(date.getDate() - i) // past 10 days
+
+        const formatTime = (hour: number, minute: number) =>
+            `${hour.toString().padStart(2, "0")}:${minute
+                .toString()
+                .padStart(2, "0")}`
+
+        const entries: ShiftEntry[] = [
+            {
+                name: "Morning In",
+                time: formatTime(
+                    8 + Math.floor(Math.random() * 2),
+                    Math.floor(Math.random() * 60)
+                ),
+            },
+            {
+                name: "Morning Out",
+                time: formatTime(
+                    11 + Math.floor(Math.random() * 2),
+                    Math.floor(Math.random() * 60)
+                ),
+            },
+            {
+                name: "Afternoon In",
+                time: formatTime(
+                    13 + Math.floor(Math.random() * 2),
+                    Math.floor(Math.random() * 60)
+                ),
+            },
+            {
+                name: "Afternoon Out",
+                time: formatTime(
+                    17 + Math.floor(Math.random() * 2),
+                    Math.floor(Math.random() * 60)
+                ),
+            },
+        ]
+
+        return {
+            date: date.toISOString().split("T")[0],
+            entries,
+        }
+    })
+
+    return data
 }
 
 export default function DtrPage() {
@@ -29,6 +88,14 @@ export default function DtrPage() {
         error: isDateError,
     } = useServerDate()
     const { permission, error, requestPermission } = useGeolocationPermission()
+
+    const [data, setData] = useState<DTR[]>([])
+
+    const columns = getColumns(data)
+
+    useEffect(() => {
+        getData().then(setData)
+    }, [])
 
     return (
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -66,8 +133,6 @@ export default function DtrPage() {
                             />
                         </div>
 
-                        <StatusIndicator status="timedIn" />
-
                         <div>
                             <LiveClock />
                             <div className="text-muted-foreground text-sm">
@@ -77,6 +142,8 @@ export default function DtrPage() {
                                     format(serverDate, "EEEE, MMM d, yyyy")}
                             </div>
                         </div>
+
+                        <StatusIndicator status="timedIn" />
 
                         <div className="flex gap-4">
                             <Button variant="default" size="lg">
@@ -88,6 +155,10 @@ export default function DtrPage() {
                         </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            <div className="px-4 lg:px-6">
+                <DataTable data={data || []} columns={columns} />
             </div>
         </div>
     )
