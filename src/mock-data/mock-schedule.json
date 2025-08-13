@@ -1,0 +1,82 @@
+{
+    "userId": "EMP001",
+    "departmentId": "HR01",
+    "weeklySchedule": {
+        "monday": {
+            "workStart": {
+                "time": "08:00",
+                "requireSelfie": true
+            },
+            "lunchStart": {
+                "time": "12:00",
+                "requireSelfie": false
+            },
+            "lunchEnd": {
+                "time": "13:00",
+                "requireSelfie": true
+            },
+            "workEnd": {
+                "time": "17:00",
+                "requireSelfie": false
+            },
+            "location": {
+                "lat": 14.5995,
+                "lng": 120.9842,
+                "radiusMeters": 100
+            }
+        },
+        "tuesday": {
+            "workStart": {
+                "time": "08:00",
+                "requireSelfie": true
+            },
+            "lunchStart": {
+                "time": "12:00",
+                "requireSelfie": false
+            },
+            "lunchEnd": {
+                "time": "13:00",
+                "requireSelfie": false
+            },
+            "workEnd": {
+                "time": "17:00",
+                "requireSelfie": false
+            },
+            "location": {
+                "lat": 14.5995,
+                "lng": 120.9842,
+                "radiusMeters": 100
+            }
+        }
+    },
+    "overrides": {
+        "2025-08-19": {
+            "note": "Holiday - Ninoy Aquino Day",
+            "isHoliday": true
+        },
+        "2025-08-21": {
+            "note": "Special shift for company event",
+            "workStart": {
+                "time": "07:00",
+                "requireSelfie": true
+            },
+            "lunchStart": {
+                "time": "11:00",
+                "requireSelfie": false
+            },
+            "lunchEnd": {
+                "time": "12:00",
+                "requireSelfie": true
+            },
+            "workEnd": {
+                "time": "16:00",
+                "requireSelfie": false
+            },
+            "location": {
+                "lat": 14.58,
+                "lng": 120.98,
+                "radiusMeters": 150
+            }
+        }
+    }
+}

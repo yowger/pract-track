@@ -1,7 +1,7 @@
 import { ChartAreaInteractive } from "../components/charts/chart-area-interactive"
 import { SectionCards } from "@/features/dashboard/components/section-cards"
 
-// import data from "@/data/mock-data.json"
+// import data from "@/mock-data/mock-data.json"
 
 export default function Dashboard() {
     return (

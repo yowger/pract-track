@@ -59,6 +59,11 @@ const teams = [
 const sidebarConfig: SidebarConfig = {
     student: [
         {
+            title: "Dashboard",
+            url: "/student/dashboard",
+            icon: Settings2,
+        },
+        {
             title: "Files & Reports",
             url: "/files",
             icon: FileUp,
