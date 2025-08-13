@@ -23,6 +23,10 @@ import {
     getColumns,
 } from "../components/tables/attendance-history/columns"
 import { useEffect, useState } from "react"
+import { DTRMap } from "../components/map"
+import { GeoFenceMap } from "../components/geoFenceMap"
+import { CheckCircle, CheckCircle2, CheckIcon, XCircle } from "lucide-react"
+import { IconCheck, IconCheckbox, IconChecks } from "@tabler/icons-react"
 
 const attendanceTimes = {
     morningIn: new Date("2025-08-13T08:00:00"),
@@ -97,6 +101,8 @@ export default function DtrPage() {
         getData().then(setData)
     }, [])
 
+    const inZone = false
+
     return (
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
             <div className="px-4 lg:px-6">
@@ -110,48 +116,85 @@ export default function DtrPage() {
                         </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-4">
-                        {permission !== "granted" && (
-                            <GpsStatus onEnable={requestPermission} />
-                        )}
-                        {error && <p className="text-red-600 mt-2">{error}</p>}
-
-                        <div>
-                            <h3 className="mb-1">Attendance Summary</h3>
-
-                            <TimePair
-                                labelIn="Morning in"
-                                timeIn={attendanceTimes.morningIn}
-                                labelOut="Morning out"
-                                timeOut={attendanceTimes.morningOut}
-                            />
-                            <TimePair
-                                labelIn="Afternoon in"
-                                timeIn={attendanceTimes.afternoonIn}
-                                labelOut="Afternoon out"
-                                timeOut={attendanceTimes.afternoonOut}
-                            />
-                        </div>
-
-                        <div>
-                            <LiveClock />
-                            <div className="text-muted-foreground text-sm">
-                                {isDateLoading && "Loading date..."}
-                                {isDateError && "Error loading date"}
-                                {serverDate &&
-                                    format(serverDate, "EEEE, MMM d, yyyy")}
-                            </div>
-                        </div>
-
-                        <StatusIndicator status="timedIn" />
-
+                    <CardContent className="">
                         <div className="flex gap-4">
-                            <Button variant="default" size="lg">
-                                Time In
-                            </Button>
-                            <Button variant="secondary" size="lg">
-                                Time Out
-                            </Button>
+                            <div className="w-2/3 space-y-4">
+                                {permission !== "granted" && (
+                                    <GpsStatus onEnable={requestPermission} />
+                                )}
+                                {error && (
+                                    <p className="text-red-600 mt-2">{error}</p>
+                                )}
+
+                                <div>
+                                    <h3 className="mb-1">Attendance Summary</h3>
+
+                                    <TimePair
+                                        labelIn="Morning in"
+                                        timeIn={attendanceTimes.morningIn}
+                                        labelOut="Morning out"
+                                        timeOut={attendanceTimes.morningOut}
+                                    />
+                                    <TimePair
+                                        labelIn="Afternoon in"
+                                        timeIn={attendanceTimes.afternoonIn}
+                                        labelOut="Afternoon out"
+                                        timeOut={attendanceTimes.afternoonOut}
+                                    />
+                                </div>
+
+                                <div>
+                                    <LiveClock />
+                                    <div className="text-muted-foreground text-sm">
+                                        {isDateLoading && "Loading date..."}
+                                        {isDateError && "Error loading date"}
+                                        {serverDate &&
+                                            format(
+                                                serverDate,
+                                                "EEEE, MMM d, yyyy"
+                                            )}
+                                    </div>
+                                </div>
+
+                                <StatusIndicator status="timedIn" />
+
+                                <div className="flex gap-4">
+                                    <Button variant="default" size="lg">
+                                        Time In
+                                    </Button>
+                                    <Button variant="secondary" size="lg">
+                                        Time Out
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2 w-full md:w-1/3 overflow-hidden">
+                                <div className="h-full rounded-lg relative border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <GeoFenceMap
+                                        // yourLocation={}
+                                        allowedRadius={100}
+                                        agencyLocation={{
+                                            lat: 6.748454,
+                                            // lng: 125.35138,
+                                            lng: 125.35038,
+                                        }}
+                                    />
+                                </div>
+
+                                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    {inZone ? (
+                                        <>
+                                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                            <span>Within allowed area</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <XCircle className="w-4 h-4 text-red-500" />
+                                            <span>Outside allowed area</span>
+                                        </>
+                                    )}
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

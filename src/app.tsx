@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/routes/protected-routes"
 import AdminLayout from "@/layouts/admin-layout"
 import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
+import DtrCopyPage from "./features/dtr/pages/dtr copy"
 // import StudentDashboard from "./features/student/pages/student-dashboard"
 
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
@@ -50,6 +51,7 @@ const studentRoutes = (
             {/* <Route path="/" element={<StudentDashboard />} /> */}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dtr" element={<DtrPage />} />
+            <Route path="/dtrCopy" element={<DtrCopyPage />} />
         </Route>
     </Route>
 )

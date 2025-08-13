@@ -4,8 +4,8 @@ import { useGeolocated } from "react-geolocated"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { GeoFenceMap } from "./map"
-import AttendanceHistory from "../components/attendance-history"
+import { GeoFenceMap } from "../components/geoFenceMap"
+// import AttendanceHistory from "../components/attendance-history"
 import GeoPermissionHandler from "../components/geo-permission-handler"
 import CameraCapture from "../components/camera-capture"
 
@@ -20,7 +20,7 @@ const allowedRadius = 75
 
 type LatLng = { lat: number; lng: number }
 
-export default function DtrPage() {
+export default function DtrCopyPage() {
     const [status, setStatus] = useState<
         "not_logged_in" | "checked_in" | "checked_out"
     >("not_logged_in")
@@ -188,7 +188,7 @@ export default function DtrPage() {
                 </CardContent>
             </Card>
 
-            <AttendanceHistory history={attendanceHistory} />
+            {/* <AttendanceHistory history={attendanceHistory} /> */}
         </div>
     )
 }

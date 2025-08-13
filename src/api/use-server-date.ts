@@ -12,7 +12,10 @@ export function useServerDate() {
             try {
                 setLoading(true)
                 const date = await getServerDate()
-                setServerDate(date)
+
+                if (date) {
+                    setServerDate(date)
+                }
             } catch (err) {
                 setError(err as Error)
             } finally {
