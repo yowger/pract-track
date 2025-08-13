@@ -1,4 +1,4 @@
-<div className="w-full">
+{/* <div className="w-full">
             <div className="flex items-center gap-2 py-4">
                 <Input
                     placeholder="Filter emails..."
@@ -71,4 +71,4 @@
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-            </div>
+            </div> */}
