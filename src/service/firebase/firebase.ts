@@ -13,6 +13,7 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
+console.log("🚀 ~ app:", app)
 
 export const auth = getAuth(app)
 export const db = getFirestore(app)
