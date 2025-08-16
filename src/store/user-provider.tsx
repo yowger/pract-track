@@ -3,7 +3,7 @@ import { onAuthStateChanged } from "firebase/auth"
 
 import { auth } from "@/service/firebase/firebase"
 import { UserContext } from "@/store/user-context"
-import type { AppUser } from "@/types/user"
+import type { AppUser, Profile } from "@/types/user"
 import {
     fetchAgencySupervisorData,
     fetchChairPersonData,
@@ -13,19 +13,22 @@ import {
 } from "@/api/users"
 
 export function UserProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<AppUser | null>(null)
+    const [user, setUser] = useState<AppUser | Profile | null>(null)
     const [isLoading, setLoading] = useState(true)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            console.log("🚀 ~ UserProvider ~ firebaseUser:", firebaseUser)
             if (!firebaseUser) {
                 setUser(null)
                 setLoading(false)
+
                 return
             }
 
             try {
                 const profile = await fetchUserProfile(firebaseUser.uid)
+                let fullUser: AppUser | Profile | null = null
 
                 const baseUser = {
                     uid: firebaseUser.uid,
@@ -33,15 +36,23 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     displayName: firebaseUser.displayName,
                     photoUrl: firebaseUser.photoURL,
                     profile,
+                    role: null,
                 }
 
-                let fullUser: AppUser | null = null
+                console.log("cool")
 
-                switch (profile.role) {
+                switch (profile?.role) {
                     case "student": {
                         const studentData = await fetchStudentData(
                             firebaseUser.uid
                         )
+
+                        if (!studentData) {
+                            fullUser = profile
+
+                            return
+                        }
+
                         fullUser = {
                             ...baseUser,
                             profile: { ...profile, role: "student" },
@@ -53,6 +64,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         const adviserData = await fetchPracticumAdviserData(
                             firebaseUser.uid
                         )
+
+                        if (!adviserData) {
+                            fullUser = profile
+
+                            return
+                        }
+
                         fullUser = {
                             ...baseUser,
                             profile: { ...profile, role: "practicum_adviser" },
@@ -64,6 +82,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         const chairData = await fetchChairPersonData(
                             firebaseUser.uid
                         )
+
+                        if (!chairData) {
+                            fullUser = profile
+
+                            return
+                        }
+
                         fullUser = {
                             ...baseUser,
                             profile: { ...profile, role: "chair_person" },
@@ -75,6 +100,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         const supervisorData = await fetchAgencySupervisorData(
                             firebaseUser.uid
                         )
+
+                        if (!supervisorData) {
+                            fullUser = profile
+
+                            return
+                        }
+
                         fullUser = {
                             ...baseUser,
                             profile: { ...profile, role: "agency_supervisor" },
@@ -83,7 +115,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
                         break
                     }
                     default:
-                        fullUser = null
+                        console.log("cool 2")
+                        fullUser = profile
                 }
 
                 setUser(fullUser)

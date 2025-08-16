@@ -1,9 +1,9 @@
 import { createContext } from "react"
 
-import type { AppUser } from "@/types/user"
+import type { AppUser, Profile } from "@/types/user"
 
 export interface UserContextType {
-    user: AppUser | null
+    user: AppUser | null | Profile
     isLoading: boolean
 }
 

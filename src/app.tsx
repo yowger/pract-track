@@ -6,6 +6,7 @@ import AdminLayout from "@/layouts/admin-layout"
 import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
 import DtrCopyPage from "./features/dtr/pages/dtr copy"
+import type { Role } from "./types/user"
 // import StudentDashboard from "./features/student/pages/student-dashboard"
 
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
@@ -23,27 +24,47 @@ export default function App() {
     }
 
     const hasUser = !!user
-    const role = user?.profile?.role
+    const role = user?.role
 
     return (
         <Suspense fallback={<LoadingFallback />}>
             <Routes>
                 {hasUser ? (
                     role ? (
-                        <>
-                            {getRoutesForRole(role)}
-                            {notFoundRoute}
-                        </>
+                        <>{getRoutesForRole(role)}</>
                     ) : (
-                        roleInitRoutes
+                        roleSignUpRoutes
                     )
                 ) : (
                     authRoutes
                 )}
+                {notFoundRoute}
             </Routes>
         </Suspense>
     )
 }
+
+function getRoutesForRole(role: Role | undefined) {
+    switch (role) {
+        case "student":
+            return studentRoutes
+        case "practicum_adviser":
+            return adviserRoutes
+        case "chair_person":
+            return chairPersonRoutes
+        case "agency_supervisor":
+            return agencySupervisorRoutes
+        default:
+            return <div>Role undefined. please contact support</div>
+    }
+}
+
+const roleSignUpRoutes = (
+    <>
+        <Route path="/role-sign-up" element={<RoleInitPage />} />
+        <Route path="*" element={<RoleInitPage />} />
+    </>
+)
 
 const studentRoutes = (
     <Route element={<ProtectedRoute />}>
@@ -85,13 +106,6 @@ const agencySupervisorRoutes = (
     </Route>
 )
 
-const roleInitRoutes = (
-    <>
-        <Route path="/role-sign-up" element={<RoleInitPage />} />
-        <Route path="*" element={<RoleInitPage />} />
-    </>
-)
-
 const authRoutes = (
     <>
         <Route path="/sign-in" element={<SignInPage />} />
@@ -101,18 +115,3 @@ const authRoutes = (
 )
 
 const notFoundRoute = <Route path="*" element={<NotFoundPage />} />
-
-function getRoutesForRole(role: string | undefined) {
-    switch (role) {
-        case "student":
-            return studentRoutes
-        case "practicum_adviser":
-            return adviserRoutes
-        case "chair_person":
-            return chairPersonRoutes
-        case "agency_supervisor":
-            return agencySupervisorRoutes
-        default:
-            return null
-    }
-}

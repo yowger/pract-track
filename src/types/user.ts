@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore"
+
 export type Role =
     | "student"
     | "practicum_adviser"
@@ -9,9 +11,9 @@ export interface Profile {
     middleName: string
     lastName: string
     email: string
-    role: Role
-    createdAt: Date
-    updatedAt: Date
+    role: Role | null
+    createdAt: Timestamp
+    updatedAt: Timestamp
 }
 
 export interface BaseUser {
@@ -20,6 +22,7 @@ export interface BaseUser {
     displayName: string | null
     photoUrl: string | null
     profile: Profile
+    role: Role | null
 }
 
 export interface Student {

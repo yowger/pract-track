@@ -2,11 +2,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import {
     GoogleAuthProvider,
     signInWithEmailAndPassword,
     signInWithPopup,
+    type UserCredential,
 } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
 
@@ -28,13 +29,13 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
-import { auth, db } from "@/service/firebase/firebase"
+import { auth } from "@/service/firebase/firebase"
 import { cn } from "@/lib/utils"
-import { doc, getDoc, setDoc } from "firebase/firestore"
 import {
     firebaseAuthErrorMessages,
     firebaseFirestoreErrorMessages,
 } from "@/service/firebase/error-messages"
+import { createUser, fetchUserProfile } from "@/api/users"
 
 const signInSchema = z.object({
     email: z.email({ message: "Invalid email address" }),
@@ -51,7 +52,6 @@ export default function SignInForm({
 }: React.ComponentProps<"div">) {
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
-    const navigate = useNavigate()
 
     const form = useForm<SignInFormData>({
         resolver: zodResolver(signInSchema),
@@ -62,55 +62,45 @@ export default function SignInForm({
     })
 
     async function handleGoogleSignUp() {
+        const user = () => signInWithPopup(auth, provider)
+
+        await handleAuth(user, true)
+    }
+
+    async function onSubmit(values: SignInFormData) {
+        const user = () =>
+            signInWithEmailAndPassword(auth, values.email, values.password)
+
+        await handleAuth(user, false)
+    }
+
+    async function handleAuth(
+        signInFn: () => Promise<UserCredential>,
+        isGoogle = false
+    ) {
         setLoading(true)
         setErrorMessage(null)
 
         try {
-            const result = await signInWithPopup(auth, provider)
+            const result = await signInFn()
             const user = result.user
 
-            const userRef = doc(db, "users", user.uid)
-            const docSnap = await getDoc(userRef)
+            const userExist = await fetchUserProfile(user.uid)
 
-            if (!docSnap.exists()) {
-                await setDoc(userRef, {
-                    email: user.email,
-                    role: "",
-                    createdAt: new Date(),
+            if (!userExist) {
+                await createUser({
+                    uid: user.uid,
+                    email: user.email || "",
                 })
             }
-
-            navigate("/role-sign-up")
         } catch (error) {
             if (error instanceof FirebaseError) {
+                const sourceErrors = isGoogle
+                    ? firebaseFirestoreErrorMessages
+                    : firebaseAuthErrorMessages
+
                 const friendlyMessage =
-                    firebaseFirestoreErrorMessages[error.code] ||
-                    "An unexpected error occurred."
-
-                setErrorMessage(friendlyMessage)
-            } else {
-                setErrorMessage("Something went wrong. Please try again later.")
-            }
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    async function onSubmit(values: SignInFormData) {
-        setLoading(true)
-
-        try {
-            await signInWithEmailAndPassword(
-                auth,
-                values.email,
-                values.password
-            )
-            navigate("/")
-        } catch (error) {
-            if (error instanceof FirebaseError) {
-                const friendlyMessage =
-                    firebaseAuthErrorMessages[error.code] ||
-                    "An unexpected error occurred."
+                    sourceErrors[error.code] || "An unexpected error occurred."
                 setErrorMessage(friendlyMessage)
             } else {
                 setErrorMessage("Something went wrong. Please try again later.")
@@ -198,7 +188,7 @@ export default function SignInForm({
                                             <FormControl>
                                                 <Input
                                                     type="password"
-                                                    autoComplete="new-password"
+                                                    autoComplete="current-password"
                                                     {...field}
                                                 />
                                             </FormControl>

@@ -4,11 +4,10 @@ import {
     signInWithPopup,
 } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
-import { setDoc, doc, getDoc } from "firebase/firestore"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { z } from "zod"
 
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
@@ -30,11 +29,12 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { auth, db } from "@/service/firebase/firebase"
+import { auth } from "@/service/firebase/firebase"
 import {
     firebaseAuthErrorMessages,
     firebaseFirestoreErrorMessages,
 } from "@/service/firebase/error-messages"
+import { createUser, fetchUserProfile } from "@/api/users"
 
 const signUpSchema = z
     .object({
@@ -59,7 +59,6 @@ export default function SignUpForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
-    const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -80,18 +79,14 @@ export default function SignUpForm({
             const result = await signInWithPopup(auth, provider)
             const user = result.user
 
-            const userRef = doc(db, "users", user.uid)
-            const docSnap = await getDoc(userRef)
+            const userExist = fetchUserProfile(user.uid)
 
-            if (!docSnap.exists()) {
-                await setDoc(userRef, {
-                    email: user.email,
-                    role: "",
-                    createdAt: new Date(),
+            if (!userExist) {
+                await createUser({
+                    uid: user.uid,
+                    email: user.email || "",
                 })
             }
-
-            navigate("/role-sign-up")
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
@@ -119,14 +114,10 @@ export default function SignUpForm({
             )
             const user = userCredential.user
 
-            await setDoc(doc(db, "users", user.uid), {
-                email: values.email,
-                role: "",
-                createdAt: new Date(),
-                updatedAt: new Date(),
+            await createUser({
+                uid: user.uid,
+                email: user.email || "",
             })
-
-            navigate("/role-sign-up")
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
