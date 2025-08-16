@@ -5,13 +5,14 @@ export type Role =
     | "practicum_adviser"
     | "chair_person"
     | "agency_supervisor"
+    | null
 
 export interface Profile {
     firstName: string
     middleName: string
     lastName: string
     email: string
-    role: Role | null
+    role: Role
     createdAt: Timestamp
     updatedAt: Timestamp
 }
@@ -22,7 +23,6 @@ export interface BaseUser {
     displayName: string | null
     photoUrl: string | null
     profile: Profile
-    role: Role | null
 }
 
 export interface Student {
@@ -62,4 +62,7 @@ export type AppUser =
     | (BaseUser & {
           profile: Profile & { role: "agency_supervisor" }
           supervisorData: AgencySupervisor
+      })
+    | (BaseUser & {
+          profile: Profile & { role: null }
       })

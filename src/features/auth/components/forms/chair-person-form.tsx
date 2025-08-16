@@ -20,6 +20,8 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
+import { createChairperson } from "@/api/users"
+import { useUser } from "@/hooks/use-user"
 
 const chairpersonSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -32,6 +34,7 @@ const chairpersonSchema = z.object({
 type ChairpersonData = z.infer<typeof chairpersonSchema>
 
 export default function ChairpersonForm() {
+    const { user } = useUser()
     const [loading, setLoading] = useState(false)
 
     const form = useForm<ChairpersonData>({
@@ -46,9 +49,25 @@ export default function ChairpersonForm() {
     })
 
     async function onSubmit(values: ChairpersonData) {
-        setLoading(true)
-        console.log("Form submitted:", values)
-        setLoading(false)
+        if (!user) return
+
+        try {
+            setLoading(true)
+            await createChairperson({
+                uid: user.uid,
+                username: values.username,
+                firstName: values.firstName,
+                middleName: values.middleName,
+                lastName: values.lastName,
+                position: values.position,
+            })
+
+            window.location.reload() // TODO:
+        } catch (err) {
+            console.error("Error creating chairperson:", err)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (

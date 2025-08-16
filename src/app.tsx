@@ -18,13 +18,14 @@ const NotFoundPage = lazy(() => import("@/pages/not-found"))
 
 export default function App() {
     const { user, isLoading } = useUser()
+    console.log("🚀 ~ App ~ user:", user)
 
     if (isLoading) {
         return <LoadingFallback />
     }
 
     const hasUser = !!user
-    const role = user?.role
+    const role = user?.profile.role
 
     return (
         <Suspense fallback={<LoadingFallback />}>

@@ -2,6 +2,7 @@ import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
 
 import type {
     AgencySupervisor,
+    AppUser,
     ChairPerson,
     PracticumAdviser,
     Profile,
@@ -20,22 +21,16 @@ export async function fetchUserProfile(uid: string): Promise<Profile | null> {
     return userSnap.data() as Profile
 }
 
-interface CreateUserParams {
+export async function createUser(data: {
     uid: string
     email: string
     role?: Role | null
-}
-
-export async function createUser({
-    uid,
-    email,
-    role = null,
-}: CreateUserParams): Promise<Profile | null> {
-    const userRef = doc(db, "users", uid)
+}): Promise<Profile | null> {
+    const userRef = doc(db, "users", data.uid)
 
     await setDoc(userRef, {
-        email,
-        role,
+        email: data.email,
+        role: data.role,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     })
@@ -43,12 +38,45 @@ export async function createUser({
     const snap = await getDoc(userRef)
     if (!snap.exists()) return null
 
-    const data = snap.data()
+    const newData = snap.data()
+
     return {
-        ...data,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
+        ...newData,
+        createdAt: newData.createdAt.toDate(),
+        updatedAt: newData.updatedAt.toDate(),
     } as Profile
+}
+
+export async function createChairperson(data: {
+    uid: string
+    username: string
+    firstName: string
+    middleName?: string
+    lastName: string
+    position: string
+}) {
+    const chairRef = doc(db, "chair_persons", data.uid)
+    const userRef = doc(db, "users", data.uid)
+
+    await Promise.all([
+        setDoc(
+            chairRef,
+            {
+                ...data,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        ),
+        setDoc(
+            userRef,
+            {
+                role: "chair_person",
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        ),
+    ])
 }
 
 export async function fetchStudentData(uid: string): Promise<Student | null> {
@@ -89,4 +117,10 @@ export async function fetchAgencySupervisorData(
     if (!docSnap.exists()) return null
 
     return docSnap.data() as AgencySupervisor
+}
+
+export function isAppUser(u: AppUser | Profile | null): u is AppUser {
+    const result = !!u && "profile" in u
+    console.log("isAppUser?", result, u)
+    return result
 }
