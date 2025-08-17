@@ -35,6 +35,7 @@ type ChairpersonData = z.infer<typeof chairpersonSchema>
 
 export default function ChairpersonForm() {
     const { user } = useUser()
+    console.log("🚀 ~ ChairpersonForm ~ user:", user)
     const [loading, setLoading] = useState(false)
 
     const form = useForm<ChairpersonData>({

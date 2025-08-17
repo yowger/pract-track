@@ -33,7 +33,7 @@ export function SiteHeader() {
 
     if (!user) return null
 
-    const initials = getInitials(user.profile.firstName, user.profile.lastName)
+    const initials = getInitials(user.firstName, user.lastName)
 
     const handleLogout = async () => {
         try {

@@ -8,21 +8,16 @@ export type Role =
     | null
 
 export interface Profile {
+    uid: string
     firstName: string
     middleName: string
     lastName: string
     email: string
+    displayName: string | null
+    photoUrl: string | null
     role: Role
     createdAt: Timestamp
     updatedAt: Timestamp
-}
-
-export interface BaseUser {
-    uid: string
-    email: string
-    displayName: string | null
-    photoUrl: string | null
-    profile: Profile
 }
 
 export interface Student {
@@ -47,22 +42,12 @@ export interface AgencySupervisor {
 }
 
 export type AppUser =
-    | (BaseUser & {
-          profile: Profile & { role: "student" }
-          studentData: Student
-      })
-    | (BaseUser & {
-          profile: Profile & { role: "practicum_adviser" }
+    | (Profile & { role: "student" } & { studentData: Student })
+    | (Profile & { role: "practicum_adviser" } & {
           adviserData: PracticumAdviser
       })
-    | (BaseUser & {
-          profile: Profile & { role: "chair_person" }
-          chairData: ChairPerson
-      })
-    | (BaseUser & {
-          profile: Profile & { role: "agency_supervisor" }
+    | (Profile & { role: "chair_person" } & { chairData: ChairPerson })
+    | (Profile & { role: "agency_supervisor" } & {
           supervisorData: AgencySupervisor
       })
-    | (BaseUser & {
-          profile: Profile & { role: null }
-      })
+    | (Profile & { role: null })

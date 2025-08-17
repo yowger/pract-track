@@ -6,7 +6,6 @@ import { UserContext } from "@/store/user-context"
 import type {
     AgencySupervisor,
     AppUser,
-    BaseUser,
     ChairPerson,
     PracticumAdviser,
     Student,
@@ -56,14 +55,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
                     return
                 }
 
-                const baseUser: BaseUser = {
-                    uid: firebaseUser.uid,
-                    email: firebaseUser.email || "",
-                    displayName: firebaseUser.displayName || "",
-                    photoUrl: firebaseUser.photoURL || "",
-                    profile,
-                }
-
                 const fetchedRole = roleFetchers[profile.role ?? ""]
 
                 if (fetchedRole) {
@@ -71,22 +62,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
                     if (!roleData) {
                         setUser({
-                            ...baseUser,
-                            profile: { ...profile, role: null },
+                            ...profile,
+                            role: null,
                         })
 
                         return
                     }
 
                     setUser({
-                        ...baseUser,
-                        profile: { ...profile, role: profile.role },
+                        ...profile,
+                        role: profile.role,
                         [`${profile.role}Data`]: roleData,
                     } as AppUser)
                 } else {
                     setUser({
-                        ...baseUser,
-                        profile: { ...profile, role: null },
+                        ...profile,
+                        role: null,
                     })
                 }
             } catch (error) {

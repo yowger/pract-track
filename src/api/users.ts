@@ -6,7 +6,6 @@ import type {
     ChairPerson,
     PracticumAdviser,
     Profile,
-    Role,
     Student,
 } from "@/types/user"
 import { db } from "@/service/firebase/firebase"
@@ -21,16 +20,13 @@ export async function fetchUserProfile(uid: string): Promise<Profile | null> {
     return userSnap.data() as Profile
 }
 
-export async function createUser(data: {
-    uid: string
-    email: string
-    role?: Role
-}): Promise<Profile | null> {
+export async function createUser(
+    data: Omit<Profile, "createdAt" | "updatedAt">
+): Promise<Profile | null> {
     const userRef = doc(db, "users", data.uid)
 
     await setDoc(userRef, {
-        email: data.email,
-        role: null,
+        ...data,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     })

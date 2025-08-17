@@ -37,7 +37,7 @@ export default function App() {
     }
 
     const hasUser = !!user
-    const role = user?.profile.role
+    const role = user?.role
 
     return (
         <Suspense fallback={<LoadingFallback />}>

@@ -90,7 +90,13 @@ export default function SignInForm({
             if (!userExist) {
                 await createUser({
                     uid: user.uid,
-                    email: user.email || "",
+                    email: user.email ?? "",
+                    firstName: "",
+                    middleName: "",
+                    lastName: "",
+                    displayName: user.displayName ?? "",
+                    photoUrl: user.photoURL ?? "",
+                    role: null,
                 })
             }
         } catch (error) {

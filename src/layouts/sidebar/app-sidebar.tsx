@@ -163,8 +163,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     let nav: SidebarItem[] = []
 
-    if (user.profile.role) {
-        nav = sidebarConfig[user.profile.role] || []
+    if (user.role) {
+        nav = sidebarConfig[user.role] || []
     }
 
     return (
@@ -178,9 +178,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarFooter>
                 <NavUser
                     user={{
-                        firstName: user.profile.firstName,
-                        lastName: user.profile.lastName,
-                        role: user.profile.role || "",
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        role: user.role || "",
                         avatar: user?.photoUrl || "",
                     }}
                 />

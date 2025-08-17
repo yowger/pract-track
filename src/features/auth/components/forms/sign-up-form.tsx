@@ -84,7 +84,13 @@ export default function SignUpForm({
             if (!userExist) {
                 await createUser({
                     uid: user.uid,
-                    email: user.email || "",
+                    email: user.email ?? "",
+                    firstName: "",
+                    middleName: "",
+                    lastName: "",
+                    displayName: user.displayName ?? "",
+                    photoUrl: user.photoURL ?? "",
+                    role: null,
                 })
             }
         } catch (error) {
@@ -116,7 +122,13 @@ export default function SignUpForm({
 
             await createUser({
                 uid: user.uid,
-                email: user.email || "",
+                email: user.email ?? "",
+                firstName: "",
+                middleName: "",
+                lastName: "",
+                displayName: user.displayName ?? "",
+                photoUrl: user.photoURL ?? "",
+                role: null,
             })
         } catch (error) {
             if (error instanceof FirebaseError) {
