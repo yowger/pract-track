@@ -62,15 +62,21 @@ export async function createChairperson(data: {
         setDoc(
             chairRef,
             {
-                ...data,
+                uid: data.uid,
+                username: data.username,
+                position: data.position,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             },
             { merge: true }
         ),
+
         setDoc(
             userRef,
             {
+                firstName: data.firstName,
+                middleName: data.middleName ?? null,
+                lastName: data.lastName,
                 role: "chair_person",
                 updatedAt: serverTimestamp(),
             },

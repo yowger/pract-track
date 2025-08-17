@@ -13,6 +13,8 @@ import {
     QrCode,
     Users,
     type LucideIcon,
+    Users2Icon,
+    Briefcase,
 } from "lucide-react"
 
 import { AppNavMain } from "./app-nav-main"
@@ -34,8 +36,10 @@ interface SidebarItem {
     icon: LucideIcon
 }
 
+type NonNullRole = Exclude<Role, null>
+
 type SidebarConfig = {
-    [key in Role]: SidebarItem[]
+    [key in NonNullRole]: SidebarItem[]
 }
 
 const teams = [
@@ -57,6 +61,19 @@ const teams = [
 ]
 
 const sidebarConfig: SidebarConfig = {
+    chair_person: [
+        {
+            title: "Internship",
+            url: "/",
+            icon: Briefcase,
+        },
+        {
+            title: "Students",
+            url: "/students",
+            icon: Users2Icon,
+        },
+    ],
+
     student: [
         {
             title: "Dashboard",
@@ -138,22 +155,17 @@ const sidebarConfig: SidebarConfig = {
     //         icon: CalendarDays,
     //     },
     // ],
-
-    chair_person: [
-        {
-            title: "Chairperson Panel",
-            url: "/chair/dashboard",
-            icon: Settings2,
-        },
-    ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user } = useUser()
-
     if (!user) return null
 
-    const nav: SidebarItem[] = sidebarConfig[user?.profile.role] || []
+    let nav: SidebarItem[] = []
+
+    if (user.profile.role) {
+        nav = sidebarConfig[user.profile.role] || []
+    }
 
     return (
         <Sidebar collapsible="icon" {...props}>
@@ -168,7 +180,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     user={{
                         firstName: user.profile.firstName,
                         lastName: user.profile.lastName,
-                        role: user.profile.role,
+                        role: user.profile.role || "",
                         avatar: user?.photoUrl || "",
                     }}
                 />

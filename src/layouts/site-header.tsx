@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,14 +20,15 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { ModeToggle } from "./mode-toggle"
+} from "../components/ui/dropdown-menu"
+import { ModeToggle } from "../components/mode-toggle"
 import { useUser } from "@/hooks/use-user"
 import { auth } from "@/service/firebase/firebase"
 import { getInitials } from "@/lib/tools"
 
 export function SiteHeader() {
     const { user } = useUser()
+    console.log("🚀 ~ SiteHeader ~ user:", user)
     const navigate = useNavigate()
 
     if (!user) return null

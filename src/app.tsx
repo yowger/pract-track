@@ -7,8 +7,13 @@ import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
 import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import type { Role } from "./types/user"
-// import StudentDashboard from "./features/student/pages/student-dashboard"
 
+const InternshipDashboardPage = lazy(
+    () => import("@/features/chair-person/pages/internship-dashboard")
+)
+const StudentManagerDashboardPage = lazy(
+    () => import("@/features/chair-person/pages/student-manager-dashboard")
+)
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
 const SignUpPage = lazy(() => import("@/features/auth/pages/sign-up"))
 const RoleInitPage = lazy(() => import("@/features/auth/pages/role-init"))
@@ -60,6 +65,15 @@ function getRoutesForRole(role: Role | undefined) {
     }
 }
 
+const chairPersonRoutes = (
+    <Route element={<ProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+            <Route path="/" element={<InternshipDashboardPage />} />
+            <Route path="/students" element={<StudentManagerDashboardPage />} />
+        </Route>
+    </Route>
+)
+
 const roleSignUpRoutes = (
     <>
         <Route path="/role-sign-up" element={<RoleInitPage />} />
@@ -82,15 +96,6 @@ const adviserRoutes = (
     <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
             <Route path="/" element={<Dashboard />} />
-        </Route>
-    </Route>
-)
-
-const chairPersonRoutes = (
-    <Route element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            {/* <Route path="/chair/reports" element={<ChairReportsPage />} /> */}
         </Route>
     </Route>
 )
