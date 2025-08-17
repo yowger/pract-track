@@ -85,6 +85,40 @@ export async function createChairperson(data: {
     ])
 }
 
+export async function createStudent(data: {
+    uid: string
+    username: string
+    firstName: string
+    middleName?: string
+    lastName: string
+    studentID: string
+    program: string
+    yearLevel: string
+    section: string
+}) {
+    await setDoc(
+        doc(db, "users", data.uid),
+        {
+            username: data.username,
+            firstName: data.firstName,
+            middleName: data.middleName || "",
+            lastName: data.lastName,
+            role: "student",
+            updatedAt: new Date(),
+        },
+        { merge: true }
+    )
+
+    await setDoc(doc(db, "students", data.uid), {
+        studentID: data.studentID,
+        program: data.program,
+        yearLevel: data.yearLevel,
+        section: data.section,
+        status: "",
+        assignAgencyID: "",
+    })
+}
+
 export async function createAgencySupervisor(data: {
     uid: string
     username: string

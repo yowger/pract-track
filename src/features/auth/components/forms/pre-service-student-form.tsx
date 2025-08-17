@@ -2,11 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { FirebaseError } from "firebase/app"
-import { doc, setDoc } from "firebase/firestore"
-import { useNavigate } from "react-router-dom"
 import { z } from "zod"
 
-import { db } from "@/service/firebase/firebase"
 import { useUser } from "@/hooks/use-user"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +24,7 @@ import {
 } from "@/components/ui/form"
 import { firebaseFirestoreErrorMessages } from "@/service/firebase/error-messages"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { createStudent } from "@/api/users"
 
 const preServiceSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -45,7 +43,6 @@ export default function PreServiceStudentForm() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
 
-    const navigate = useNavigate()
     const { user } = useUser()
 
     const form = useForm<PreServiceStudentData>({
@@ -68,29 +65,19 @@ export default function PreServiceStudentForm() {
         setLoading(true)
 
         try {
-            await setDoc(
-                doc(db, "users", user.uid),
-                {
-                    username: values.username,
-                    firstName: values.firstName,
-                    middleName: values.middleName || "",
-                    lastName: values.lastName,
-                    role: "student",
-                    updatedAt: new Date(),
-                },
-                { merge: true }
-            )
-
-            await setDoc(doc(db, "students", user.uid), {
+            await createStudent({
+                uid: user.uid,
+                username: values.username,
+                firstName: values.firstName,
+                middleName: values.middleName,
+                lastName: values.lastName,
                 studentID: values.studentID,
                 program: values.program,
                 yearLevel: values.yearLevel,
                 section: values.section,
-                status: "",
-                assignAgencyID: "",
             })
 
-            navigate("/")
+            window.location.reload() // TODO:
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =
