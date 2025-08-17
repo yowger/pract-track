@@ -1,5 +1,5 @@
-import { Route, Routes } from "react-router-dom"
-import { lazy, Suspense } from "react"
+import { Outlet, Route, Routes } from "react-router-dom"
+import { lazy, Suspense, useEffect, useState } from "react"
 
 import ProtectedRoute from "@/components/routes/protected-routes"
 import AdminLayout from "@/layouts/admin-layout"
@@ -7,6 +7,7 @@ import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
 import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import type { Role } from "./types/user"
+import { fetchAgency, type Agency } from "./api/agency"
 
 const InternshipDashboardPage = lazy(
     () => import("@/features/chair-person/pages/internship-dashboard")
@@ -15,7 +16,10 @@ const StudentManagerDashboardPage = lazy(
     () => import("@/features/chair-person/pages/student-manager-dashboard")
 )
 const AgencyDashboardPage = lazy(
-    () => import("./features/agency-person/pages/agency-dashboard")
+    () => import("@/features/agency-person/pages/agency-dashboard")
+)
+const CreateAgencyPage = lazy(
+    () => import("@/features/agency-person/pages/create-agency")
 )
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
 const SignUpPage = lazy(() => import("@/features/auth/pages/sign-up"))
@@ -92,12 +96,19 @@ const chairPersonRoutes = (
 )
 
 const agencySupervisorRoutes = (
-    <Route element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-            <Route path="/" element={<AgencyDashboardPage />} />
-            <Route path="/students" element={<StudentManagerDashboardPage />} />
+    <>
+        <Route element={<AgencyGuard />}>
+            <Route element={<ProtectedRoute />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/" element={<AgencyDashboardPage />} />
+                    <Route
+                        path="/students"
+                        element={<StudentManagerDashboardPage />}
+                    />
+                </Route>
+            </Route>
         </Route>
-    </Route>
+    </>
 )
 
 const studentRoutes = (
@@ -120,3 +131,31 @@ const adviserRoutes = (
 )
 
 const notFoundRoute = <Route path="*" element={<NotFoundPage />} />
+
+function AgencyGuard() {
+    const { user, isLoading } = useUser()
+    const [agency, setAgency] = useState<Agency | null>(null)
+    const [checking, setChecking] = useState(true)
+
+    useEffect(() => {
+        async function fetchAgencyFunction() {
+            if (!user) {
+                setChecking(false)
+                return
+            }
+
+            const agency = await fetchAgency(user.uid)
+
+            setAgency(agency)
+            setChecking(false)
+        }
+
+        fetchAgencyFunction()
+    }, [user])
+
+    if (isLoading || checking) return <LoadingFallback />
+
+    if (!agency) return <CreateAgencyPage />
+
+    return <Outlet />
+}
