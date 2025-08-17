@@ -6,13 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {
     Form,
     FormField,
     FormItem,
@@ -20,6 +13,8 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
+import { createAgencySupervisor } from "@/api/users"
+import { useUser } from "@/hooks/use-user"
 
 const agencySupervisorSchema = z.object({
     firstName: z.string().min(1, "Given name is required"),
@@ -27,12 +22,12 @@ const agencySupervisorSchema = z.object({
     lastName: z.string().min(1, "Surname is required"),
     username: z.string().min(1, "Username is required"),
     position: z.string().min(1, "Position is required"),
-    department: z.string().min(1, "Department is required"),
 })
 
 type AgencySupervisorData = z.infer<typeof agencySupervisorSchema>
 
 export default function AgencySupervisorForm() {
+    const { user } = useUser()
     const [loading, setLoading] = useState(false)
 
     const form = useForm<AgencySupervisorData>({
@@ -43,22 +38,35 @@ export default function AgencySupervisorForm() {
             lastName: "",
             username: "",
             position: "",
-            department: "",
         },
     })
 
     async function onSubmit(values: AgencySupervisorData) {
-        setLoading(true)
-        console.log("Form submitted:", values)
-        // TODO: Firebase create account logic
-        setLoading(false)
+        if (!user) return
+
+        try {
+            setLoading(true)
+            await createAgencySupervisor({
+                uid: user.uid,
+                username: values.username,
+                firstName: values.firstName,
+                middleName: values.middleName,
+                lastName: values.lastName,
+                position: values.position,
+            })
+
+            window.location.reload() // TODO:
+        } catch (err) {
+            console.error("Error creating agency supervisor:", err)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid gap-6">
-                    {/* Name Fields */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <FormField
                             control={form.control}
@@ -101,7 +109,6 @@ export default function AgencySupervisorForm() {
                         />
                     </div>
 
-                    {/* Username */}
                     <FormField
                         control={form.control}
                         name="username"
@@ -116,7 +123,6 @@ export default function AgencySupervisorForm() {
                         )}
                     />
 
-                    {/* Position */}
                     <FormField
                         control={form.control}
                         name="position"
@@ -125,42 +131,6 @@ export default function AgencySupervisorForm() {
                                 <FormLabel>Position</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Department */}
-                    <FormField
-                        control={form.control}
-                        name="department"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Department</FormLabel>
-                                <FormControl>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                    >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select department" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="IT">
-                                                IT
-                                            </SelectItem>
-                                            <SelectItem value="HR">
-                                                HR
-                                            </SelectItem>
-                                            <SelectItem value="Finance">
-                                                Finance
-                                            </SelectItem>
-                                            <SelectItem value="Operations">
-                                                Operations
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

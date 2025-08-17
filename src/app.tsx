@@ -14,6 +14,9 @@ const InternshipDashboardPage = lazy(
 const StudentManagerDashboardPage = lazy(
     () => import("@/features/chair-person/pages/student-manager-dashboard")
 )
+const AgencyDashboardPage = lazy(
+    () => import("./features/agency-person/pages/agency-dashboard")
+)
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
 const SignUpPage = lazy(() => import("@/features/auth/pages/sign-up"))
 const RoleInitPage = lazy(() => import("@/features/auth/pages/role-init"))
@@ -23,7 +26,6 @@ const NotFoundPage = lazy(() => import("@/pages/not-found"))
 
 export default function App() {
     const { user, isLoading } = useUser()
-    console.log("🚀 ~ App ~ user:", user)
 
     if (isLoading) {
         return <LoadingFallback />
@@ -65,6 +67,21 @@ function getRoutesForRole(role: Role | undefined) {
     }
 }
 
+const roleSignUpRoutes = (
+    <>
+        <Route path="/role-sign-up" element={<RoleInitPage />} />
+        <Route path="*" element={<RoleInitPage />} />
+    </>
+)
+
+const authRoutes = (
+    <>
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="*" element={<SignInPage />} />
+    </>
+)
+
 const chairPersonRoutes = (
     <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
@@ -74,11 +91,13 @@ const chairPersonRoutes = (
     </Route>
 )
 
-const roleSignUpRoutes = (
-    <>
-        <Route path="/role-sign-up" element={<RoleInitPage />} />
-        <Route path="*" element={<RoleInitPage />} />
-    </>
+const agencySupervisorRoutes = (
+    <Route element={<ProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+            <Route path="/" element={<AgencyDashboardPage />} />
+            <Route path="/students" element={<StudentManagerDashboardPage />} />
+        </Route>
+    </Route>
 )
 
 const studentRoutes = (
@@ -98,26 +117,6 @@ const adviserRoutes = (
             <Route path="/" element={<Dashboard />} />
         </Route>
     </Route>
-)
-
-const agencySupervisorRoutes = (
-    <Route element={<ProtectedRoute />}>
-        <Route element={<AdminLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route
-                path="/agency/supervisor/dashboard"
-                // element={<AgencyDashboardPage />}
-            />
-        </Route>
-    </Route>
-)
-
-const authRoutes = (
-    <>
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
-        <Route path="*" element={<SignInPage />} />
-    </>
 )
 
 const notFoundRoute = <Route path="*" element={<NotFoundPage />} />

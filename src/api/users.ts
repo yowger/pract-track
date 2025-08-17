@@ -24,13 +24,13 @@ export async function fetchUserProfile(uid: string): Promise<Profile | null> {
 export async function createUser(data: {
     uid: string
     email: string
-    role?: Role | null
+    role?: Role
 }): Promise<Profile | null> {
     const userRef = doc(db, "users", data.uid)
 
     await setDoc(userRef, {
         email: data.email,
-        role: data.role,
+        role: null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     })
@@ -54,7 +54,7 @@ export async function createChairperson(data: {
     middleName?: string
     lastName: string
     position: string
-}) {
+}): Promise<void> {
     const chairRef = doc(db, "chair_persons", data.uid)
     const userRef = doc(db, "users", data.uid)
 
@@ -78,6 +78,46 @@ export async function createChairperson(data: {
                 middleName: data.middleName ?? null,
                 lastName: data.lastName,
                 role: "chair_person",
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        ),
+    ])
+}
+
+export async function createAgencySupervisor(data: {
+    uid: string
+    username: string
+    firstName: string
+    middleName?: string
+    lastName: string
+    position: string
+    agencyId?: string
+}): Promise<void> {
+    const supervisorRef = doc(db, "agency_supervisors", data.uid)
+    const userRef = doc(db, "users", data.uid)
+
+    await Promise.all([
+        setDoc(
+            supervisorRef,
+            {
+                uid: data.uid,
+                username: data.username,
+                position: data.position,
+                agencyId: data.agencyId ?? null,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            },
+            { merge: true }
+        ),
+
+        setDoc(
+            userRef,
+            {
+                firstName: data.firstName,
+                middleName: data.middleName ?? null,
+                lastName: data.lastName,
+                role: "agency_supervisor",
                 updatedAt: serverTimestamp(),
             },
             { merge: true }
