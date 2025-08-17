@@ -109,14 +109,18 @@ export async function createStudent(data: {
         { merge: true }
     )
 
-    await setDoc(doc(db, "students", data.uid), {
-        studentID: data.studentID,
-        program: data.program,
-        yearLevel: data.yearLevel,
-        section: data.section,
-        status: "",
-        assignAgencyID: "",
-    })
+    await setDoc(
+        doc(db, "students", data.uid),
+        {
+            studentID: data.studentID,
+            program: data.program,
+            yearLevel: data.yearLevel,
+            section: data.section,
+            status: "",
+            assignAgencyID: "",
+        },
+        { merge: true }
+    )
 }
 
 export async function createAgencySupervisor(data: {

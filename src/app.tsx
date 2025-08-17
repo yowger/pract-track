@@ -9,6 +9,7 @@ import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import type { Role } from "./types/user"
 import { fetchAgency, type Agency } from "./api/agency"
 
+const SeedPage = lazy(() => import("@/seeders/page/seed"))
 const InternshipDashboardPage = lazy(
     () => import("@/features/chair-person/pages/internship-dashboard")
 )
@@ -51,6 +52,7 @@ export default function App() {
                     authRoutes
                 )}
                 {notFoundRoute}
+                <Route path="/seed" element={<SeedPage />} />
             </Routes>
         </Suspense>
     )
