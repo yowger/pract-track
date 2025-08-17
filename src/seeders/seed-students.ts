@@ -1,35 +1,63 @@
-// import { db } from "@/service/firebase/firebase"
-// import { writeBatch, doc } from "firebase/firestore"
-// import { faker } from "@faker-js/faker"
-// import type { Student } from "@/types/user"
+import { db } from "@/service/firebase/firebase"
+import {
+    writeBatch,
+    doc,
+    serverTimestamp,
+    FieldValue,
+} from "firebase/firestore"
+import { faker } from "@faker-js/faker"
+import type { Profile, Student } from "@/types/user"
 
-// function generateFakeStudents(count: number): Student[] {
-//     return Array.from({ length: count }, () => {
-//         const uid = faker.string.uuid()
-//         return {
-//             uid,
-//             username: faker.internet.displayName(),
-//             firstName: faker.person.firstName(),
-//             middleName: faker.person.middleName(),
-//             lastName: faker.person.lastName(),
-//             studentID: faker.string.alphanumeric(8).toUpperCase(),
-//             program: faker.helpers.arrayElement(["BSIT", "BSCS", "BSBA"]),
-//             yearLevel: faker.number.int({ min: 1, max: 4 }).toString(),
-//             section: faker.helpers.arrayElement(["A", "B", "C"]),
-//         }
-//     })
-// }
+export type NewProfile = Omit<Profile, "createdAt" | "updatedAt"> & {
+    createdAt: FieldValue
+    updatedAt: FieldValue
+}
 
-// export async function seedStudents(count = 20): Promise<void> {
-//     const batch = writeBatch(db)
+function generateFakeUserAndStudent(): { user: NewProfile; student: Student } {
+    const uid = faker.string.uuid()
 
-//     const studentsData = generateFakeStudents(count)
+    const firstName = faker.person.firstName()
+    const middleName = faker.person.middleName()
+    const lastName = faker.person.lastName()
 
-//     studentsData.forEach((student) => {
-//         const ref = doc(db, "students", student.uid)
-//         batch.set(ref, student)
-//     })
+    const user: NewProfile = {
+        uid,
+        firstName,
+        middleName,
+        lastName,
+        email: faker.internet.email({ firstName, lastName }),
+        displayName: `${firstName} ${lastName}`,
+        photoUrl: faker.image.avatar(),
+        role: "student",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    }
 
-//     await batch.commit()
-//     console.log(`${count} students seeded successfully!`)
-// }
+    const student: Student = {
+        studentID: faker.string.alphanumeric(8).toUpperCase(),
+        program: faker.helpers.arrayElement(["BSIT", "BSCS", "BSBA"]),
+        yearLevel: faker.number.int({ min: 1, max: 4 }).toString(),
+        section: faker.helpers.arrayElement(["A", "B", "C"]),
+        status: faker.helpers.arrayElement(["active", "inactive", "pending"]),
+        assignedAgencyID: "",
+    }
+
+    return { user, student }
+}
+
+export async function seedStudents(count = 20): Promise<void> {
+    const batch = writeBatch(db)
+
+    for (let i = 0; i < count; i++) {
+        const { user, student } = generateFakeUserAndStudent()
+
+        const userRef = doc(db, "users", user.uid)
+        const studentRef = doc(db, "students", user.uid)
+
+        batch.set(userRef, user)
+        batch.set(studentRef, student)
+    }
+
+    await batch.commit()
+    console.log(`${count} users + students seeded successfully!`)
+}
