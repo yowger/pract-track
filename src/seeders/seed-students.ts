@@ -42,6 +42,7 @@ function generateFakeUserAndStudent(): {
     }
 
     const student: NewStudent = {
+        uid,
         studentID: faker.string.alphanumeric(8).toLowerCase(),
         program: faker.helpers.arrayElement(["bsit", "bscs", "bsba"]),
         yearLevel: faker.number

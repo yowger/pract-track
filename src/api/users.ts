@@ -105,6 +105,7 @@ export async function createStudent(data: {
     await setDoc(
         studentRef,
         {
+            uid: data.uid,
             studentID,
             program,
             yearLevel,
