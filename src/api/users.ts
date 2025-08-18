@@ -79,14 +79,23 @@ export async function createStudent(data: {
     yearLevel: string
     section: string
 }) {
-    const displayName = `${data.firstName.toLowerCase()} ${data.lastName.toLowerCase()}`
+    const studentRef = doc(db, "students", data.uid)
+    const userRef = doc(db, "users", data.uid)
+
+    const firstName = data.firstName.toLowerCase()
+    const lastName = data.lastName.toLowerCase()
+    const displayName = `${firstName} ${lastName}`
+    const studentID = data.studentID.toLowerCase()
+    const program = data.program.toLowerCase()
+    const yearLevel = data.yearLevel.toLowerCase()
+    const section = data.section.toLowerCase()
 
     await setDoc(
-        doc(db, "users", data.uid),
+        userRef,
         {
-            firstName: data.firstName,
+            firstName,
+            lastName,
             displayName,
-            lastName: data.lastName,
             role: "student",
             updatedAt: new Date(),
         },
@@ -94,14 +103,17 @@ export async function createStudent(data: {
     )
 
     await setDoc(
-        doc(db, "students", data.uid),
+        studentRef,
         {
-            studentID: data.studentID,
-            program: data.program,
-            yearLevel: data.yearLevel,
-            section: data.section,
+            studentID,
+            program,
+            yearLevel,
+            section,
             status: "",
-            assignAgencyID: "",
+            assignedAgencyID: "",
+            firstName,
+            lastName,
+            displayName,
         },
         { merge: true }
     )

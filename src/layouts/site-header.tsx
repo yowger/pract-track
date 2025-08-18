@@ -28,7 +28,6 @@ import { getInitials } from "@/lib/tools"
 
 export function SiteHeader() {
     const { user } = useUser()
-    console.log("🚀 ~ SiteHeader ~ user:", user)
     const navigate = useNavigate()
 
     if (!user) return null

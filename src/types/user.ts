@@ -25,6 +25,11 @@ export interface Student {
     yearLevel: string
     section: string
     status: string
+    firstName: string
+    lastName: string
+    email: string
+    displayName: string | null
+    photoUrl: string | null
     assignedAgencyID: string
 }
 

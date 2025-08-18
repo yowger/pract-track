@@ -13,19 +13,27 @@ export type NewProfile = Omit<Profile, "createdAt" | "updatedAt"> & {
     updatedAt: FieldValue
 }
 
-function generateFakeUserAndStudent(): { user: NewProfile; student: Student } {
+export type NewStudent = Omit<Student, "createdAt" | "updatedAt"> & {
+    createdAt: FieldValue
+    updatedAt: FieldValue
+}
+
+function generateFakeUserAndStudent(): {
+    user: NewProfile
+    student: NewStudent
+} {
     const uid = faker.string.uuid()
 
-    const firstName = faker.person.firstName()
-    const lastName = faker.person.lastName()
+    const firstName = faker.person.firstName().toLowerCase()
+    const lastName = faker.person.lastName().toLowerCase()
 
-    const displayName = `${firstName.toLowerCase()} ${lastName.toLowerCase()}`
+    const displayName = `${firstName} ${lastName}`.toLowerCase()
 
     const user: NewProfile = {
         uid,
         firstName,
         lastName,
-        email: faker.internet.email({ firstName, lastName }),
+        email: faker.internet.email({ firstName, lastName }).toLowerCase(),
         displayName,
         photoUrl: faker.image.avatar(),
         role: "student",
@@ -33,13 +41,23 @@ function generateFakeUserAndStudent(): { user: NewProfile; student: Student } {
         updatedAt: serverTimestamp(),
     }
 
-    const student: Student = {
-        studentID: faker.string.alphanumeric(8).toUpperCase(),
-        program: faker.helpers.arrayElement(["BSIT", "BSCS", "BSBA"]),
-        yearLevel: faker.number.int({ min: 1, max: 4 }).toString(),
-        section: faker.helpers.arrayElement(["A", "B", "C"]),
+    const student: NewStudent = {
+        studentID: faker.string.alphanumeric(8).toLowerCase(),
+        program: faker.helpers.arrayElement(["bsit", "bscs", "bsba"]),
+        yearLevel: faker.number
+            .int({ min: 1, max: 4 })
+            .toString()
+            .toLowerCase(),
+        section: faker.helpers.arrayElement(["a", "b", "c"]),
         status: faker.helpers.arrayElement(["active", "inactive", "pending"]),
         assignedAgencyID: "",
+        firstName,
+        lastName,
+        email: user.email,
+        displayName,
+        photoUrl: user.photoUrl,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
     }
 
     return { user, student }

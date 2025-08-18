@@ -1,8 +1,6 @@
 import {
     collection,
     getDocs,
-    getDoc,
-    doc,
     limit,
     query,
     startAfter,
@@ -10,130 +8,71 @@ import {
     limitToLast,
     where,
     orderBy,
-    type DocumentData,
-    QueryDocumentSnapshot,
     DocumentSnapshot,
     getCountFromServer,
-    Query,
+    QueryConstraint,
 } from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
-import { type AppUser, type Profile, type Student } from "@/types/user"
+import { type Student } from "@/types/user"
 
-interface GetUsersWithStudentsOptions {
-    pageSize?: number
-    cursorDoc?: QueryDocumentSnapshot<DocumentData> | null
-    previous?: boolean
-    filters?: {
-        program?: string
-        yearLevel?: string
-        status?: string
-    }
-}
-
-export async function getUsersWithStudents({
-    pageSize = 10,
-    cursorDoc = null,
-    previous = false,
-    filters = {},
-}: GetUsersWithStudentsOptions): Promise<{
-    data: AppUser[]
-    firstDoc: QueryDocumentSnapshot<DocumentData> | null
-    lastDoc: QueryDocumentSnapshot<DocumentData> | null
-}> {
-    const usersRef = collection(db, "users")
-
-    let q = query(
-        usersRef,
-        where("role", "==", "student"),
-        orderBy("createdAt", "desc")
-    )
-
-    if (filters.program) {
-        q = query(q, where("program", "==", filters.program))
-    }
-    if (filters.yearLevel) {
-        q = query(q, where("yearLevel", "==", filters.yearLevel))
-    }
-    if (filters.status) {
-        q = query(q, where("status", "==", filters.status))
-    }
-
-    if (cursorDoc) {
-        if (previous) {
-            q = query(q, endBefore(cursorDoc), limitToLast(pageSize))
-        } else {
-            q = query(q, startAfter(cursorDoc), limit(pageSize))
-        }
-    } else {
-        q = query(q, limit(pageSize))
-    }
-
-    const snapshot = await getDocs(q)
-    if (snapshot.empty) {
-        return { data: [], firstDoc: null, lastDoc: null }
-    }
-
-    const profiles: Profile[] = snapshot.docs.map(
-        (doc) => ({ ...doc.data(), uid: doc.id } as Profile)
-    )
-
-    const studentMap: Record<string, Student> = {}
-    await Promise.all(
-        profiles.map(async (profile) => {
-            const studentSnap = await getDoc(doc(db, "students", profile.uid))
-            if (studentSnap.exists()) {
-                studentMap[profile.uid] = studentSnap.data() as Student
-            }
-        })
-    )
-
-    const users: AppUser[] = profiles.map((profile) => ({
-        ...profile,
-        role: "student",
-        studentData: studentMap[profile.uid],
-    }))
-
-    return {
-        data: users,
-        firstDoc: snapshot.docs[0],
-        lastDoc: snapshot.docs[snapshot.docs.length - 1],
-    }
+interface StudentFilter {
+    firstName?: string
+    lastName?: string
+    program?: string
+    yearLevel?: string
+    section?: string
+    status?: string
 }
 
 interface GetUsersPaginatedParams {
-    cursor?: QueryDocumentSnapshot<DocumentData> | null
     direction?: "next" | "prev"
+    numPerPage?: number
     startAfterDoc?: DocumentSnapshot
     endBeforeDoc?: DocumentSnapshot
-    numPerPage?: number
-    searchText?: string
+    filter?: StudentFilter
 }
 
-export async function getUsersWithStudentsPaginated({
+export async function getStudentsPaginated({
     direction = "next",
     numPerPage = 20,
     startAfterDoc,
     endBeforeDoc,
-    searchText,
+    filter = {},
 }: GetUsersPaginatedParams) {
-    const usersCollection = collection(db, "users")
+    const studentsCollection = collection(db, "students")
 
-    let baseQuery = query(
-        usersCollection,
-        where("role", "==", "student"),
-        orderBy("createdAt", "desc")
-    )
+    const clauses: QueryConstraint[] = []
 
-    if (searchText) {
-        const lower = searchText.toLowerCase()
-        baseQuery = query(
-            usersCollection,
-            where("role", "==", "student"),
-            where("displayNameLower", ">=", lower),
-            where("displayNameLower", "<", lower + "\uf8ff"),
-            orderBy("displayNameLower")
+    if (filter.firstName) {
+        const lowerFirst = filter.firstName.toLowerCase()
+        clauses.push(
+            where("firstName", ">=", lowerFirst),
+            where("firstName", "<", lowerFirst + "\uf8ff")
         )
     }
+
+    if (filter.lastName) {
+        const lowerLast = filter.lastName.toLowerCase()
+        clauses.push(
+            where("lastName", ">=", lowerLast),
+            where("lastName", "<", lowerLast + "\uf8ff")
+        )
+    }
+
+    if (filter.program)
+        clauses.push(where("program", "==", filter.program.toLowerCase()))
+    if (filter.yearLevel)
+        clauses.push(where("yearLevel", "==", filter.yearLevel.toLowerCase()))
+    if (filter.section)
+        clauses.push(where("section", "==", filter.section.toLowerCase()))
+    if (filter.status)
+        clauses.push(where("status", "==", filter.status.toLowerCase()))
+
+    const baseQuery = query(
+        studentsCollection,
+        ...clauses,
+        orderBy("createdAt", "desc")
+    )
 
     let paginatedQuery
     if (direction === "next") {
@@ -146,76 +85,20 @@ export async function getUsersWithStudentsPaginated({
             : query(baseQuery, limitToLast(numPerPage))
     }
 
-    const userSnapshot = await getDocs(paginatedQuery)
+    const studentSnapshot = await getDocs(paginatedQuery)
+    const countSnap = await getCountFromServer(baseQuery)
 
-    const profiles: Profile[] = userSnapshot.docs.map(
-        (doc) => ({ ...doc.data(), uid: doc.id } as Profile)
+    const students: Student[] = studentSnapshot.docs.map(
+        (doc) => ({ ...doc.data(), uid: doc.id } as unknown as Student)
     )
 
-    const uids = profiles.map((p) => p.uid)
-    const studentDocs: QueryDocumentSnapshot<Student>[] = []
+    const firstDoc = studentSnapshot.docs[0]
+    const lastDoc = studentSnapshot.docs[studentSnapshot.docs.length - 1]
 
-    const chunks = chunkArray(uids, 10)
-    for (const chunk of chunks) {
-        const studentsQuery = query(
-            collection(db, "students"),
-            where("userId", "in", chunk)
-        )
-        const studentSnap = await getDocs(studentsQuery)
-        studentDocs.push(
-            ...(studentSnap.docs as QueryDocumentSnapshot<Student>[])
-        )
+    return {
+        result: students,
+        firstDoc,
+        lastDoc,
+        totalItems: countSnap.data().count,
     }
-
-    const studentMap: Map<string, Student> = new Map(
-        studentDocs.map((studentDoc) => [studentDoc.id, studentDoc.data()])
-    )
-
-    const profilesWithStudents: AppUser[] = profiles.map((profile) => ({
-        ...profile,
-        role: "student",
-        studentData: studentMap.get(profile.uid) as Student,
-    }))
-
-    const firstDoc = userSnapshot.docs[0]
-    const lastDoc = userSnapshot.docs[userSnapshot.docs.length - 1]
-
-    return { result: profilesWithStudents, firstDoc, lastDoc }
-}
-
-interface GetNumPages {
-    numPerPage: number
-    searchText?: string
-}
-
-export async function getNumPages({
-    numPerPage,
-    searchText,
-}: GetNumPages): Promise<number> {
-    const usersCollection = collection(db, "users")
-
-    let q: Query = query(usersCollection, where("role", "==", "student"))
-
-    if (searchText) {
-        const lower = searchText.toLowerCase()
-        q = query(
-            usersCollection,
-            where("role", "==", "student"),
-            where("displayNameLower", ">=", lower),
-            where("displayNameLower", "<", lower + "\uf8ff")
-        )
-    }
-
-    const countSnap = await getCountFromServer(q)
-    const numPages = Math.ceil(countSnap.data().count / numPerPage)
-
-    return numPages
-}
-
-function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = []
-    for (let i = 0; i < arr.length; i += chunkSize) {
-        chunks.push(arr.slice(i, i + chunkSize))
-    }
-    return chunks
 }
