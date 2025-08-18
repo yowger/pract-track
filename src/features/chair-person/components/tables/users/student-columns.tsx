@@ -1,6 +1,7 @@
+import { type ColumnDef } from "@tanstack/react-table"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Student } from "@/types/user"
-import { type ColumnDef } from "@tanstack/react-table"
 
 export const studentColumns: ColumnDef<Student>[] = [
     {
@@ -26,7 +27,7 @@ export const studentColumns: ColumnDef<Student>[] = [
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 20, // make the column small
+        size: 20,
     },
 
     {
@@ -67,7 +68,7 @@ export const studentColumns: ColumnDef<Student>[] = [
     },
     {
         accessorKey: "yearLevel",
-        header: "Year Level",
+        header: "Year",
     },
     {
         accessorKey: "assignedAgencyName",

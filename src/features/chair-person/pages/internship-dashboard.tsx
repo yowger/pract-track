@@ -12,8 +12,8 @@ import {
     SelectItem,
 } from "@/components/ui/select"
 import { useDebounceValue } from "usehooks-ts"
-import DataTable from "@/components/data-table"
-import { studentColumns } from "../components/tables/users/columns"
+import DataTable from "@/features/chair-person/components/tables/users/student-data-table"
+import { studentColumns } from "../components/tables/users/student-columns"
 
 export default function InternshipDashboardPage() {
     const numPerPage = 10
@@ -43,6 +43,11 @@ export default function InternshipDashboardPage() {
     const [debouncedYearLevel] = useDebounceValue(yearLevel, 500)
     const [debouncedStatus] = useDebounceValue(status, 500)
     const [debouncedProgram] = useDebounceValue(program, 500)
+
+    const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>(
+        {}
+    )
+    console.log("🚀 ~ InternshipDashboardPage ~ selectedRows:", selectedRows)
 
     useEffect(() => {
         setPage(1)
@@ -149,11 +154,19 @@ export default function InternshipDashboardPage() {
                 {data.length === 0 ? (
                     <p>No users found.</p>
                 ) : (
-                    <DataTable columns={studentColumns} data={data} />
+                    <DataTable
+                        columns={studentColumns}
+                        data={data}
+                        rowSelection={selectedRows}
+                        onRowSelectionChange={setSelectedRows}
+                        onSelectedRowsChange={(selected) => {
+                            console.log("Selected:", selected)
+                        }}
+                        getRowId={(row) => row.studentID}
+                    />
                 )}
             </div>
 
-            {/* Pagination */}
             <div className="flex items-center justify-start space-x-2 p-4">
                 <Button
                     className="btn btn-outline"
