@@ -24,7 +24,6 @@ import { createChairperson } from "@/api/users"
 import { useUser } from "@/hooks/use-user"
 
 const chairpersonSchema = z.object({
-    username: z.string().min(1, "Username is required"),
     firstName: z.string().min(1, "Given name is required"),
     middleName: z.string().max(1, "Only 1 character allowed").optional(),
     lastName: z.string().min(1, "Surname is required"),
@@ -35,15 +34,12 @@ type ChairpersonData = z.infer<typeof chairpersonSchema>
 
 export default function ChairpersonForm() {
     const { user } = useUser()
-    console.log("🚀 ~ ChairpersonForm ~ user:", user)
     const [loading, setLoading] = useState(false)
 
     const form = useForm<ChairpersonData>({
         resolver: zodResolver(chairpersonSchema),
         defaultValues: {
-            username: "",
             firstName: "",
-            middleName: "",
             lastName: "",
             position: "",
         },
@@ -56,9 +52,7 @@ export default function ChairpersonForm() {
             setLoading(true)
             await createChairperson({
                 uid: user.uid,
-                username: values.username,
                 firstName: values.firstName,
-                middleName: values.middleName,
                 lastName: values.lastName,
                 position: values.position,
             })
@@ -75,13 +69,13 @@ export default function ChairpersonForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid gap-6">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <FormField
                             control={form.control}
                             name="firstName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Given Name</FormLabel>
+                                    <FormLabel>First name</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -89,25 +83,13 @@ export default function ChairpersonForm() {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="middleName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Middle Initial</FormLabel>
-                                    <FormControl>
-                                        <Input maxLength={1} {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
                         <FormField
                             control={form.control}
                             name="lastName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Surname</FormLabel>
+                                    <FormLabel>Last name</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -116,20 +98,6 @@ export default function ChairpersonForm() {
                             )}
                         />
                     </div>
-
-                    <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Username</FormLabel>
-                                <FormControl>
-                                    <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
 
                     <FormField
                         control={form.control}

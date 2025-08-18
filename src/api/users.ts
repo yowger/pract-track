@@ -10,16 +10,6 @@ import type {
 } from "@/types/user"
 import { db } from "@/service/firebase/firebase"
 
-export async function fetchUserProfile(uid: string): Promise<Profile | null> {
-    const userRef = doc(db, "users", uid)
-    const userSnap = await getDoc(userRef)
-    const userExist = userSnap.exists()
-
-    if (!userExist) return null
-
-    return userSnap.data() as Profile
-}
-
 export async function createUser(
     data: Omit<Profile, "createdAt" | "updatedAt">
 ): Promise<Profile | null> {
@@ -45,21 +35,20 @@ export async function createUser(
 
 export async function createChairperson(data: {
     uid: string
-    username: string
     firstName: string
-    middleName?: string
     lastName: string
     position: string
 }): Promise<void> {
     const chairRef = doc(db, "chair_persons", data.uid)
     const userRef = doc(db, "users", data.uid)
 
+    const displayName = `${data.firstName.toLowerCase()} ${data.lastName.toLowerCase()}`
+
     await Promise.all([
         setDoc(
             chairRef,
             {
                 uid: data.uid,
-                username: data.username,
                 position: data.position,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
@@ -71,8 +60,8 @@ export async function createChairperson(data: {
             userRef,
             {
                 firstName: data.firstName,
-                middleName: data.middleName ?? null,
                 lastName: data.lastName,
+                displayName,
                 role: "chair_person",
                 updatedAt: serverTimestamp(),
             },
@@ -83,21 +72,20 @@ export async function createChairperson(data: {
 
 export async function createStudent(data: {
     uid: string
-    username: string
     firstName: string
-    middleName?: string
     lastName: string
     studentID: string
     program: string
     yearLevel: string
     section: string
 }) {
+    const displayName = `${data.firstName.toLowerCase()} ${data.lastName.toLowerCase()}`
+
     await setDoc(
         doc(db, "users", data.uid),
         {
-            username: data.username,
             firstName: data.firstName,
-            middleName: data.middleName || "",
+            displayName,
             lastName: data.lastName,
             role: "student",
             updatedAt: new Date(),
@@ -121,9 +109,7 @@ export async function createStudent(data: {
 
 export async function createAgencySupervisor(data: {
     uid: string
-    username: string
     firstName: string
-    middleName?: string
     lastName: string
     position: string
     agencyId?: string
@@ -131,12 +117,13 @@ export async function createAgencySupervisor(data: {
     const supervisorRef = doc(db, "agency_supervisors", data.uid)
     const userRef = doc(db, "users", data.uid)
 
+    const displayName = `${data.firstName.toLowerCase()} ${data.lastName.toLowerCase()}`
+
     await Promise.all([
         setDoc(
             supervisorRef,
             {
                 uid: data.uid,
-                username: data.username,
                 position: data.position,
                 agencyId: data.agencyId ?? null,
                 createdAt: serverTimestamp(),
@@ -149,14 +136,24 @@ export async function createAgencySupervisor(data: {
             userRef,
             {
                 firstName: data.firstName,
-                middleName: data.middleName ?? null,
                 lastName: data.lastName,
+                displayName,
                 role: "agency_supervisor",
                 updatedAt: serverTimestamp(),
             },
             { merge: true }
         ),
     ])
+}
+
+export async function fetchUserProfile(uid: string): Promise<Profile | null> {
+    const userRef = doc(db, "users", uid)
+    const userSnap = await getDoc(userRef)
+    const userExist = userSnap.exists()
+
+    if (!userExist) return null
+
+    return userSnap.data() as Profile
 }
 
 export async function fetchStudentData(uid: string): Promise<Student | null> {

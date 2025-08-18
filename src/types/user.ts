@@ -10,7 +10,6 @@ export type Role =
 export interface Profile {
     uid: string
     firstName: string
-    middleName: string
     lastName: string
     email: string
     displayName: string | null
@@ -51,3 +50,9 @@ export type AppUser =
           supervisorData: AgencySupervisor
       })
     | (Profile & { role: null })
+
+export function isStudent(
+    user: AppUser
+): user is Profile & { role: "student"; studentData: Student } {
+    return user.role === "student"
+}

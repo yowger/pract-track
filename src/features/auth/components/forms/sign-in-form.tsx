@@ -92,7 +92,6 @@ export default function SignInForm({
                     uid: user.uid,
                     email: user.email ?? "",
                     firstName: "",
-                    middleName: "",
                     lastName: "",
                     displayName: user.displayName ?? "",
                     photoUrl: user.photoURL ?? "",

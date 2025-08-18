@@ -17,16 +17,16 @@ function generateFakeUserAndStudent(): { user: NewProfile; student: Student } {
     const uid = faker.string.uuid()
 
     const firstName = faker.person.firstName()
-    const middleName = faker.person.middleName()
     const lastName = faker.person.lastName()
+
+    const displayName = `${firstName.toLowerCase()} ${lastName.toLowerCase()}`
 
     const user: NewProfile = {
         uid,
         firstName,
-        middleName,
         lastName,
         email: faker.internet.email({ firstName, lastName }),
-        displayName: `${firstName} ${lastName}`,
+        displayName,
         photoUrl: faker.image.avatar(),
         role: "student",
         createdAt: serverTimestamp(),

@@ -25,7 +25,6 @@ const adviserSchema = z.object({
     firstName: z.string().min(1, "Given name is required"),
     middleName: z.string().max(1, "Only 1 character allowed").optional(),
     lastName: z.string().min(1, "Surname is required"),
-    username: z.string().min(1, "Username is required"),
     department: z.string().min(1, "Department is required"),
 })
 
@@ -40,7 +39,6 @@ export default function PracticumAdviserForm() {
             firstName: "",
             middleName: "",
             lastName: "",
-            username: "",
             department: "",
         },
     })
@@ -55,13 +53,13 @@ export default function PracticumAdviserForm() {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <FormField
                         control={form.control}
                         name="firstName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Given Name</FormLabel>
+                                <FormLabel>First name</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
                                 </FormControl>
@@ -69,25 +67,13 @@ export default function PracticumAdviserForm() {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="middleName"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Middle Initial</FormLabel>
-                                <FormControl>
-                                    <Input maxLength={1} {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+
                     <FormField
                         control={form.control}
                         name="lastName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Surname</FormLabel>
+                                <FormLabel>Last name</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
                                 </FormControl>
@@ -96,20 +82,6 @@ export default function PracticumAdviserForm() {
                         )}
                     />
                 </div>
-
-                <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                                <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
 
                 <FormField
                     control={form.control}

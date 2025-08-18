@@ -27,9 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { createStudent } from "@/api/users"
 
 const preServiceSchema = z.object({
-    username: z.string().min(1, "Username is required"),
     firstName: z.string().min(1, "Given name is required"),
-    middleName: z.string().optional(),
     lastName: z.string().min(1, "Surname is required"),
     studentID: z.string().min(1, "Student ID is required"),
     program: z.string().min(1, "Program is required"),
@@ -48,9 +46,7 @@ export default function PreServiceStudentForm() {
     const form = useForm<PreServiceStudentData>({
         resolver: zodResolver(preServiceSchema),
         defaultValues: {
-            username: "",
             firstName: "",
-            middleName: "",
             lastName: "",
             studentID: "",
             program: "",
@@ -67,9 +63,7 @@ export default function PreServiceStudentForm() {
         try {
             await createStudent({
                 uid: user.uid,
-                username: values.username,
                 firstName: values.firstName,
-                middleName: values.middleName,
                 lastName: values.lastName,
                 studentID: values.studentID,
                 program: values.program,
@@ -96,13 +90,13 @@ export default function PreServiceStudentForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid gap-6">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <FormField
                             control={form.control}
                             name="firstName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Given Name</FormLabel>
+                                    <FormLabel>First name</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -110,25 +104,13 @@ export default function PreServiceStudentForm() {
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="middleName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Middle Initial</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
                         <FormField
                             control={form.control}
                             name="lastName"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Surname</FormLabel>
+                                    <FormLabel>Last name</FormLabel>
                                     <FormControl>
                                         <Input {...field} />
                                     </FormControl>
@@ -137,20 +119,6 @@ export default function PreServiceStudentForm() {
                             )}
                         />
                     </div>
-
-                    <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Username</FormLabel>
-                                <FormControl>
-                                    <Input {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <FormField

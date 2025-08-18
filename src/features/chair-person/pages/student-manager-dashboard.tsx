@@ -1,3 +1,9 @@
+import { useEffect, useState } from "react"
+import { QueryDocumentSnapshot, type DocumentData } from "firebase/firestore"
+
+import { isStudent, type AppUser } from "@/types/user"
+import { getUsersWithStudents } from "@/api/students"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -11,10 +17,60 @@ import {
 } from "@/components/ui/table"
 
 export default function StudentManagerDashboardPage() {
-    const students = [
-        { id: "1", name: "John Doe", course: "BSIT", status: "Active" },
-        { id: "2", name: "Jane Smith", course: "BSEd", status: "Pending" },
-    ]
+    const PAGE_SIZE = 10
+
+    const [students, setStudents] = useState<AppUser[]>([])
+    const [firstDoc, setFirstDoc] =
+        useState<QueryDocumentSnapshot<DocumentData> | null>(null)
+    const [lastDoc, setLastDoc] =
+        useState<QueryDocumentSnapshot<DocumentData> | null>(null)
+    const [prevDocs, setPrevDocs] = useState<
+        QueryDocumentSnapshot<DocumentData>[]
+    >([])
+    const [loading, setLoading] = useState(false)
+    const [search, setSearch] = useState("")
+
+    async function loadStudents(next = true) {
+        if (loading) return
+        setLoading(true)
+
+        const cursorDoc = next ? lastDoc : prevDocs[prevDocs.length - 2] || null
+
+        const {
+            data,
+            firstDoc: newFirstDoc,
+            lastDoc: newLastDoc,
+        } = await getUsersWithStudents({
+            pageSize: PAGE_SIZE,
+            cursorDoc,
+            previous: !next,
+            filters: {
+                status: undefined,
+                program: undefined,
+                yearLevel: undefined,
+            },
+        })
+
+        setStudents(data)
+        setFirstDoc(newFirstDoc)
+        setLastDoc(newLastDoc)
+
+        if (next) {
+            if (newLastDoc) setPrevDocs((prev) => [...prev, newLastDoc])
+        } else {
+            setPrevDocs((prev) => prev.slice(0, prev.length - 1))
+        }
+
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        loadStudents(true)
+    }, [search])
+
+    const filteredStudents = students.filter((s) =>
+        s.displayName?.toLowerCase().includes(search.toLowerCase())
+    )
 
     return (
         <div className="space-y-6 p-6">
@@ -25,7 +81,7 @@ export default function StudentManagerDashboardPage() {
                         <CardTitle>Total Students</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">120</p>
+                        <p className="text-2xl font-bold">{students.length}</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -33,7 +89,15 @@ export default function StudentManagerDashboardPage() {
                         <CardTitle>Active</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">95</p>
+                        <p className="text-2xl font-bold">
+                            {
+                                students.filter(
+                                    (s) =>
+                                        isStudent(s) &&
+                                        s.studentData?.status === "active"
+                                ).length
+                            }
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -41,7 +105,16 @@ export default function StudentManagerDashboardPage() {
                         <CardTitle>Pending Agency</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-2xl font-bold">25</p>
+                        <p className="text-2xl font-bold">
+                            {
+                                students.filter(
+                                    (s) =>
+                                        isStudent(s) &&
+                                        s.studentData?.status ===
+                                            "pending-agency"
+                                ).length
+                            }
+                        </p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -56,11 +129,15 @@ export default function StudentManagerDashboardPage() {
 
             {/* Filters / Search */}
             <div className="flex items-center justify-between">
-                <Input placeholder="Search students..." className="max-w-sm" />
+                <Input
+                    placeholder="Search students..."
+                    className="max-w-sm"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
                 <Button>Add Student</Button>
             </div>
 
-            {/* Student Table */}
             <Card>
                 <CardHeader>
                     <CardTitle>Student List</CardTitle>
@@ -78,11 +155,17 @@ export default function StudentManagerDashboardPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {students.map((s) => (
-                                <TableRow key={s.id}>
-                                    <TableCell>{s.name}</TableCell>
-                                    <TableCell>{s.course}</TableCell>
-                                    <TableCell>{s.status}</TableCell>
+                            {filteredStudents.map((student) => (
+                                <TableRow key={student.uid}>
+                                    <TableCell>{student.displayName}</TableCell>
+                                    <TableCell>
+                                        {isStudent(student) &&
+                                            student.studentData?.program}
+                                    </TableCell>
+                                    <TableCell>
+                                        {isStudent(student) &&
+                                            student.studentData?.status}
+                                    </TableCell>
                                     <TableCell className="text-right space-x-2">
                                         <Button size="sm" variant="outline">
                                             View
@@ -93,6 +176,22 @@ export default function StudentManagerDashboardPage() {
                             ))}
                         </TableBody>
                     </Table>
+
+                    {/* Next / Previous */}
+                    <div className="flex justify-center mt-4 space-x-2">
+                        <Button
+                            onClick={() => loadStudents(false)}
+                            disabled={prevDocs.length < 2 || loading}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={() => loadStudents(true)}
+                            disabled={!lastDoc || loading}
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
