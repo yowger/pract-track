@@ -12,6 +12,8 @@ import {
     SelectItem,
 } from "@/components/ui/select"
 import { useDebounceValue } from "usehooks-ts"
+import DataTable from "@/components/data-table"
+import { studentColumns } from "../components/tables/users/columns"
 
 export default function InternshipDashboardPage() {
     const numPerPage = 10
@@ -143,26 +145,12 @@ export default function InternshipDashboardPage() {
                 />
             </div>
 
-            {/* Data */}
-            <div className="grid gap-4 p-4">
-                {data.length === 0 && <p>No users found.</p>}
-                {data.map((user) => (
-                    <div
-                        key={user.studentID}
-                        className="flex items-center gap-2"
-                    >
-                        {user.photoUrl && (
-                            <img
-                                src={user.photoUrl}
-                                className="w-10 h-10 rounded-full"
-                            />
-                        )}
-                        <p>
-                            {user.firstName} {user.lastName} – {user.program} (
-                            {user.yearLevel})
-                        </p>
-                    </div>
-                ))}
+            <div className="p-4">
+                {data.length === 0 ? (
+                    <p>No users found.</p>
+                ) : (
+                    <DataTable columns={studentColumns} data={data} />
+                )}
             </div>
 
             {/* Pagination */}
