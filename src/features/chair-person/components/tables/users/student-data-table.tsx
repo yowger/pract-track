@@ -2,6 +2,7 @@ import {
     type ColumnDef,
     flexRender,
     getCoreRowModel,
+    getPaginationRowModel,
     type OnChangeFn,
     type RowSelectionState,
     useReactTable,
@@ -21,19 +22,30 @@ import { useState } from "react"
 interface StudentDataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
+    manualPagination?: boolean
+    pageCount?: number
+    pagination: { pageIndex: number; pageSize: number }
+    rowSelection: RowSelectionState
+    totalItems?: number
     getRowId?: (row: TData) => string
-    rowSelection?: Record<string, boolean>
-    onRowSelectionChange?: OnChangeFn<RowSelectionState>
+    onRowSelectionChange: OnChangeFn<RowSelectionState>
     onSelectedRowsChange?: (rows: TData[]) => void
+
+    onPaginationChange: OnChangeFn<{ pageIndex: number; pageSize: number }>
 }
 
 export default function StudentDataTable<TData, TValue>({
     columns,
     data,
-    getRowId,
     rowSelection: externalSelection,
+    manualPagination = false,
+    pageCount,
+    pagination,
+    totalItems,
+    getRowId,
     onRowSelectionChange,
     onSelectedRowsChange,
+    onPaginationChange,
 }: StudentDataTableProps<TData, TValue>) {
     const [internalSelection, setInternalSelection] = useState({})
 
@@ -43,10 +55,16 @@ export default function StudentDataTable<TData, TValue>({
     const table = useReactTable({
         data,
         columns,
-        state: { rowSelection },
+        state: { rowSelection, pagination },
+        manualPagination,
+        pageCount: manualPagination ? pageCount : undefined,
+        onPaginationChange: onPaginationChange,
         onRowSelectionChange: setRowSelection,
         getRowId: (row, index) => (getRowId ? getRowId(row) : String(index)),
         getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: manualPagination
+            ? undefined
+            : getPaginationRowModel(),
     })
 
     const selectedData = table.getSelectedRowModel().rows.map((r) => r.original)
@@ -111,23 +129,38 @@ export default function StudentDataTable<TData, TValue>({
                 </Table>
             </div>
 
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
+            <div className="flex items-center justify-between py-4">
+                <span className="text-sm text-muted-foreground">
+                    Showing {pagination.pageIndex * pagination.pageSize + 1}–
+                    {Math.min(
+                        (pagination.pageIndex + 1) * pagination.pageSize,
+                        totalItems ?? data.length
+                    )}{" "}
+                    of {totalItems ?? data.length} rows
+                </span>
+
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                    >
+                        Previous
+                    </Button>
+                    <span>
+                        Page {table.getState().pagination.pageIndex + 1} of{" "}
+                        {manualPagination ? pageCount : table.getPageCount()}
+                    </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                    >
+                        Next
+                    </Button>
+                </div>
             </div>
         </div>
     )
