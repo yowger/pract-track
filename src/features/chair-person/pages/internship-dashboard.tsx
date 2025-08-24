@@ -1,9 +1,9 @@
+import type { RowSelectionState } from "@tanstack/react-table"
+import type { DocumentSnapshot } from "firebase/firestore"
 import { useState, useEffect, useRef } from "react"
 import { useDebounceValue } from "usehooks-ts"
-import type { DocumentSnapshot } from "firebase/firestore"
 
 import { getStudentsPaginated } from "@/api/students"
-import type { Student } from "@/types/user"
 import { Input } from "@/components/ui/input"
 import {
     Select,
@@ -12,25 +12,22 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select"
-import DataTable from "@/features/chair-person/components/tables/users/student-data-table"
+import DataTable from "@/components/data-table"
 import { studentColumns } from "@/features/chair-person/components/tables/users/student-columns"
+import AssignAgencyDrawer from "@/features/chair-person/components/tables/users/assign-agency-drawer"
+import type { Student } from "@/types/user"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export default function InternshipDashboardPage() {
     const numPerPage = 10
     const [data, setData] = useState<Student[]>([])
-    const [firstDoc, setFirstDoc] = useState<DocumentSnapshot | undefined>(
-        undefined
-    )
-    const [lastDoc, setLastDoc] = useState<DocumentSnapshot | undefined>(
-        undefined
-    )
+    const [firstDoc, setFirstDoc] = useState<DocumentSnapshot | undefined>()
+    const [lastDoc, setLastDoc] = useState<DocumentSnapshot | undefined>()
     const [totalItems, setTotalItems] = useState<number | null>(null)
-
     const [pagination, setPagination] = useState({
         pageIndex: 0,
         pageSize: numPerPage,
     })
-
     const [pages, setPages] = useState<number>(0)
 
     const [searchFirstName, setSearchFirstName] = useState("")
@@ -47,9 +44,9 @@ export default function InternshipDashboardPage() {
     const [debouncedStatus] = useDebounceValue(status, 500)
     const [debouncedProgram] = useDebounceValue(program, 500)
 
-    const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>(
-        {}
-    )
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+    const [selectedStudents, setSelectedStudents] = useState<Student[]>([])
+
     const lastPageIndexRef = useRef(0)
 
     useEffect(() => {
@@ -66,23 +63,19 @@ export default function InternshipDashboardPage() {
     ])
 
     useEffect(() => {
-        let direction: "next" | "prev" | undefined
-
-        if (pagination.pageIndex > lastPageIndexRef.current) {
-            direction = "next"
-        } else if (pagination.pageIndex < lastPageIndexRef.current) {
-            direction = "prev"
-        }
+        const direction =
+            pagination.pageIndex > lastPageIndexRef.current
+                ? "next"
+                : pagination.pageIndex < lastPageIndexRef.current
+                ? "prev"
+                : undefined
 
         lastPageIndexRef.current = pagination.pageIndex
 
-        const startAfterDoc = direction === "next" ? lastDoc : undefined
-        const endBeforeDoc = direction === "prev" ? firstDoc : undefined
-
         getStudentsPaginated({
             direction,
-            startAfterDoc,
-            endBeforeDoc,
+            startAfterDoc: direction === "next" ? lastDoc : undefined,
+            endBeforeDoc: direction === "prev" ? firstDoc : undefined,
             numPerPage: pagination.pageSize,
             filter: {
                 firstName: debouncedFirstName,
@@ -93,10 +86,8 @@ export default function InternshipDashboardPage() {
                 program: debouncedProgram,
             },
         }).then((data) => {
-            const numPages = Math.ceil(data.totalItems / numPerPage)
-
             setTotalItems(data.totalItems)
-            setPages(numPages)
+            setPages(Math.ceil(data.totalItems / numPerPage))
             setData(data.result)
             setFirstDoc(data.firstDoc)
             setLastDoc(data.lastDoc)
@@ -112,28 +103,47 @@ export default function InternshipDashboardPage() {
         debouncedProgram,
     ])
 
+    const handleSelectedRowsChange = (rows: Student[]) => {
+        setSelectedStudents((prev) => {
+            const newSelected = [...prev]
+
+            rows.forEach((row) => {
+                if (!newSelected.find((s) => s.studentID === row.studentID)) {
+                    newSelected.push(row)
+                }
+            })
+
+            const currentPageIds = data.map((d) => d.studentID)
+            return newSelected.filter(
+                (s) =>
+                    !currentPageIds.includes(s.studentID) ||
+                    rows.find((r) => r.studentID === s.studentID)
+            )
+        })
+    }
+
     return (
-        <div>
+        <div className="flex flex-col">
             <div className="p-4 grid gap-2 md:grid-cols-3">
                 <Input
                     placeholder="Search by first name"
                     value={searchFirstName}
-                    onChange={(event) => setSearchFirstName(event.target.value)}
+                    onChange={(e) => setSearchFirstName(e.target.value)}
                 />
                 <Input
                     placeholder="Search by last name"
                     value={searchLastName}
-                    onChange={(event) => setSearchLastName(event.target.value)}
+                    onChange={(e) => setSearchLastName(e.target.value)}
                 />
                 <Input
                     placeholder="Section"
                     value={section}
-                    onChange={(event) => setSection(event.target.value)}
+                    onChange={(e) => setSection(e.target.value)}
                 />
                 <Input
                     placeholder="Year Level"
                     value={yearLevel}
-                    onChange={(event) => setYearLevel(event.target.value)}
+                    onChange={(e) => setYearLevel(e.target.value)}
                 />
                 <Select value={status} onValueChange={setStatus}>
                     <SelectTrigger>
@@ -148,26 +158,37 @@ export default function InternshipDashboardPage() {
                 <Input
                     placeholder="Program"
                     value={program}
-                    onChange={(event) => setProgram(event.target.value)}
+                    onChange={(e) => setProgram(e.target.value)}
                 />
             </div>
 
-            <div className="p-4">
-                <DataTable
-                    columns={studentColumns}
-                    data={data}
-                    rowSelection={selectedRows}
-                    onRowSelectionChange={setSelectedRows}
-                    onSelectedRowsChange={(selected) => {
-                        console.log("Selected:", selected)
-                    }}
-                    pagination={pagination}
-                    getRowId={(row) => row.studentID}
-                    manualPagination
-                    pageCount={pages || 0}
-                    totalItems={totalItems || 0}
-                    onPaginationChange={setPagination}
-                />
+            <div className="px-4 py-2 border-b flex items-center justify-between bg-muted/40">
+                <span className="text-sm font-medium text-muted-foreground">
+                    {selectedStudents.length} row(s) selected
+                </span>
+
+                {selectedStudents.length > 0 && (
+                    <AssignAgencyDrawer selectedStudents={selectedStudents} />
+                )}
+            </div>
+
+            <div className="p-4 flex">
+                <ScrollArea type="always" className=" w-full overflow-x-auto">
+                    <DataTable
+                        columns={studentColumns}
+                        data={data}
+                        rowSelection={rowSelection}
+                        onRowSelectionChange={setRowSelection}
+                        onSelectedRowsChange={handleSelectedRowsChange}
+                        pagination={pagination}
+                        getRowId={(row) => row.studentID}
+                        manualPagination
+                        pageCount={pages || 0}
+                        totalItems={totalItems || 0}
+                        onPaginationChange={setPagination}
+                    />
+                    <ScrollBar orientation="horizontal" className="w-full" />
+                </ScrollArea>
             </div>
         </div>
     )

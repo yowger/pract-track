@@ -16,7 +16,7 @@ import {
 import { TimePair } from "@/features/dtr/components/time-pair"
 // import AttendanceHistory from "../components/attendance-history"
 // import DataTableDemo from "../components/table-test"
-import DataTable from "../../chair-person/components/tables/users/student-data-table"
+import DataTable from "../../../components/data-table"
 import {
     type DTR,
     type ShiftEntry,

@@ -7,6 +7,7 @@ import {
     type RowSelectionState,
     useReactTable,
 } from "@tanstack/react-table"
+import { useEffect, useState } from "react"
 
 import {
     Table,
@@ -17,36 +18,37 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
 
-interface StudentDataTableProps<TData, TValue> {
+interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     manualPagination?: boolean
     pageCount?: number
-    pagination: { pageIndex: number; pageSize: number }
-    rowSelection: RowSelectionState
+    pagination?: { pageIndex: number; pageSize: number }
+    rowSelection?: RowSelectionState
     totalItems?: number
+    showFooter?: boolean
     getRowId?: (row: TData) => string
-    onRowSelectionChange: OnChangeFn<RowSelectionState>
+    onRowSelectionChange?: OnChangeFn<RowSelectionState>
     onSelectedRowsChange?: (rows: TData[]) => void
 
-    onPaginationChange: OnChangeFn<{ pageIndex: number; pageSize: number }>
+    onPaginationChange?: OnChangeFn<{ pageIndex: number; pageSize: number }>
 }
 
-export default function StudentDataTable<TData, TValue>({
+export default function DataTable<TData, TValue>({
     columns,
     data,
     rowSelection: externalSelection,
     manualPagination = false,
     pageCount,
     pagination,
+    showFooter = true,
     totalItems,
     getRowId,
     onRowSelectionChange,
     onSelectedRowsChange,
     onPaginationChange,
-}: StudentDataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue>) {
     const [internalSelection, setInternalSelection] = useState({})
 
     const rowSelection = externalSelection ?? internalSelection
@@ -55,29 +57,35 @@ export default function StudentDataTable<TData, TValue>({
     const table = useReactTable({
         data,
         columns,
-        state: { rowSelection, pagination },
+        state: {
+            rowSelection,
+            pagination: pagination ?? { pageIndex: 0, pageSize: data.length },
+        },
         manualPagination,
         pageCount: manualPagination ? pageCount : undefined,
         onPaginationChange: onPaginationChange,
         onRowSelectionChange: setRowSelection,
-        getRowId: (row, index) => (getRowId ? getRowId(row) : String(index)),
+        getRowId: getRowId ?? ((_, index) => String(index)),
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: manualPagination
             ? undefined
             : getPaginationRowModel(),
     })
 
-    const selectedData = table.getSelectedRowModel().rows.map((r) => r.original)
-
-    if (onSelectedRowsChange) {
-        onSelectedRowsChange(selectedData)
-    }
+    useEffect(() => {
+        if (onSelectedRowsChange) {
+            onSelectedRowsChange(
+                table.getSelectedRowModel().rows.map((r) => r.original as TData)
+            )
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rowSelection])
 
     return (
         <div>
-            <div className="overflow-hidden rounded-md border">
+            <div className="rounded-md border w-full whitespace-nowrap">
                 <Table>
-                    <TableHeader className="bg-muted">
+                    <TableHeader className="bg-muted sticky top-0">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
@@ -129,39 +137,50 @@ export default function StudentDataTable<TData, TValue>({
                 </Table>
             </div>
 
-            <div className="flex items-center justify-between py-4">
-                <span className="text-sm text-muted-foreground">
-                    Showing {pagination.pageIndex * pagination.pageSize + 1}–
-                    {Math.min(
-                        (pagination.pageIndex + 1) * pagination.pageSize,
-                        totalItems ?? data.length
-                    )}{" "}
-                    of {totalItems ?? data.length} rows
-                </span>
+            {showFooter && (
+                <div className="flex items-center justify-between py-4">
+                    {pagination && (
+                        <span className="text-sm text-muted-foreground">
+                            Showing{" "}
+                            {pagination.pageIndex * pagination.pageSize + 1}–
+                            {Math.min(
+                                (pagination.pageIndex + 1) *
+                                    pagination.pageSize,
+                                totalItems ?? data.length
+                            )}{" "}
+                            of {totalItems ?? data.length} rows
+                        </span>
+                    )}
 
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <span>
-                        Page {table.getState().pagination.pageIndex + 1} of{" "}
-                        {manualPagination ? pageCount : table.getPageCount()}
-                    </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
+                    {pagination && (
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.previousPage()}
+                                disabled={!table.getCanPreviousPage()}
+                            >
+                                Previous
+                            </Button>
+                            <span>
+                                Page {table.getState().pagination.pageIndex + 1}{" "}
+                                of{" "}
+                                {manualPagination
+                                    ? pageCount
+                                    : table.getPageCount()}
+                            </span>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => table.nextPage()}
+                                disabled={!table.getCanNextPage()}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    )}
                 </div>
-            </div>
+            )}
         </div>
     )
 }
