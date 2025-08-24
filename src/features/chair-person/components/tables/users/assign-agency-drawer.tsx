@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+
 import {
     Sheet,
     SheetTrigger,
@@ -14,6 +15,13 @@ import type { Student } from "@/types/user"
 import DataTable from "@/components/data-table"
 import { studentColumns } from "@/features/chair-person/components/tables/users/student-columns"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface AssignAgencySheetProps {
     selectedStudents: Student[]
@@ -28,6 +36,13 @@ export default function AssignAgencySheet({
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(
         {}
     )
+    const [selectedAgent, setSelectedAgent] = useState<string | undefined>()
+
+    const agents = [
+        { id: "agent1", name: "Agent Alice" },
+        { id: "agent2", name: "Agent Bob" },
+        { id: "agent3", name: "Agent Carol" },
+    ]
 
     useEffect(() => {
         setLocalSelected(selectedStudents)
@@ -65,6 +80,27 @@ export default function AssignAgencySheet({
                 </SheetHeader>
 
                 <div className="p-4 w-full flex-1 flex flex-col">
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Assign to Agent
+                        </label>
+                        <Select
+                            value={selectedAgent}
+                            onValueChange={setSelectedAgent}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select an agent" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {agents.map((agent) => (
+                                    <SelectItem key={agent.id} value={agent.id}>
+                                        {agent.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <p className="mb-2 text-sm">
                         {localSelected.length} student(s) selected
                     </p>
