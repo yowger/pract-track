@@ -64,17 +64,15 @@ export default function RoleSwitcher({
                                 <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="student">
-                                    Pre-service Student
-                                </SelectItem>
+                                <SelectItem value="student">Student</SelectItem>
                                 <SelectItem value="adviser">
-                                    Practicum Adviser
+                                    Advisers
                                 </SelectItem>
                                 <SelectItem value="chair_person">
                                     Chair person
                                 </SelectItem>
                                 <SelectItem value="agency_supervisor">
-                                    Agency person
+                                    Agency
                                 </SelectItem>
                             </SelectContent>
                         </Select>

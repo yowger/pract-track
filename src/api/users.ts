@@ -124,8 +124,7 @@ export async function createAgencySupervisor(data: {
     uid: string
     firstName: string
     lastName: string
-    position: string
-    agencyId?: string
+    position: "owner" | "supervisor" | "assistant"
 }): Promise<void> {
     const supervisorRef = doc(db, "agency_supervisors", data.uid)
     const userRef = doc(db, "users", data.uid)
@@ -138,7 +137,6 @@ export async function createAgencySupervisor(data: {
             {
                 uid: data.uid,
                 position: data.position,
-                agencyId: data.agencyId ?? null,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
             },

@@ -24,10 +24,10 @@ export default function RoleInitPage() {
 
                     <Button
                         variant="ghost"
-                        size="icon"
                         onClick={handleSignOut}
                         title="Sign out"
                     >
+                        Log out
                         <LogOut className="size-4" />
                     </Button>
                 </div>

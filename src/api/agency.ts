@@ -17,18 +17,20 @@ export async function fetchAgency(uid: string): Promise<Agency | null> {
 }
 
 export async function createAgency(data: {
-    uid: string
     name: string
     address?: string
+    ownerId: string
+    ownerName: string
 }): Promise<void> {
-    const agencyRef = doc(db, "agencies", data.uid)
+    const agencyRef = doc(db, "agencies", data.ownerId)
 
     await setDoc(
         agencyRef,
         {
-            uid: data.uid,
             name: data.name,
             address: data.address ?? null,
+            ownerId: data.ownerId,
+            ownerName: data.ownerName,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         },

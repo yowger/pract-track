@@ -13,7 +13,6 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
-
 import { useUser } from "@/hooks/use-user"
 import { createAgency } from "@/api/agency"
 
@@ -41,8 +40,10 @@ export default function CreateAgencyForm() {
 
         try {
             setLoading(true)
+
             await createAgency({
-                uid: user.uid,
+                ownerId: user.uid,
+                ownerName: user.displayName ?? "",
                 ...values,
             })
 

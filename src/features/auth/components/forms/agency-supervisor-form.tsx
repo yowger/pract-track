@@ -13,13 +13,25 @@ import {
     FormControl,
     FormMessage,
 } from "@/components/ui/form"
+// import {
+//     Select,
+//     SelectContent,
+//     SelectItem,
+//     SelectTrigger,
+//     SelectValue,
+// } from "@/components/ui/select"
 import { createAgencySupervisor } from "@/api/users"
 import { useUser } from "@/hooks/use-user"
 
 const agencySupervisorSchema = z.object({
     firstName: z.string().min(1, "Given name is required"),
     lastName: z.string().min(1, "Surname is required"),
-    position: z.string().min(1, "Position is required"),
+    // position: z.string().min(1, "Position is required"),
+    // role: z
+    //     .enum(["owner", "supervisor", "assistant"], {})
+    //     .refine((val) => !!val, {
+    //         message: "Role is required",
+    //     }),
 })
 
 type AgencySupervisorData = z.infer<typeof agencySupervisorSchema>
@@ -33,7 +45,7 @@ export default function AgencySupervisorForm() {
         defaultValues: {
             firstName: "",
             lastName: "",
-            position: "",
+            // role: "owner",
         },
     })
 
@@ -46,10 +58,11 @@ export default function AgencySupervisorForm() {
                 uid: user.uid,
                 firstName: values.firstName,
                 lastName: values.lastName,
-                position: values.position,
+                position: "owner",
+                // agencyRole: values.role,
             })
 
-            window.location.reload() // TODO:
+            window.location.reload()
         } catch (err) {
             console.error("Error creating agency supervisor:", err)
         } finally {
@@ -91,19 +104,37 @@ export default function AgencySupervisorForm() {
                         />
                     </div>
 
-                    <FormField
+                    {/* <FormField
                         control={form.control}
-                        name="position"
+                        name="role"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Position</FormLabel>
-                                <FormControl>
-                                    <Input {...field} />
-                                </FormControl>
+                                <FormLabel>Agency Role</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a role" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent className="w-full">
+                                        <SelectItem value="owner">
+                                            Owner
+                                        </SelectItem>
+                                        <SelectItem value="supervisor">
+                                            Supervisor
+                                        </SelectItem>
+                                        <SelectItem value="assistant">
+                                            Assistant
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <FormMessage />
                             </FormItem>
                         )}
-                    />
+                    /> */}
 
                     <Button type="submit" className="w-full" disabled={loading}>
                         {loading ? "Creating..." : "Create Account"}
