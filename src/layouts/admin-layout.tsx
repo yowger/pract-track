@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom"
 import { AppSidebar } from "@/layouts/sidebar/app-sidebar"
 import { SiteHeader } from "@/layouts/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Toaster } from "sonner"
 
 const sidebarState = Cookies.get("sidebar_state")
 const defaultOpen = sidebarState === "true"
@@ -28,6 +29,7 @@ export default function AdminLayout() {
                     </div>
                 </div>
             </SidebarInset>
+            <Toaster />
         </SidebarProvider>
     )
 }

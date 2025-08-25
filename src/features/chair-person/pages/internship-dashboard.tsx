@@ -50,6 +50,34 @@ export default function InternshipDashboardPage() {
 
     const lastPageIndexRef = useRef(0)
 
+    async function loadStudents(direction?: "next" | "prev") {
+        setIsLoading(true)
+        try {
+            const data = await getStudentsPaginated({
+                direction,
+                startAfterDoc: direction === "next" ? lastDoc : undefined,
+                endBeforeDoc: direction === "prev" ? firstDoc : undefined,
+                numPerPage: pagination.pageSize,
+                filter: {
+                    firstName: debouncedFirstName,
+                    lastName: debouncedLastName,
+                    section: debouncedSection,
+                    yearLevel: debouncedYearLevel,
+                    status: debouncedStatus,
+                    program: debouncedProgram,
+                },
+            })
+
+            setTotalItems(data.totalItems)
+            setPages(Math.ceil(data.totalItems / numPerPage))
+            setData(data.result)
+            setFirstDoc(data.firstDoc)
+            setLastDoc(data.lastDoc)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     useEffect(() => {
         setPagination({ pageIndex: 0, pageSize: numPerPage })
         setFirstDoc(undefined)
@@ -72,30 +100,7 @@ export default function InternshipDashboardPage() {
                 : undefined
 
         lastPageIndexRef.current = pagination.pageIndex
-        setIsLoading(true)
-
-        getStudentsPaginated({
-            direction,
-            startAfterDoc: direction === "next" ? lastDoc : undefined,
-            endBeforeDoc: direction === "prev" ? firstDoc : undefined,
-            numPerPage: pagination.pageSize,
-            filter: {
-                firstName: debouncedFirstName,
-                lastName: debouncedLastName,
-                section: debouncedSection,
-                yearLevel: debouncedYearLevel,
-                status: debouncedStatus,
-                program: debouncedProgram,
-            },
-        })
-            .then((data) => {
-                setTotalItems(data.totalItems)
-                setPages(Math.ceil(data.totalItems / numPerPage))
-                setData(data.result)
-                setFirstDoc(data.firstDoc)
-                setLastDoc(data.lastDoc)
-            })
-            .finally(() => setIsLoading(false))
+        loadStudents(direction)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         pagination,
@@ -172,7 +177,14 @@ export default function InternshipDashboardPage() {
                 </span>
 
                 {selectedStudents.length > 0 && (
-                    <AssignAgencyDrawer selectedStudents={selectedStudents} />
+                    <AssignAgencyDrawer
+                        selectedStudents={selectedStudents}
+                        onSuccess={() => {
+                            loadStudents()
+                            setSelectedStudents([])
+                            setRowSelection({})
+                        }}
+                    />
                 )}
             </div>
 

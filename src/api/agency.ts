@@ -1,5 +1,16 @@
 import { db } from "@/service/firebase/firebase"
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
+import type { Student } from "@/types/user"
+import {
+    doc,
+    getDoc,
+    serverTimestamp,
+    setDoc,
+    collection,
+    getDocs,
+    writeBatch,
+} from "firebase/firestore"
+
+import {} from "firebase/firestore"
 
 export interface Agency {
     id: string
@@ -30,6 +41,23 @@ export async function fetchAgency(ownerId: string): Promise<Agency | null> {
     }
 }
 
+export async function fetchAgencies(): Promise<Agency[]> {
+    const querySnap = await getDocs(collection(db, "agencies"))
+
+    return querySnap.docs.map((docSnap) => {
+        const data = docSnap.data()
+        return {
+            id: docSnap.id,
+            name: data.name,
+            address: data.address ?? undefined,
+            ownerId: data.ownerId,
+            ownerName: data.ownerName,
+            createdAt: data.createdAt?.toDate?.(),
+            updatedAt: data.updatedAt?.toDate?.(),
+        } as Agency
+    })
+}
+
 export async function createAgency(data: {
     name: string
     address?: string
@@ -50,4 +78,26 @@ export async function createAgency(data: {
         },
         { merge: true }
     )
+}
+
+export async function assignStudentsToAgency(
+    studentIds: string[],
+    agencyId: string,
+    agencyName: string
+) {
+    const batch = writeBatch(db)
+
+    studentIds.forEach((studentId) => {
+        const studentRef = doc(db, "students", studentId)
+
+        const updateData: Partial<Student> = {
+            assignedAgencyID: agencyId,
+            assignedAgencyName: agencyName,
+            updatedAt: serverTimestamp(),
+        }
+
+        batch.update(studentRef, updateData)
+    })
+
+    await batch.commit()
 }

@@ -22,27 +22,30 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    assignStudentsToAgency,
+    fetchAgencies,
+    type Agency,
+} from "@/api/agency"
+import { toast } from "sonner"
 
 interface AssignAgencySheetProps {
     selectedStudents: Student[]
-    onConfirm?: (students: Student[]) => void
+    onSuccess?: () => void
+    onError?: (err: unknown) => void
 }
 
 export default function AssignAgencySheet({
     selectedStudents,
-    onConfirm,
+    onSuccess,
+    onError,
 }: AssignAgencySheetProps) {
     const [localSelected, setLocalSelected] = useState<Student[]>([])
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(
         {}
     )
     const [selectedAgent, setSelectedAgent] = useState<string | undefined>()
-
-    const agents = [
-        { id: "agent1", name: "Agent Alice" },
-        { id: "agent2", name: "Agent Bob" },
-        { id: "agent3", name: "Agent Carol" },
-    ]
+    const [agencies, setAgencies] = useState<Agency[]>([])
 
     useEffect(() => {
         setLocalSelected(selectedStudents)
@@ -53,9 +56,38 @@ export default function AssignAgencySheet({
 
     useEffect(() => {
         setLocalSelected(selectedStudents.filter((s) => rowSelection[s.uid]))
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rowSelection])
+
+    useEffect(() => {
+        const load = async () => {
+            const data = await fetchAgencies()
+            setAgencies(data)
+        }
+
+        load()
+    }, [])
+
+    async function handleConfirm() {
+        if (!selectedAgent) return
+
+        const agency = agencies.find((a) => a.id === selectedAgent)
+        if (!agency) return
+
+        try {
+            await assignStudentsToAgency(
+                localSelected.map((s) => s.uid),
+                agency.id,
+                agency.name
+            )
+            toast.success("Students assigned successfully")
+            onSuccess?.()
+        } catch (err) {
+            console.error(err)
+            toast.error("Failed to assign students")
+            onError?.(err)
+        }
+    }
 
     return (
         <Sheet>
@@ -82,7 +114,7 @@ export default function AssignAgencySheet({
                 <div className="p-4 w-full flex-1 flex flex-col">
                     <div className="mb-6">
                         <label className="block text-sm font-medium mb-1">
-                            Assign to Agent
+                            Assign to Agency
                         </label>
 
                         <Select
@@ -90,12 +122,15 @@ export default function AssignAgencySheet({
                             onValueChange={setSelectedAgent}
                         >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select an agent" />
+                                <SelectValue placeholder="Select an agency" />
                             </SelectTrigger>
                             <SelectContent>
-                                {agents.map((agent) => (
-                                    <SelectItem key={agent.id} value={agent.id}>
-                                        {agent.name}
+                                {agencies.map((agency) => (
+                                    <SelectItem
+                                        key={agency.id}
+                                        value={agency.id}
+                                    >
+                                        {agency.name} ({agency.ownerName})
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -126,9 +161,7 @@ export default function AssignAgencySheet({
                 </div>
 
                 <SheetFooter>
-                    <Button onClick={() => onConfirm?.(localSelected)}>
-                        Confirm Assignment
-                    </Button>
+                    <Button onClick={handleConfirm}>Confirm Assignment</Button>
                     <SheetClose asChild>
                         <Button variant="outline">Cancel</Button>
                     </SheetClose>

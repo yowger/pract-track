@@ -1,4 +1,4 @@
-import type { Timestamp } from "firebase/firestore"
+import type { FieldValue, Timestamp } from "firebase/firestore"
 
 export type Role =
     | "student"
@@ -31,7 +31,10 @@ export interface Student {
     email: string
     displayName: string | null
     photoUrl: string | null
-    assignedAgencyID: string
+    assignedAgencyID: string | null
+    assignedAgencyName: string | null
+    createdAt: Date | Timestamp | FieldValue
+    updatedAt: Date | Timestamp | FieldValue
 }
 
 export interface PracticumAdviser {

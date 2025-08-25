@@ -138,28 +138,29 @@ export default function DataTable<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
-
-                    {isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                            <Spinner variant="circle-filled" />
-                        </div>
-                    )}
                 </Table>
             </div>
 
             {showFooter && (
                 <div className="flex items-center justify-between py-4">
                     {pagination && (
-                        <span className="text-sm text-muted-foreground">
-                            Showing{" "}
-                            {pagination.pageIndex * pagination.pageSize + 1}–
-                            {Math.min(
-                                (pagination.pageIndex + 1) *
-                                    pagination.pageSize,
-                                totalItems ?? data.length
-                            )}{" "}
-                            of {totalItems ?? data.length} rows
-                        </span>
+                        <div className="flex gap-2 items-center">
+                            <span className="text-sm text-muted-foreground">
+                                Showing{" "}
+                                {pagination.pageIndex * pagination.pageSize + 1}
+                                –
+                                {Math.min(
+                                    (pagination.pageIndex + 1) *
+                                        pagination.pageSize,
+                                    totalItems ?? data.length
+                                )}{" "}
+                                of {totalItems ?? data.length} rows
+                            </span>
+
+                            {isLoading && (
+                                <Spinner variant="circle" size={16} />
+                            )}
+                        </div>
                     )}
 
                     {pagination && (
