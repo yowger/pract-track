@@ -18,6 +18,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Spinner } from "./ui/shadcn-io/spinner"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -28,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     rowSelection?: RowSelectionState
     totalItems?: number
     showFooter?: boolean
+    isLoading?: boolean
     getRowId?: (row: TData) => string
     onRowSelectionChange?: OnChangeFn<RowSelectionState>
     onSelectedRowsChange?: (rows: TData[]) => void
@@ -44,6 +46,7 @@ export default function DataTable<TData, TValue>({
     pagination,
     showFooter = true,
     totalItems,
+    isLoading = false,
     getRowId,
     onRowSelectionChange,
     onSelectedRowsChange,
@@ -104,6 +107,7 @@ export default function DataTable<TData, TValue>({
                             </TableRow>
                         ))}
                     </TableHeader>
+
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
@@ -134,6 +138,12 @@ export default function DataTable<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
+
+                    {isLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                            <Spinner variant="circle-filled" />
+                        </div>
+                    )}
                 </Table>
             </div>
 

@@ -65,6 +65,14 @@ export const studentColumns: ColumnDef<Student>[] = [
     {
         accessorKey: "program",
         header: "Program",
+        cell: ({ row }) => {
+            const program = row.getValue("program") as string
+            return program ? (
+                program.toUpperCase()
+            ) : (
+                <span className="text-muted-foreground">N/A</span>
+            )
+        },
     },
     {
         accessorKey: "yearLevel",

@@ -80,10 +80,11 @@ export default function AssignAgencySheet({
                 </SheetHeader>
 
                 <div className="p-4 w-full flex-1 flex flex-col">
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <label className="block text-sm font-medium mb-1">
                             Assign to Agent
                         </label>
+                        
                         <Select
                             value={selectedAgent}
                             onValueChange={setSelectedAgent}

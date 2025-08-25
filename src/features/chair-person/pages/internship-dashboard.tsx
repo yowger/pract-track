@@ -46,6 +46,7 @@ export default function InternshipDashboardPage() {
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
     const [selectedStudents, setSelectedStudents] = useState<Student[]>([])
+    const [isLoading, setIsLoading] = useState(false)
 
     const lastPageIndexRef = useRef(0)
 
@@ -71,6 +72,7 @@ export default function InternshipDashboardPage() {
                 : undefined
 
         lastPageIndexRef.current = pagination.pageIndex
+        setIsLoading(true)
 
         getStudentsPaginated({
             direction,
@@ -85,13 +87,15 @@ export default function InternshipDashboardPage() {
                 status: debouncedStatus,
                 program: debouncedProgram,
             },
-        }).then((data) => {
-            setTotalItems(data.totalItems)
-            setPages(Math.ceil(data.totalItems / numPerPage))
-            setData(data.result)
-            setFirstDoc(data.firstDoc)
-            setLastDoc(data.lastDoc)
         })
+            .then((data) => {
+                setTotalItems(data.totalItems)
+                setPages(Math.ceil(data.totalItems / numPerPage))
+                setData(data.result)
+                setFirstDoc(data.firstDoc)
+                setLastDoc(data.lastDoc)
+            })
+            .finally(() => setIsLoading(false))
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         pagination,
@@ -186,6 +190,7 @@ export default function InternshipDashboardPage() {
                         pageCount={pages || 0}
                         totalItems={totalItems || 0}
                         onPaginationChange={setPagination}
+                        isLoading={isLoading}
                     />
                     <ScrollBar orientation="horizontal" className="w-full" />
                 </ScrollArea>
