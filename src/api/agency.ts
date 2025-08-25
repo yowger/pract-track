@@ -2,18 +2,32 @@ import { db } from "@/service/firebase/firebase"
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
 
 export interface Agency {
-    uid: string
+    id: string
     name: string
     address?: string
+    ownerId: string
+    ownerName: string
+    createdAt?: Date
+    updatedAt?: Date
 }
 
-export async function fetchAgency(uid: string): Promise<Agency | null> {
-    const agencyRef = doc(db, "agencies", uid)
+export async function fetchAgency(ownerId: string): Promise<Agency | null> {
+    const agencyRef = doc(db, "agencies", ownerId)
     const agencySnap = await getDoc(agencyRef)
 
     if (!agencySnap.exists()) return null
 
-    return { uid: agencySnap.id, ...agencySnap.data() } as Agency
+    const data = agencySnap.data()
+
+    return {
+        id: agencySnap.id,
+        name: data.name,
+        address: data.address ?? undefined,
+        ownerId: data.ownerId,
+        ownerName: data.ownerName,
+        createdAt: data.createdAt?.toDate?.(),
+        updatedAt: data.updatedAt?.toDate?.(),
+    }
 }
 
 export async function createAgency(data: {
