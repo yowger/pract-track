@@ -70,7 +70,7 @@ export default function AssignAgencySheet({
 
             <SheetContent
                 side="right"
-                className="w-[400px] sm:w-[540px] md:max-w-lg"
+                className="w-[400px] sm:w-[540px] md:max-w-lg max-h-screen overflow-y-scroll"
             >
                 <SheetHeader>
                     <SheetTitle>Assign Students to Agency</SheetTitle>
@@ -84,7 +84,7 @@ export default function AssignAgencySheet({
                         <label className="block text-sm font-medium mb-1">
                             Assign to Agent
                         </label>
-                        
+
                         <Select
                             value={selectedAgent}
                             onValueChange={setSelectedAgent}
