@@ -93,6 +93,10 @@ const chairPersonRoutes = (
         <Route element={<AdminLayout />}>
             <Route path="/" element={<InternshipDashboardPage />} />
             <Route path="/students" element={<StudentManagerDashboardPage />} />
+            <Route
+                path="/agencies/:agencyId"
+                element={<AgencyDashboardPage />}
+            />
         </Route>
     </Route>
 )

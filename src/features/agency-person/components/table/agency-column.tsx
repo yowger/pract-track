@@ -1,10 +1,9 @@
 import { type ColumnDef } from "@tanstack/react-table"
-
 import { Checkbox } from "@/components/ui/checkbox"
-import type { Student } from "@/types/user"
 import { Link } from "react-router-dom"
+import type { Agency } from "@/api/agency"
 
-export const studentColumns: ColumnDef<Student>[] = [
+export const agencyColumns: ColumnDef<Agency>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -32,75 +31,53 @@ export const studentColumns: ColumnDef<Student>[] = [
     },
 
     {
-        accessorKey: "photoUrl",
-        header: "",
+        accessorKey: "name",
+        header: "Agency Name",
         cell: ({ row }) => {
-            const student = row.original
-            return student.photoUrl ? (
-                <img
-                    src={student.photoUrl}
-                    alt={student.firstName}
-                    className="h-8 w-8 rounded-full"
-                />
-            ) : (
-                <div className="h-8 w-8 rounded-full bg-gray-200" />
-            )
-        },
-        enableSorting: false,
-        enableHiding: false,
-    },
-
-    {
-        accessorKey: "fullName",
-        header: "Name",
-        cell: ({ row }) => {
-            const student = row.original
+            const agency = row.original
             return (
-                <span>
-                    {student.firstName} {student.lastName}
-                </span>
+                <Link
+                    to={`/agencies/${agency.id}`}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                    {agency.name}
+                </Link>
             )
         },
     },
-
     {
-        accessorKey: "program",
-        header: "Program",
+        accessorKey: "address",
+        header: "Address",
         cell: ({ row }) => {
-            const program = row.getValue("program") as string
-            return program ? (
-                program.toUpperCase()
+            const address = row.getValue("address") as string
+            return address ? (
+                address
             ) : (
                 <span className="text-muted-foreground">N/A</span>
             )
         },
     },
     {
-        accessorKey: "yearLevel",
-        header: "Year",
+        accessorKey: "contactPerson",
+        header: "Contact Person",
+        cell: ({ row }) => {
+            const contact = row.getValue("contactPerson") as string
+            return contact ? (
+                contact
+            ) : (
+                <span className="text-muted-foreground">N/A</span>
+            )
+        },
     },
     {
-        accessorKey: "assignedAgencyName",
-        header: "Agency",
+        accessorKey: "contactNumber",
+        header: "Contact Number",
         cell: ({ row }) => {
-            const agencyId = row.original.assignedAgencyID
-            const agencyName = row.getValue("assignedAgencyName") as
-                | string
-                | null
-
-            if (!agencyName) {
-                return <span className="text-muted-foreground">Unassigned</span>
-            }
-
-            return agencyId ? (
-                <Link
-                    to={`/agencies/${agencyId}`}
-                    className="text-blue-600 dark:text-blue-400 hover:underline"
-                >
-                    {agencyName}
-                </Link>
+            const contact = row.getValue("contactNumber") as string
+            return contact ? (
+                contact
             ) : (
-                agencyName
+                <span className="text-muted-foreground">N/A</span>
             )
         },
     },
@@ -121,6 +98,18 @@ export const studentColumns: ColumnDef<Student>[] = [
                 >
                     {status || "N/A"}
                 </span>
+            )
+        },
+    },
+    {
+        accessorKey: "studentsCount",
+        header: "Students",
+        cell: ({ row }) => {
+            const count = row.getValue("studentsCount") as number | undefined
+            return count !== undefined ? (
+                <span>{count}</span>
+            ) : (
+                <span className="text-muted-foreground">0</span>
             )
         },
     },
