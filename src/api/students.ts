@@ -22,6 +22,7 @@ interface StudentFilter {
     yearLevel?: string
     section?: string
     status?: string
+    assignedAgencyId?: string
 }
 
 interface GetUsersPaginatedParams {
@@ -67,6 +68,8 @@ export async function getStudentsPaginated({
         clauses.push(where("section", "==", filter.section.toLowerCase()))
     if (filter.status)
         clauses.push(where("status", "==", filter.status.toLowerCase()))
+    if (filter.assignedAgencyId)
+        clauses.push(where("assignedAgencyID", "==", filter.assignedAgencyId))
 
     const baseQuery = query(
         studentsCollection,

@@ -20,7 +20,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export default function InternshipDashboardPage() {
     const numPerPage = 10
-    const [data, setData] = useState<Student[]>([])
+    const [students, setStudents] = useState<Student[]>([])
     const [firstDoc, setFirstDoc] = useState<DocumentSnapshot | undefined>()
     const [lastDoc, setLastDoc] = useState<DocumentSnapshot | undefined>()
     const [totalItems, setTotalItems] = useState<number | null>(null)
@@ -70,7 +70,7 @@ export default function InternshipDashboardPage() {
 
             setTotalItems(data.totalItems)
             setPages(Math.ceil(data.totalItems / numPerPage))
-            setData(data.result)
+            setStudents(data.result)
             setFirstDoc(data.firstDoc)
             setLastDoc(data.lastDoc)
         } finally {
@@ -122,7 +122,7 @@ export default function InternshipDashboardPage() {
                 }
             })
 
-            const currentPageIds = data.map((d) => d.studentID)
+            const currentPageIds = students.map((d) => d.studentID)
             return newSelected.filter(
                 (s) =>
                     !currentPageIds.includes(s.studentID) ||
@@ -192,7 +192,7 @@ export default function InternshipDashboardPage() {
                 <ScrollArea type="always" className=" w-full overflow-x-auto">
                     <DataTable
                         columns={studentColumns}
-                        data={data}
+                        data={students}
                         rowSelection={rowSelection}
                         onRowSelectionChange={setRowSelection}
                         onSelectedRowsChange={handleSelectedRowsChange}
