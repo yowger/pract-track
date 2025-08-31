@@ -9,6 +9,12 @@ import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import type { Role } from "./types/user"
 import { fetchAgency, type Agency } from "./api/agency"
 
+const SchedulesPage = lazy(
+    () => import("@/features/agency-person/pages/schedules")
+)
+const CreateSchedulePage = lazy(
+    () => import("@/features/agency-person/pages/create-schedule")
+)
 const SeedPage = lazy(() => import("@/seeders/page/seed"))
 const InternshipDashboardPage = lazy(
     () => import("@/features/chair-person/pages/internship-dashboard")
@@ -110,6 +116,11 @@ const agencySupervisorRoutes = (
                     <Route
                         path="/students"
                         element={<StudentManagerDashboardPage />}
+                    />
+                    <Route path="/schedules" element={<SchedulesPage />} />
+                    <Route
+                        path="/schedules/new"
+                        element={<CreateSchedulePage />}
                     />
                 </Route>
             </Route>
