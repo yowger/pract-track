@@ -26,7 +26,6 @@ export default function Schedules() {
         const fetchSchedules = async () => {
             setLoading(true)
             setError(null)
-
             try {
                 const data = await getSchedules({
                     companyId: user.companyData?.ownerId,
@@ -41,8 +40,7 @@ export default function Schedules() {
         }
 
         fetchSchedules()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [user])
 
     return (
         <div className="p-6 space-y-4">

@@ -164,6 +164,12 @@ function AgencyGuard() {
                 return
             }
 
+            if (user.companyData) {
+                setChecking(false)
+
+                return
+            }
+
             const agency = await fetchAgency(user.uid)
 
             if (agency) {
