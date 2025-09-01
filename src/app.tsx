@@ -6,9 +6,12 @@ import AdminLayout from "@/layouts/admin-layout"
 import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
 import DtrCopyPage from "./features/dtr/pages/dtr copy"
-import type { Role } from "./types/user"
-import { fetchAgency, type Agency } from "./api/agency"
+import { isAgency, type Role } from "./types/user"
+import { fetchAgency } from "./api/agency"
 
+const AgencyInternsPage = lazy(
+    () => import("@/features/agency-person/pages/agency-interns")
+)
 const SchedulesPage = lazy(
     () => import("@/features/agency-person/pages/schedules")
 )
@@ -122,6 +125,7 @@ const agencySupervisorRoutes = (
                         path="/schedules/new"
                         element={<CreateSchedulePage />}
                     />
+                    <Route path="/interns" element={<AgencyInternsPage />} />
                 </Route>
             </Route>
         </Route>
@@ -150,29 +154,38 @@ const adviserRoutes = (
 const notFoundRoute = <Route path="*" element={<NotFoundPage />} />
 
 function AgencyGuard() {
-    const { user, isLoading } = useUser()
-    const [agency, setAgency] = useState<Agency | null>(null)
+    const { user, setUser, isLoading } = useUser()
     const [checking, setChecking] = useState(true)
 
     useEffect(() => {
         async function fetchAgencyFunction() {
-            if (!user) {
+            if (!user || !isAgency(user)) {
                 setChecking(false)
                 return
             }
 
             const agency = await fetchAgency(user.uid)
 
-            setAgency(agency)
+            if (agency) {
+                setUser({
+                    ...user,
+                    companyData: agency,
+                })
+            }
+
             setChecking(false)
         }
 
         fetchAgencyFunction()
-    }, [user])
+    }, [user, setUser])
 
     if (isLoading || checking) return <LoadingFallback />
 
-    if (!agency) return <CreateAgencyPage />
+    if (!user || !isAgency(user)) {
+        return <div>Access Denied</div>
+    }
+
+    if (!user.companyData) return <CreateAgencyPage />
 
     return <Outlet />
 }

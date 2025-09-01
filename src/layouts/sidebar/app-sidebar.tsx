@@ -13,6 +13,7 @@ import {
     // QrCode,
     // Users,
     // type LucideIcon,
+    User,
     Users2Icon,
     Briefcase,
     LayoutDashboard,
@@ -126,6 +127,11 @@ const sidebarConfig: SidebarConfig = {
             title: "Dashboard",
             url: "/",
             icon: LayoutDashboard,
+        },
+        {
+            title: "Interns",
+            url: "/interns",
+            icon: User,
         },
         {
             title: "Schedules",

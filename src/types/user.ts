@@ -1,3 +1,4 @@
+import type { Agency } from "@/api/agency"
 import type { FieldValue, Timestamp } from "firebase/firestore"
 
 export type Role =
@@ -57,6 +58,7 @@ export type AppUser =
     | (Profile & { role: "chair_person" } & { chairData: ChairPerson })
     | (Profile & { role: "agency_supervisor" } & {
           supervisorData: AgencySupervisor
+          companyData?: Agency
       })
     | (Profile & { role: null })
 
@@ -64,4 +66,23 @@ export function isStudent(
     user: AppUser
 ): user is Profile & { role: "student"; studentData: Student } {
     return user.role === "student"
+}
+
+export function isAgency(
+    user: AppUser
+): user is AppUser & { role: "agency_supervisor"; companyData?: Agency } {
+    return user.role === "agency_supervisor"
+}
+
+export function isPracticumAdviser(user: AppUser): user is Profile & {
+    role: "practicum_adviser"
+    adviserData: PracticumAdviser
+} {
+    return user.role === "practicum_adviser"
+}
+
+export function isChairPerson(
+    user: AppUser
+): user is Profile & { role: "chair_person"; chairData: ChairPerson } {
+    return user.role === "chair_person"
 }

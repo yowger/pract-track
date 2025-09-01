@@ -16,6 +16,7 @@ import type { DaySchedule, Scheduler } from "@/types/scheduler"
 import { TypographyH3, TypographyP } from "@/components/typography"
 import { TypographyH4 } from "../../../components/typography"
 import { useUser } from "@/hooks/use-user"
+import { isAgency } from "@/types/user"
 
 const daysOfWeek = [
     "Mondays",
@@ -29,6 +30,7 @@ const daysOfWeek = [
 
 export default function CreateSchedule() {
     const { user } = useUser()
+
     const navigate = useNavigate()
 
     const formRef = useRef<UseFormReturn<ScheduleFormValues>>(null)
@@ -71,6 +73,10 @@ export default function CreateSchedule() {
         }))
     )
 
+    if (!user || !isAgency(user)) {
+        return <div>Access Denied</div>
+    }
+
     const handleSubmit = async (values: ScheduleFormValues) => {
         const hasValidWeeklySession = schedule.some((day) =>
             day.sessions.some(
@@ -95,10 +101,14 @@ export default function CreateSchedule() {
         }
 
         try {
-            if (!user) return
+            if (!user || !isAgency(user) || !user.companyData?.ownerId) {
+                return
+            }
 
-            await saveSchedule({ schedule: scheduleData, companyId: user?.uid })
-            await saveSchedule({ schedule: scheduleData })
+            await saveSchedule({
+                schedule: scheduleData,
+                companyId: user.companyData.ownerId,
+            })
 
             navigate("/schedules")
         } catch (error) {
