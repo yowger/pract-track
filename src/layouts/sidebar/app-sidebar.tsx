@@ -10,14 +10,16 @@ import {
     CalendarDays,
     Map,
     BookOpen,
-    QrCode,
-    Users,
-    type LucideIcon,
+    // QrCode,
+    // Users,
+    // type LucideIcon,
     Users2Icon,
     Briefcase,
+    LayoutDashboard,
+    Timer,
 } from "lucide-react"
 
-import { AppNavMain } from "./app-nav-main"
+import { AppNavMain, type NavItem } from "./app-nav-main"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 import {
@@ -30,16 +32,10 @@ import {
 import { useUser } from "@/hooks/use-user"
 import type { Role } from "@/types/user"
 
-interface SidebarItem {
-    title: string
-    url: string
-    icon: LucideIcon
-}
-
 type NonNullRole = Exclude<Role, null>
 
 type SidebarConfig = {
-    [key in NonNullRole]: SidebarItem[]
+    [key in NonNullRole]: NavItem[]
 }
 
 const teams = [
@@ -127,20 +123,39 @@ const sidebarConfig: SidebarConfig = {
 
     agency_supervisor: [
         {
-            title: "Generate Attendance QR Code",
-            url: "/supervisor/qr",
-            icon: QrCode,
+            title: "Dashboard",
+            url: "/",
+            icon: LayoutDashboard,
         },
         {
-            title: "View Assigned Students",
-            url: "/supervisor/students",
-            icon: Users,
+            title: "Schedules",
+            icon: Timer,
+            items: [
+                {
+                    title: "View Schedules",
+                    url: "/schedules",
+                },
+                {
+                    title: "Create New Schedule",
+                    url: "/schedules/new",
+                },
+            ],
         },
-        {
-            title: "Provide Feedback & Grades",
-            url: "/supervisor/feedback",
-            icon: Bot,
-        },
+        // {
+        //     title: "Generate Attendance QR Code",
+        //     url: "/supervisor/qr",
+        //     icon: QrCode,
+        // },
+        // {
+        //     title: "View Assigned Students",
+        //     url: "/supervisor/students",
+        //     icon: Users,
+        // },
+        // {
+        //     title: "Provide Feedback & Grades",
+        //     url: "/supervisor/feedback",
+        //     icon: Bot,
+        // },
     ],
 
     // programCoordinator: [
@@ -161,7 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { user } = useUser()
     if (!user) return null
 
-    let nav: SidebarItem[] = []
+    let nav: NavItem[] = []
 
     if (user.role) {
         nav = sidebarConfig[user.role] || []

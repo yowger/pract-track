@@ -1,6 +1,8 @@
 import { useRef, useState } from "react"
 import { type UseFormReturn } from "react-hook-form"
+import { toast } from "sonner"
 
+import { saveSchedule } from "@/api/scheduler"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { WeeklySchedule } from "../components/weekly-schedule"
@@ -9,7 +11,9 @@ import {
     ScheduleForm,
     type ScheduleFormValues,
 } from "../components/schedule-form"
-import type { DaySchedule } from "@/types/scheduler"
+import type { DaySchedule, Scheduler } from "@/types/scheduler"
+import { TypographyH3, TypographyP } from "@/components/typography"
+import { TypographyH4 } from "../../../components/typography"
 
 const daysOfWeek = [
     "Mondays",
@@ -23,7 +27,8 @@ const daysOfWeek = [
 
 export default function CreateSchedule() {
     const formRef = useRef<UseFormReturn<ScheduleFormValues>>(null)
-
+    const [scheduleError, setScheduleError] = useState<string>("")
+    const [isLoading, setIsLoading] = useState(false)
     const [schedule, setSchedule] = useState<DaySchedule[]>(
         daysOfWeek.map((day, idx) => ({
             day,
@@ -61,22 +66,38 @@ export default function CreateSchedule() {
         }))
     )
 
-    const handleSubmit = (values: ScheduleFormValues) => {
+    const handleSubmit = async (values: ScheduleFormValues) => {
         const hasValidSession = schedule.some((day) =>
-            day.sessions.some((session) => session.start && session.end)
+            day.sessions.some(
+                (session) => session.start && session.end && day.available
+            )
         )
 
         if (!hasValidSession) {
-            alert("Please fill at least one session with start and end time.")
-
+            setScheduleError(
+                "Please fill at least one session with start and end time."
+            )
             return
         }
 
-        const scheduleData = {
+        setScheduleError("")
+        setIsLoading(true)
+
+        const scheduleData: Scheduler = {
             ...values,
             weeklySchedule: schedule,
         }
-        console.log("Final schedule data:", scheduleData)
+
+        try {
+            const id = await saveSchedule({ schedule: scheduleData })
+            toast.success("Schedule saved successfully.")
+            console.log("Schedule saved with ID:", id)
+        } catch (error) {
+            toast.error("Failed to save schedule. Please try again.")
+            console.error("Failed to save schedule:", error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     const handleExternalSubmit = () => {
@@ -87,40 +108,49 @@ export default function CreateSchedule() {
 
     return (
         <div className="p-6 space-y-6">
-            <h2 className="text-lg font-medium">Create new schedule</h2>
+            <TypographyH3 className="mb-8">Create new schedule</TypographyH3>
 
-            <div className="flex flex-col gap-4 w-fit">
+            <div className="flex flex-col mb-8 w-fit">
+                <TypographyH4 className="mb-4">Schedule Details</TypographyH4>
+
                 <ScheduleForm formRef={formRef} onSubmit={handleSubmit} />
             </div>
 
-            <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex flex-col w-fit space-y-5">
-                    <WeeklySchedule value={schedule} onChange={setSchedule} />
+            <div className="flex flex-col mb-8">
+                <TypographyH4 className="mb-4">Weekly Schedule</TypographyH4>
 
-                    <div className="flex justify-end">
-                        <Button onClick={handleExternalSubmit}>
-                            Save Schedule
-                        </Button>
-                    </div>
+                <ScrollArea className="w-full whitespace-nowrap mb-2">
+                    <WeeklySchedule value={schedule} onChange={setSchedule} />
                     <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+
+                {scheduleError && (
+                    <p className="text-red-500 dark:text-red-400 text-sm mt-1">
+                        {scheduleError}
+                    </p>
+                )}
+
+                <div className="flex justify-end mt-4">
+                    <Button onClick={handleExternalSubmit} disabled={isLoading}>
+                        {isLoading ? "Saving..." : "Save Schedule"}
+                    </Button>
                 </div>
-            </ScrollArea>
+            </div>
 
             <div>
-                <h2 className="text-lg font-medium">Override schedule</h2>
+                <TypographyH4 className="mb-2">Override Schedule</TypographyH4>
 
-                <div className="w-[56ch]">
-                    <p className="text-muted-foreground">
+                <div className="w-[56ch] mb-4">
+                    <TypographyP className="text-muted-foreground">
                         Here you can create a custom schedule for a specific
                         day. These will override the default schedule.
-                    </p>
+                    </TypographyP>
                 </div>
             </div>
 
             <ScrollArea className="w-full whitespace-nowrap">
                 <div className="flex flex-col w-fit space-y-5">
                     <OverrideSchedule />
-
                     <ScrollBar orientation="horizontal" />
                 </div>
             </ScrollArea>
