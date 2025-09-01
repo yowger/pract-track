@@ -1,8 +1,6 @@
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Camera } from "lucide-react"
+import { TimeWithPhotoToggle } from "./time-with-photo-toggle"
 
 export type Session = {
     start: string
@@ -15,48 +13,6 @@ export type DaySchedule = {
     day: string
     available: boolean
     sessions: Session[]
-}
-
-function TimeWithPhotoToggle({
-    value,
-    onChange,
-    photoActive,
-    onTogglePhoto,
-    disabled,
-}: {
-    value: string
-    onChange: (val: string) => void
-    photoActive: boolean
-    onTogglePhoto: () => void
-    disabled: boolean
-}) {
-    return (
-        <div className="flex items-center gap-2 w-44">
-            <Input
-                type="time"
-                className="w-fit"
-                value={value}
-                disabled={disabled}
-                onChange={(e) => onChange(e.target.value)}
-            />
-            <Button
-                variant="outline"
-                size="icon"
-                className={`size-8 transition-colors ${
-                    photoActive ? "border-blue-300" : ""
-                }`}
-                type="button"
-                disabled={disabled}
-                onClick={onTogglePhoto}
-            >
-                <Camera
-                    className={`w-4 h-4 transition-colors ${
-                        photoActive ? "text-blue-500" : "text-slate-400"
-                    } ${disabled ? "opacity-50" : ""}`}
-                />
-            </Button>
-        </div>
-    )
 }
 
 export function WeeklySchedule({

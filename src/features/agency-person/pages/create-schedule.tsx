@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { WeeklySchedule, type DaySchedule } from "../components/weekly-schedule"
+import OverrideSchedule from "../components/override-schdule"
 
 const daysOfWeek = [
     "Mondays",
@@ -71,7 +72,24 @@ export default function CreateSchedule() {
                 </div>
             </ScrollArea>
 
-            <h2 className="text-lg font-medium">Create new schedule</h2>
+            <div>
+                <h2 className="text-lg font-medium">Override schedule</h2>
+
+                <div className="w-[56ch]">
+                    <p className="text-muted-foreground">
+                        Here you can create a custom schedule for a specific
+                        day. These will override the default schedule.
+                    </p>
+                </div>
+            </div>
+
+            <ScrollArea className="w-full whitespace-nowrap">
+                <div className="flex flex-col w-fit space-y-5">
+                    <OverrideSchedule />
+
+                    <ScrollBar orientation="horizontal" />
+                </div>
+            </ScrollArea>
         </div>
     )
 }
