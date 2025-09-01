@@ -1,19 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import type { DaySchedule, Session } from "@/types/scheduler"
 import { TimeWithPhotoToggle } from "./time-with-photo-toggle"
-
-export type Session = {
-    start: string
-    end: string
-    photoStart: boolean
-    photoEnd: boolean
-}
-
-export type DaySchedule = {
-    day: string
-    available: boolean
-    sessions: Session[]
-}
 
 export function WeeklySchedule({
     value,
@@ -69,8 +57,8 @@ export function WeeklySchedule({
                             <span
                                 className={`font.medium text-sm ${
                                     entry.available
-                                        ? "text-slate-900"
-                                        : "text-slate-400"
+                                        ? "text-gray-900 dark:text-white"
+                                        : "text-gray-400 dark:text-gray-600"
                                 }`}
                             >
                                 {entry.day}

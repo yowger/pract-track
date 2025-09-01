@@ -1,9 +1,15 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
+import { type UseFormReturn } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { WeeklySchedule, type DaySchedule } from "../components/weekly-schedule"
+import { WeeklySchedule } from "../components/weekly-schedule"
 import OverrideSchedule from "../components/override-schdule"
+import {
+    ScheduleForm,
+    type ScheduleFormValues,
+} from "../components/schedule-form"
+import type { DaySchedule } from "@/types/scheduler"
 
 const daysOfWeek = [
     "Mondays",
@@ -16,6 +22,8 @@ const daysOfWeek = [
 ]
 
 export default function CreateSchedule() {
+    const formRef = useRef<UseFormReturn<ScheduleFormValues>>(null)
+
     const [schedule, setSchedule] = useState<DaySchedule[]>(
         daysOfWeek.map((day, idx) => ({
             day,
@@ -53,20 +61,46 @@ export default function CreateSchedule() {
         }))
     )
 
-    const handleSubmit = () => {
-        console.log("Final schedule:", schedule)
+    const handleSubmit = (values: ScheduleFormValues) => {
+        const hasValidSession = schedule.some((day) =>
+            day.sessions.some((session) => session.start && session.end)
+        )
+
+        if (!hasValidSession) {
+            alert("Please fill at least one session with start and end time.")
+
+            return
+        }
+
+        const scheduleData = {
+            ...values,
+            weeklySchedule: schedule,
+        }
+        console.log("Final schedule data:", scheduleData)
+    }
+
+    const handleExternalSubmit = () => {
+        if (formRef.current) {
+            formRef.current.handleSubmit(handleSubmit)()
+        }
     }
 
     return (
         <div className="p-6 space-y-6">
             <h2 className="text-lg font-medium">Create new schedule</h2>
 
+            <div className="flex flex-col gap-4 w-fit">
+                <ScheduleForm formRef={formRef} onSubmit={handleSubmit} />
+            </div>
+
             <ScrollArea className="w-full whitespace-nowrap">
                 <div className="flex flex-col w-fit space-y-5">
                     <WeeklySchedule value={schedule} onChange={setSchedule} />
 
                     <div className="flex justify-end">
-                        <Button onClick={handleSubmit}>Save Schedule</Button>
+                        <Button onClick={handleExternalSubmit}>
+                            Save Schedule
+                        </Button>
                     </div>
                     <ScrollBar orientation="horizontal" />
                 </div>
