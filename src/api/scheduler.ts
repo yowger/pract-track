@@ -12,20 +12,14 @@ export async function saveSchedule({
     schedule,
     companyId,
 }: SaveScheduleParams) {
-    try {
-        const timestamp = new Date().toISOString()
+    const timestamp = new Date().toISOString()
 
-        const docRef = await addDoc(collection(db, "schedules"), {
-            ...schedule,
-            companyId: companyId || null,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-        })
+    const docRef = await addDoc(collection(db, "schedules"), {
+        ...schedule,
+        companyId: companyId || null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+    })
 
-        console.log("Schedule saved with ID:", docRef.id)
-        return docRef.id
-    } catch (error) {
-        console.error("Error saving schedule:", error)
-        throw error
-    }
+    return docRef.id
 }

@@ -1,12 +1,13 @@
 import { useRef, useState } from "react"
 import { type UseFormReturn } from "react-hook-form"
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { saveSchedule } from "@/api/scheduler"
 import { Button } from "@/components/ui/button"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { WeeklySchedule } from "../components/weekly-schedule"
-import OverrideSchedule from "../components/override-schdule"
+import OverrideSchedule from "../components/override-schedule"
 import {
     ScheduleForm,
     type ScheduleFormValues,
@@ -14,6 +15,7 @@ import {
 import type { DaySchedule, Scheduler } from "@/types/scheduler"
 import { TypographyH3, TypographyP } from "@/components/typography"
 import { TypographyH4 } from "../../../components/typography"
+import { useUser } from "@/hooks/use-user"
 
 const daysOfWeek = [
     "Mondays",
@@ -26,6 +28,9 @@ const daysOfWeek = [
 ]
 
 export default function CreateSchedule() {
+    const { user } = useUser()
+    const navigate = useNavigate()
+
     const formRef = useRef<UseFormReturn<ScheduleFormValues>>(null)
     const [scheduleError, setScheduleError] = useState<string>("")
     const [isLoading, setIsLoading] = useState(false)
@@ -67,16 +72,17 @@ export default function CreateSchedule() {
     )
 
     const handleSubmit = async (values: ScheduleFormValues) => {
-        const hasValidSession = schedule.some((day) =>
+        const hasValidWeeklySession = schedule.some((day) =>
             day.sessions.some(
                 (session) => session.start && session.end && day.available
             )
         )
 
-        if (!hasValidSession) {
+        if (!hasValidWeeklySession) {
             setScheduleError(
                 "Please fill at least one session with start and end time."
             )
+
             return
         }
 
@@ -89,9 +95,12 @@ export default function CreateSchedule() {
         }
 
         try {
-            const id = await saveSchedule({ schedule: scheduleData })
-            toast.success("Schedule saved successfully.")
-            console.log("Schedule saved with ID:", id)
+            if (!user) return
+
+            await saveSchedule({ schedule: scheduleData, companyId: user?.uid })
+            await saveSchedule({ schedule: scheduleData })
+
+            navigate("/schedules")
         } catch (error) {
             toast.error("Failed to save schedule. Please try again.")
             console.error("Failed to save schedule:", error)
