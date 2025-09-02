@@ -63,12 +63,17 @@ export default function Schedules() {
             <ul className="space-y-2">
                 {schedules.map((sched) => (
                     <li key={sched.id} className="p-2 border rounded">
-                        <div className="font-semibold">
-                            {sched.scheduleName}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                            {sched.startDate} → {sched.endDate}
-                        </div>
+                        <Link
+                            to={`/schedules/${sched.id}`}
+                            className="block space-y-1"
+                        >
+                            <div className="font-semibold">
+                                {sched.scheduleName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                {sched.startDate} → {sched.endDate}
+                            </div>
+                        </Link>
                     </li>
                 ))}
             </ul>

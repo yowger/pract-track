@@ -1,12 +1,13 @@
 import {
     addDoc,
     collection,
+    getDoc,
     getDocs,
+    doc,
     query,
     where,
     type Query,
 } from "firebase/firestore"
-
 import type { Scheduler } from "@/types/scheduler"
 import { db } from "@/service/firebase/firebase"
 
@@ -36,26 +37,37 @@ type GetSchedulesParams = {
 }
 
 export async function getSchedules({ companyId }: GetSchedulesParams = {}) {
-    try {
-        const schedulesRef = collection(db, "schedules")
-        let q: Query = schedulesRef
+    const schedulesRef = collection(db, "schedules")
+    let q: Query = schedulesRef
 
-        if (companyId) {
-            q = query(schedulesRef, where("companyId", "==", companyId))
-        }
-
-        const snapshot = await getDocs(q)
-        const schedules: (Scheduler & { id: string })[] = snapshot.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Scheduler & { id: string })
-        )
-
-        return schedules
-    } catch (error) {
-        console.error("Error fetching schedules:", error)
-        throw error
+    if (companyId) {
+        q = query(schedulesRef, where("companyId", "==", companyId))
     }
+
+    const snapshot = await getDocs(q)
+    const schedules: (Scheduler & { id: string })[] = snapshot.docs.map(
+        (doc) =>
+            ({
+                id: doc.id,
+                ...doc.data(),
+            } as Scheduler & { id: string })
+    )
+
+    return schedules
+}
+
+export async function getScheduleById(
+    scheduleId: string
+): Promise<(Scheduler & { id: string }) | null> {
+    const scheduleRef = doc(db, "schedules", scheduleId)
+    const snapshot = await getDoc(scheduleRef)
+
+    if (!snapshot.exists()) {
+        return null
+    }
+
+    return {
+        id: snapshot.id,
+        ...snapshot.data(),
+    } as Scheduler & { id: string }
 }

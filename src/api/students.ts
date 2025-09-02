@@ -11,6 +11,8 @@ import {
     DocumentSnapshot,
     getCountFromServer,
     QueryConstraint,
+    writeBatch,
+    doc,
 } from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
 import { type Student } from "@/types/user"
@@ -104,4 +106,74 @@ export async function getStudentsPaginated({
         lastDoc,
         totalItems: countSnap.data().count,
     }
+}
+
+interface StudentFilter {
+    assignedAgencyID?: string
+    status?: string
+    scheduleId?: string
+}
+
+export async function getAllStudents(
+    filter: StudentFilter = {}
+): Promise<Student[]> {
+    const studentsRef = collection(db, "students")
+    const clauses: QueryConstraint[] = []
+
+    if (filter.assignedAgencyID) {
+        clauses.push(where("assignedAgencyID", "==", filter.assignedAgencyID))
+    }
+
+    if (filter.status) {
+        clauses.push(where("status", "==", filter.status))
+    }
+
+    if (filter.scheduleId) {
+        clauses.push(where("assignedSchedule.id", "==", filter.scheduleId))
+    }
+
+    const q = clauses.length > 0 ? query(studentsRef, ...clauses) : studentsRef
+    const snapshot = await getDocs(q)
+
+    return snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Student),
+    }))
+}
+
+interface UpdateStudentsScheduleParams {
+    studentIds: string[]
+    scheduleId: string
+    newName: string
+}
+
+export async function updateStudentsScheduleByIds({
+    studentIds,
+    scheduleId,
+    newName,
+}: UpdateStudentsScheduleParams) {
+    if (!studentIds.length) return
+
+    const studentsRef = collection(db, "students")
+    const q = query(studentsRef, where("studentID", "in", studentIds))
+    const snap = await getDocs(q)
+
+    if (snap.empty) {
+        console.log("No matching students found for the given IDs.")
+        return
+    }
+
+    const batch = writeBatch(db)
+
+    snap.forEach((studentDoc) => {
+        const studentRef = doc(db, "students", studentDoc.id)
+        batch.update(studentRef, {
+            assignedSchedule: {
+                id: scheduleId,
+                name: newName,
+            },
+        })
+    })
+
+    await batch.commit()
 }

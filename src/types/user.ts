@@ -36,6 +36,10 @@ export interface Student {
     assignedAgencyName: string | null
     createdAt: Date | Timestamp | FieldValue
     updatedAt: Date | Timestamp | FieldValue
+    schedule?: {
+        id: string
+        name: string
+    }
 }
 
 export interface PracticumAdviser {

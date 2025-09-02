@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import type { DaySchedule, Session } from "@/types/scheduler"
 import { TimeWithPhotoToggle } from "./time-with-photo-toggle"
+import type { DaySchedule, Session } from "@/types/scheduler"
 
 export function WeeklySchedule({
     value,
@@ -55,7 +55,7 @@ export function WeeklySchedule({
                                 }
                             />
                             <span
-                                className={`font.medium text-sm ${
+                                className={`font-medium text-sm ${
                                     entry.available
                                         ? "text-gray-900 dark:text-white"
                                         : "text-gray-400 dark:text-gray-600"

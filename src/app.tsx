@@ -8,7 +8,11 @@ import { useUser } from "./hooks/use-user"
 import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import { isAgency, type Role } from "./types/user"
 import { fetchAgency } from "./api/agency"
+import ViewSchedule from "./features/agency-person/pages/view-schedule"
 
+// const AgencyAssignSchedulesPage = lazy(
+//     () => import("@/features/agency-person/pages/agency-assign-schedules")
+// )
 const AgencyInternsPage = lazy(
     () => import("@/features/agency-person/pages/agency-interns")
 )
@@ -124,6 +128,10 @@ const agencySupervisorRoutes = (
                     <Route
                         path="/schedules/new"
                         element={<CreateSchedulePage />}
+                    />
+                    <Route
+                        path="/schedules/:scheduleId"
+                        element={<ViewSchedule />}
                     />
                     <Route path="/interns" element={<AgencyInternsPage />} />
                 </Route>

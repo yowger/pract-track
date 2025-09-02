@@ -85,7 +85,7 @@ export default function DataTable<TData, TValue>({
     }, [rowSelection])
 
     return (
-        <div>
+        <div className="rounded-md overflow-clip">
             <div className="rounded-md border w-full whitespace-nowrap">
                 <Table>
                     <TableHeader className="bg-muted sticky top-0">

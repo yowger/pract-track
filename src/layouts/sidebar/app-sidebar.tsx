@@ -141,6 +141,10 @@ const sidebarConfig: SidebarConfig = {
                     title: "View Schedules",
                     url: "/schedules",
                 },
+                // {
+                //     title: "Assign Schedule",
+                //     url: "/schedules/assign",
+                // },
                 {
                     title: "Create New Schedule",
                     url: "/schedules/new",
