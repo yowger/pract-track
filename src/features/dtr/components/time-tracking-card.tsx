@@ -3,10 +3,12 @@ import { ArrowUpRight } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import LiveClock from "../components/live-clock"
+// import LiveClock from "../components/live-clock"
 
 interface TimeTrackingCardProps {
     todaysSchedule?: { sessions: { start: string; end: string }[] }
+    time: Date
+
     isClockedIn: boolean
     isInRange: boolean
     onClockToggle: () => void
@@ -16,12 +18,19 @@ export default function TimeTrackingCard({
     todaysSchedule,
     isClockedIn,
     isInRange,
+    time,
     onClockToggle,
 }: TimeTrackingCardProps) {
+    const formattedDate = format(time, "EEEE, MMM d yyyy")
+    const formattedTime = time.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+    })
+
     const hasSessions = todaysSchedule && todaysSchedule.sessions.length > 0
 
     let sessionContent
-    
+
     if (hasSessions) {
         sessionContent = todaysSchedule!.sessions.map((session, i) => {
             const startTime = format(
@@ -58,10 +67,10 @@ export default function TimeTrackingCard({
                 <div className="flex flex-col gap-5">
                     <div>
                         <div className="text-sm text-muted-foreground">
-                            {"Monday, 10th Dec 2022"}
+                            {formattedDate}
                         </div>
                         <div className="text-4xl font-light mb-2 font-mono">
-                            <LiveClock />
+                            {formattedTime}
                         </div>
                     </div>
 

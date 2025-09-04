@@ -17,5 +17,6 @@ export async function getServerTimeOffset(): Promise<number> {
 
 export async function getServerDate(): Promise<Date> {
     const offset = await getServerTimeOffset()
+    
     return new Date(Date.now() + offset)
 }

@@ -1,20 +1,22 @@
-import { useState } from "react"
+import { format } from "date-fns"
+import { useEffect, useState } from "react"
 
+import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
+import { useServerTime } from "@/api/hooks/use-get-server-time"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useUser } from "@/hooks/use-user"
 import { isStudent } from "@/types/user"
-import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
-import { format, parse } from "date-fns"
 import TimeTrackingCard from "../components/time-tracking-card"
 
 export default function Attendance() {
     const { user } = useUser()
+    const { serverTime } = useServerTime()
+    const [isClockedIn, setIsClockedIn] = useState(false)
+    const [isInRange, setIsInRange] = useState(true)
+    const [currentTime, setCurrentTime] = useState(serverTime || new Date())
 
     const attendance =
         user && isStudent(user) ? user.studentData.assignedSchedule : null
-
-    const [isClockedIn, setIsClockedIn] = useState(false)
-    const [isInRange, setIsInRange] = useState(true)
 
     const { schedule } = useSchedule(attendance?.id, { enabled: !!attendance })
 
@@ -25,6 +27,14 @@ export default function Attendance() {
     })
 
     const handleClockToggle = () => setIsClockedIn(!isClockedIn)
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date())
+        }, 1000)
+
+        return () => clearInterval(timer)
+    }, [])
 
     return (
         <div className="flex flex-col p-4 gap-4">
@@ -43,6 +53,7 @@ export default function Attendance() {
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
                 <TimeTrackingCard
                     todaysSchedule={todaysSchedule}
+                    time={currentTime}
                     isClockedIn={isClockedIn}
                     isInRange={isInRange}
                     onClockToggle={handleClockToggle}
