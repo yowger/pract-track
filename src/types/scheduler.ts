@@ -1,3 +1,12 @@
+export type WeekDay =
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday"
+
 export interface Session {
     start: string
     end: string
@@ -6,7 +15,7 @@ export interface Session {
 }
 
 export interface DaySchedule {
-    day: string
+    day: WeekDay
     available: boolean
     sessions: Session[]
 }

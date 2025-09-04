@@ -12,20 +12,20 @@ import {
     ScheduleForm,
     type ScheduleFormValues,
 } from "../components/schedule-form"
-import type { DaySchedule, Scheduler } from "@/types/scheduler"
+import type { DaySchedule, Scheduler, WeekDay } from "@/types/scheduler"
 import { TypographyH3, TypographyP } from "@/components/typography"
 import { TypographyH4 } from "../../../components/typography"
 import { useUser } from "@/hooks/use-user"
 import { isAgency } from "@/types/user"
 
-const daysOfWeek = [
-    "Mondays",
-    "Tuesdays",
-    "Wednesdays",
-    "Thursdays",
-    "Fridays",
-    "Saturdays",
-    "Sundays",
+const daysOfWeek: WeekDay[] = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
 ]
 
 export default function CreateSchedule() {

@@ -5,14 +5,15 @@ import ProtectedRoute from "@/components/routes/protected-routes"
 import AdminLayout from "@/layouts/admin-layout"
 import { LoadingFallback } from "./components/loading-fallback"
 import { useUser } from "./hooks/use-user"
-import DtrCopyPage from "./features/dtr/pages/dtr copy"
 import { isAgency, type Role } from "./types/user"
 import { fetchAgency } from "./api/agency"
 import ViewSchedule from "./features/agency-person/pages/view-schedule"
+import ClockInOutPage from "./features/dtr/pages/attendance copy"
 
 // const AgencyAssignSchedulesPage = lazy(
 //     () => import("@/features/agency-person/pages/agency-assign-schedules")
 // )
+const AttendancePage = lazy(() => import("@/features/dtr/pages/attendance"))
 const AgencyInternsPage = lazy(
     () => import("@/features/agency-person/pages/agency-interns")
 )
@@ -38,7 +39,7 @@ const CreateAgencyPage = lazy(
 const SignInPage = lazy(() => import("@/features/auth/pages/sign-in"))
 const SignUpPage = lazy(() => import("@/features/auth/pages/sign-up"))
 const RoleInitPage = lazy(() => import("@/features/auth/pages/role-init"))
-const DtrPage = lazy(() => import("@/features/dtr/pages/dtr"))
+// const DtrPage = lazy(() => import("@/features/dtr/pages/attendance"))
 const Dashboard = lazy(() => import("@/features/dashboard/pages/dashboard"))
 const NotFoundPage = lazy(() => import("@/pages/not-found"))
 
@@ -144,9 +145,11 @@ const studentRoutes = (
     <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
             {/* <Route path="/" element={<StudentDashboard />} /> */}
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/dtr" element={<DtrPage />} />
-            <Route path="/dtrCopy" element={<DtrCopyPage />} />
+            {/* <Route path="/" element={<Dashboard />} /> */}
+            <Route path="/" element={<AttendancePage />} />
+            <Route path="/dtr" element={<ClockInOutPage />} />
+            {/* <Route path="/dtr" element={<DtrPage />} /> */}
+            {/* <Route path="/dtrCopy" element={<DtrCopyPage />} /> */}
         </Route>
     </Route>
 )

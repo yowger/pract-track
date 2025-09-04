@@ -29,5 +29,12 @@ export default function LiveClock({ className }: LiveClockProps) {
         return () => clearInterval(timer)
     }, [offset])
 
-    return <span className={className}>{time.toLocaleTimeString()}</span>
+    return (
+        <span className={className}>
+            {time.toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+            })}
+        </span>
+    )
 }
