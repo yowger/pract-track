@@ -14,9 +14,3 @@ export async function getServerTimeOffset(): Promise<number> {
 
     return data.ts.toMillis() - Date.now()
 }
-
-export async function getServerDate(): Promise<Date> {
-    const offset = await getServerTimeOffset()
-    
-    return new Date(Date.now() + offset)
-}

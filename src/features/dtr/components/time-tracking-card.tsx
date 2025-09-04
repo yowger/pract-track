@@ -76,7 +76,14 @@ export default function TimeTrackingCard({
 
                     <div>
                         <h2 className="font-bold mb-2">Status</h2>
-                        <p className="text-sm">
+                        <p className="text-sm flex items-center">
+                            <span
+                                className={`w-2 h-2 rounded-full mr-2 ${
+                                    isClockedIn
+                                        ? "bg-emerald-800"
+                                        : "bg-red-800 dark:bg-red-950"
+                                }`}
+                            />
                             {isClockedIn ? "Clocked In" : "Clocked Out"}
                         </p>
                     </div>
@@ -113,13 +120,16 @@ export default function TimeTrackingCard({
                                 View Map
                             </Button>
                         </div>
-                        <p
-                            className={`text-sm ${
-                                isInRange ? "" : "text-muted-foreground"
-                            }`}
-                        >
+                        <div className="text-sm flex items-center">
+                            <span
+                                className={`w-2 h-2 rounded-full mr-2 ${
+                                    isInRange
+                                        ? "bg-emerald-800"
+                                        : "bg-red-800 dark:bg-red-950"
+                                }`}
+                            />
                             {isInRange ? "In Range" : "Out of Range"}
-                        </p>
+                        </div>
                     </div>
 
                     <div className="mt-2">
