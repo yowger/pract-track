@@ -203,3 +203,60 @@ function AgencyGuard() {
 
     return <Outlet />
 }
+
+/*
+
+interface Attendance {
+  id: string
+  scheduleId: string
+  userId: string
+
+  session1?: {
+    scheduledStart?: Date
+    scheduledEnd?: Date
+    scheduledMinutes?: number    // cached: scheduledEnd - scheduledStart
+    checkIn?: Date
+    checkOut?: Date
+    totalWorkMinutes?: number    // actual worked minutes
+    overtimeMinutes?: number
+    undertimeMinutes?: number
+    status?: "present" | "absent" | "late" | "excused" | "undertime" | "overtime"
+    remarks?: string
+    geoLocation?: {
+      lat: number
+      lng: number
+    }
+    photoUrl?: string
+  }
+
+  session2?: {
+    scheduledStart?: Date
+    scheduledEnd?: Date
+    scheduledMinutes?: number
+    checkIn?: Date
+    checkOut?: Date
+    totalWorkMinutes?: number
+    overtimeMinutes?: number
+    undertimeMinutes?: number
+    status?: "present" | "absent" | "late" | "excused" | "undertime" | "overtime"
+    remarks?: string
+    geoLocation?: {
+      lat: number
+      lng: number
+    }
+    photoUrl?: string
+  }
+
+  // daily summary
+  overallStatus?: "present" | "half-day" | "absent" | "excused" | "undertime" | "overtime"
+  scheduledWorkMinutes?: number   // sum of sessions
+  totalWorkMinutes?: number       // sum of sessions
+  totalOvertimeMinutes?: number
+  totalUndertimeMinutes?: number
+
+  markedBy: "self" | "admin" | "agency"
+  createdAt: Date
+  updatedAt: Date
+}
+
+*/

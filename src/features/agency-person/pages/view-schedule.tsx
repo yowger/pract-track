@@ -11,6 +11,7 @@ import { isAgency } from "@/types/user"
 import { AssignStudentsDialog } from "../components/assign-students-dialog"
 import { updateStudentsScheduleByIds } from "@/api/students"
 import { toast } from "sonner"
+import { updateSchedule } from "@/api/scheduler"
 
 export default function ViewSchedule() {
     const { user } = useUser()
@@ -77,15 +78,19 @@ export default function ViewSchedule() {
                 })
             }
 
+            await updateSchedule(schedule.id, {
+                totalAssigned: studentIds.length,
+            })
+
             await refetchStudents()
 
             setDialogOpen(false)
 
-            toast.success("Students assigned successfully")
+            toast.success("Scheduled updated successfully.")
         } catch (err) {
             console.log("🚀 ~ handleAssignSave ~ err:", err)
 
-            toast.error("Failed to update students")
+            toast.error("Failed to update schedule.")
         } finally {
             setUpdatingStudents(false)
         }
@@ -159,6 +164,7 @@ export default function ViewSchedule() {
                 </div>
 
                 <AssignStudentsDialog
+                    scheduleId={schedule.id}
                     isOpen={dialogOpen}
                     onClose={() => setDialogOpen(false)}
                     assignedStudents={assignedStudentsIds || []}

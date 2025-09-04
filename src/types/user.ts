@@ -36,7 +36,7 @@ export interface Student {
     assignedAgencyName: string | null
     createdAt: Date | Timestamp | FieldValue
     updatedAt: Date | Timestamp | FieldValue
-    schedule?: {
+    assignedSchedule?: {
         id: string
         name: string
     }

@@ -7,29 +7,31 @@ import {
     query,
     where,
     type Query,
+    updateDoc,
 } from "firebase/firestore"
 import type { Scheduler } from "@/types/scheduler"
 import { db } from "@/service/firebase/firebase"
 
-type SaveScheduleParams = {
-    schedule: Scheduler
-    companyId?: string
-}
-
-export async function saveSchedule({
-    schedule,
-    companyId,
-}: SaveScheduleParams) {
+export async function saveSchedule(schedule: Omit<Scheduler, "id">) {
     const timestamp = new Date().toISOString()
 
     const docRef = await addDoc(collection(db, "schedules"), {
         ...schedule,
-        companyId: companyId || null,
+        companyId: schedule.companyId || null,
         createdAt: timestamp,
         updatedAt: timestamp,
     })
 
     return docRef.id
+}
+
+export async function updateSchedule(id: string, updates: Partial<Scheduler>) {
+    const timestamp = new Date().toISOString()
+
+    await updateDoc(doc(db, "schedules", id), {
+        ...updates,
+        updatedAt: timestamp,
+    })
 }
 
 type GetSchedulesParams = {

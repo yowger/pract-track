@@ -95,19 +95,19 @@ export default function CreateSchedule() {
         setScheduleError("")
         setIsLoading(true)
 
-        const scheduleData: Scheduler = {
-            ...values,
-            weeklySchedule: schedule,
-        }
-
         try {
             if (!user || !isAgency(user) || !user.companyData?.ownerId) {
                 return
             }
 
-            await saveSchedule({
-                schedule: scheduleData,
+            const scheduleData: Scheduler = {
+                ...values,
                 companyId: user.companyData.ownerId,
+                weeklySchedule: schedule,
+            }
+
+            await saveSchedule({
+                ...scheduleData,
             })
 
             navigate("/schedules")

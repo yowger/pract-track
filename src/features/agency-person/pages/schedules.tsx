@@ -26,6 +26,7 @@ export default function Schedules() {
         const fetchSchedules = async () => {
             setLoading(true)
             setError(null)
+            
             try {
                 const data = await getSchedules({
                     companyId: user.companyData?.ownerId,
@@ -72,6 +73,10 @@ export default function Schedules() {
                             </div>
                             <div className="text-sm text-muted-foreground">
                                 {sched.startDate} → {sched.endDate}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                total students assigned:{" "}
+                                {sched.totalAssigned || 0}
                             </div>
                         </Link>
                     </li>

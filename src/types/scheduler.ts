@@ -12,9 +12,12 @@ export interface DaySchedule {
 }
 
 export interface Scheduler {
+    id?: string
+    companyId: string
     scheduleName: string
     description?: string
     startDate: string
     endDate: string
     weeklySchedule: DaySchedule[]
+    totalAssigned?: number
 }

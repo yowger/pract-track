@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import type { Student } from "@/types/user"
 
 interface AssignStudentsDialogProps {
+    scheduleId: string
     assignedStudents: string[]
     allStudents: Student[]
     loading?: boolean
@@ -25,6 +26,7 @@ interface AssignStudentsDialogProps {
 }
 
 export function AssignStudentsDialog({
+    scheduleId,
     assignedStudents,
     allStudents,
     loading = false,
@@ -34,6 +36,8 @@ export function AssignStudentsDialog({
     onClose,
     onSave,
 }: AssignStudentsDialogProps) {
+    console.log("🚀 ~ AssignStudentsDialog ~ allStudents:", allStudents)
+    console.log("🚀 ~ AssignStudentsDialog ~ scheduleId:", scheduleId)
     const [selected, setSelected] = useState<string[]>(assignedStudents)
 
     useEffect(() => {
@@ -68,30 +72,64 @@ export function AssignStudentsDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md p-2">
+                <div className="max-h-64 overflow-y-auto border rounded-md">
                     {loading ? (
                         <div className="flex items-center justify-center py-6">
                             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                         </div>
                     ) : allStudents.length > 0 ? (
-                        allStudents.map((student) => (
-                            <label
-                                key={student.studentID}
-                                className="flex items-center gap-2 cursor-pointer"
-                            >
-                                <Checkbox
-                                    checked={selected.includes(
-                                        student.studentID
-                                    )}
-                                    onCheckedChange={() =>
-                                        toggleStudent(student.studentID)
-                                    }
-                                />
-                                <span>{student.displayName}</span>
-                            </label>
-                        ))
+                        <div>
+                            <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-2 px-2 py-1 border-b text-sm font-medium text-muted-foreground">
+                                <span></span>
+                                <span>Student</span>
+                                <span>Assigned Schedule</span>
+                            </div>
+
+                            <div className="space-y-1 p-2">
+                                {allStudents.map((student) => {
+                                    const isAssignedToAnotherSchedule =
+                                        student.assignedSchedule?.id !==
+                                            scheduleId &&
+                                        !!student.assignedSchedule?.id
+
+                                    return (
+                                        <div
+                                            key={student.studentID}
+                                            className="grid grid-cols-[auto_1fr_1fr] items-center gap-2"
+                                        >
+                                            <Checkbox
+                                                checked={selected.includes(
+                                                    student.studentID
+                                                )}
+                                                onCheckedChange={() =>
+                                                    toggleStudent(
+                                                        student.studentID
+                                                    )
+                                                }
+                                                disabled={
+                                                    isAssignedToAnotherSchedule
+                                                }
+                                            />
+                                            <span
+                                                className={
+                                                    isAssignedToAnotherSchedule
+                                                        ? "text-muted-foreground"
+                                                        : ""
+                                                }
+                                            >
+                                                {student.displayName}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                {student.assignedSchedule
+                                                    ?.name || "-"}
+                                            </span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
                     ) : (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground p-2">
                             No students available
                         </p>
                     )}
