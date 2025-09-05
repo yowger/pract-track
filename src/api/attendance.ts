@@ -1,134 +1,224 @@
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import {
+    doc,
+    setDoc,
+    serverTimestamp,
+    collection,
+    where,
+    Timestamp,
+    orderBy,
+    query,
+    getDocs,
+    updateDoc,
+} from "firebase/firestore"
 
 import { db } from "@/service/firebase/firebase"
-import type { Attendance, AttendanceSession } from "@/types/attendance"
+import type { Attendance } from "@/types/attendance"
 
-const computeSession = (session?: AttendanceSession) => {
-    if (
-        !session ||
-        !session.checkIn ||
-        !session.checkOut ||
-        !session.scheduledStart ||
-        !session.scheduledEnd
-    )
-        return session
+// const computeSession = (session?: AttendanceSession) => {
+//     if (
+//         !session ||
+//         !session.checkIn ||
+//         !session.checkOut ||
+//         !session.scheduledStart ||
+//         !session.scheduledEnd
+//     )
+//         return session
 
-    const scheduledMinutes = Math.round(
-        (session.scheduledEnd.getTime() - session.scheduledStart.getTime()) /
-            60000
-    )
-    const totalWorkMinutes = Math.round(
-        (session.checkOut.getTime() - session.checkIn.getTime()) / 60000
-    )
-    const overtimeMinutes =
-        totalWorkMinutes > scheduledMinutes
-            ? totalWorkMinutes - scheduledMinutes
-            : 0
-    const undertimeMinutes =
-        totalWorkMinutes < scheduledMinutes
-            ? scheduledMinutes - totalWorkMinutes
-            : 0
+//     const scheduledMinutes = Math.round(
+//         (session.scheduledEnd.getTime() - session.scheduledStart.getTime()) /
+//             60000
+//     )
+//     const totalWorkMinutes = Math.round(
+//         (session.checkOut.getTime() - session.checkIn.getTime()) / 60000
+//     )
+//     const overtimeMinutes =
+//         totalWorkMinutes > scheduledMinutes
+//             ? totalWorkMinutes - scheduledMinutes
+//             : 0
+//     const undertimeMinutes =
+//         totalWorkMinutes < scheduledMinutes
+//             ? scheduledMinutes - totalWorkMinutes
+//             : 0
 
-    let status: AttendanceSession["status"] = "present"
-    if (totalWorkMinutes === 0) status = "absent"
-    else if (overtimeMinutes > 0) status = "overtime"
-    else if (undertimeMinutes > 0) status = "undertime"
+//     let status: AttendanceSession["status"] = "present"
+//     if (totalWorkMinutes === 0) status = "absent"
+//     else if (overtimeMinutes > 0) status = "overtime"
+//     else if (undertimeMinutes > 0) status = "undertime"
 
-    return {
-        ...session,
-        scheduledMinutes,
-        totalWorkMinutes,
-        overtimeMinutes,
-        undertimeMinutes,
-        status,
+//     return {
+//         ...session,
+//         scheduledMinutes,
+//         totalWorkMinutes,
+//         overtimeMinutes,
+//         undertimeMinutes,
+//         status,
+//     }
+// }
+
+// const computeOverallStatus = (sessions: AttendanceSession[] = []) => {
+//     const statuses = sessions.map((s) => s.status)
+
+//     if (statuses.every((s) => s === "excused")) return "excused"
+//     if (
+//         statuses.every(
+//             (s) =>
+//                 s === "present" ||
+//                 s === "late" ||
+//                 s === "overtime" ||
+//                 s === "undertime"
+//         )
+//     )
+//         return "present"
+//     if (
+//         statuses.some(
+//             (s) =>
+//                 s === "present" ||
+//                 s === "late" ||
+//                 s === "overtime" ||
+//                 s === "undertime" ||
+//                 s === "excused"
+//         )
+//     )
+//         return "half-day"
+
+//     return "absent"
+// }
+
+// export const saveAttendance = async (
+//     attendance: Omit<
+//         Attendance,
+//         | "id"
+//         | "createdAt"
+//         | "updatedAt"
+//         | "sessions"
+//         | "overallStatus"
+//         | "scheduledWorkMinutes"
+//         | "totalWorkMinutes"
+//         | "totalOvertimeMinutes"
+//         | "totalUndertimeMinutes"
+//     > & { sessions: AttendanceSession[] }
+// ) => {
+//     const computedSessions = attendance.sessions.map(computeSession)
+
+//     const validSessions = computedSessions.filter(
+//         (s): s is AttendanceSession => s !== undefined
+//     )
+
+//     const scheduledWorkMinutes = computedSessions.reduce(
+//         (sum, s) => sum + (s?.scheduledMinutes || 0),
+//         0
+//     )
+//     const totalWorkMinutes = computedSessions.reduce(
+//         (sum, s) => sum + (s?.totalWorkMinutes || 0),
+//         0
+//     )
+//     const totalOvertimeMinutes = computedSessions.reduce(
+//         (sum, s) => sum + (s?.overtimeMinutes || 0),
+//         0
+//     )
+//     const totalUndertimeMinutes = computedSessions.reduce(
+//         (sum, s) => sum + (s?.undertimeMinutes || 0),
+//         0
+//     )
+
+//     const overallStatus = computeOverallStatus(validSessions)
+
+//     const docRef = doc(collection(db, "attendances"))
+
+//     const data: Attendance = {
+//         ...attendance,
+//         id: docRef.id,
+//         sessions: validSessions,
+//         scheduledWorkMinutes,
+//         totalWorkMinutes,
+//         totalOvertimeMinutes,
+//         totalUndertimeMinutes,
+//         overallStatus,
+//         updatedAt: serverTimestamp(),
+//         createdAt: serverTimestamp(),
+//     }
+
+//     await setDoc(docRef, data, { merge: true })
+//     return data
+// }
+
+export async function saveAttendance(
+    attendance: Omit<Attendance, "id" | "createdAt" | "updatedAt"> & {
+        id?: string
     }
-}
-
-const computeOverallStatus = (
-    session1?: AttendanceSession,
-    session2?: AttendanceSession
-) => {
-    const s1 = session1?.status
-    const s2 = session2?.status
-
-    if (s1 === "excused" && s2 === "excused") return "excused"
-    if (
-        (s1 === "present" ||
-            s1 === "late" ||
-            s1 === "overtime" ||
-            s1 === "undertime") &&
-        (s2 === "present" ||
-            s2 === "late" ||
-            s2 === "overtime" ||
-            s2 === "undertime")
-    )
-        return "present"
-    if (
-        s1 === "present" ||
-        s1 === "late" ||
-        s1 === "overtime" ||
-        s1 === "undertime" ||
-        s1 === "excused" ||
-        s2 === "present" ||
-        s2 === "late" ||
-        s2 === "overtime" ||
-        s2 === "undertime" ||
-        s2 === "excused"
-    )
-        return "half-day"
-    return "absent"
-}
-
-export const saveAttendance = async (
-    attendance: Omit<
-        Attendance,
-        | "createdAt"
-        | "updatedAt"
-        | "session1"
-        | "session2"
-        | "overallStatus"
-        | "scheduledWorkMinutes"
-        | "totalWorkMinutes"
-        | "totalOvertimeMinutes"
-        | "totalUndertimeMinutes"
-    > & { session1?: AttendanceSession; session2?: AttendanceSession }
-) => {
-    const computedSession1 = computeSession(attendance.session1)
-    const computedSession2 = computeSession(attendance.session2)
-
-    const scheduledWorkMinutes =
-        (computedSession1?.scheduledMinutes || 0) +
-        (computedSession2?.scheduledMinutes || 0)
-    const totalWorkMinutes =
-        (computedSession1?.totalWorkMinutes || 0) +
-        (computedSession2?.totalWorkMinutes || 0)
-    const totalOvertimeMinutes =
-        (computedSession1?.overtimeMinutes || 0) +
-        (computedSession2?.overtimeMinutes || 0)
-    const totalUndertimeMinutes =
-        (computedSession1?.undertimeMinutes || 0) +
-        (computedSession2?.undertimeMinutes || 0)
-
-    const overallStatus = computeOverallStatus(
-        computedSession1,
-        computedSession2
-    )
-
-    const docRef = doc(db, "attendances", attendance.id)
+) {
+    const docRef = attendance.id
+        ? doc(db, "attendances", attendance.id)
+        : doc(collection(db, "attendances"))
 
     const data: Attendance = {
         ...attendance,
-        session1: computedSession1,
-        session2: computedSession2,
-        scheduledWorkMinutes,
-        totalWorkMinutes,
-        totalOvertimeMinutes,
-        totalUndertimeMinutes,
-        overallStatus,
-        updatedAt: serverTimestamp() as unknown as Date,
-        createdAt: serverTimestamp() as unknown as Date,
+        id: attendance.id ?? docRef.id,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
     }
 
     await setDoc(docRef, data, { merge: true })
+
     return data
+}
+
+export async function updateAttendanceRaw(
+    id: string,
+    updates: Partial<Omit<Attendance, "id">>
+) {
+    const docRef = doc(db, "attendances", id)
+
+    await updateDoc(docRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+    })
+}
+
+type AttendanceFilter = {
+    userId?: string
+    scheduleId?: string
+    status?: Attendance["overallStatus"]
+    from?: Date
+    to?: Date
+}
+
+export async function getAttendances(filter: AttendanceFilter = {}) {
+    const colRef = collection(db, "attendances")
+
+    const conditions = []
+
+    if (filter.userId) {
+        conditions.push(where("userId", "==", filter.userId))
+    }
+
+    if (filter.scheduleId) {
+        conditions.push(where("scheduleId", "==", filter.scheduleId))
+    }
+
+    if (filter.status) {
+        conditions.push(where("overallStatus", "==", filter.status))
+    }
+
+    if (filter.from) {
+        conditions.push(
+            where("attendanceDate", ">=", Timestamp.fromDate(filter.from))
+        )
+    }
+
+    if (filter.to) {
+        conditions.push(
+            where("attendanceDate", "<=", Timestamp.fromDate(filter.to))
+        )
+    }
+
+    const q = query(colRef, ...conditions, orderBy("attendanceDate", "desc"))
+
+    const snapshot = await getDocs(q)
+
+    const attendances: Attendance[] = snapshot.docs.map((doc) => {
+        return { id: doc.id, ...doc.data() } as Attendance
+    })
+
+    return attendances
 }

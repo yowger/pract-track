@@ -41,7 +41,7 @@ export function useStudents(
         fetchStudents()
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter.assignedAgencyID, filter.scheduleId, filter.status, enabled])
+    }, [JSON.stringify(filter), enabled])
 
     return { students, loading, error, refetch: fetchStudents }
 }

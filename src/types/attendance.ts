@@ -6,14 +6,16 @@ export interface GeoLocation {
 }
 
 export interface AttendanceSession {
-    scheduledStart?: Date
-    scheduledEnd?: Date
-    scheduledMinutes?: number
-    checkIn?: Date
-    checkOut?: Date
-    totalWorkMinutes?: number
-    overtimeMinutes?: number
-    undertimeMinutes?: number
+    schedule: {
+        start?: Date | Timestamp
+        end?: Date | Timestamp
+        geoLocation?: GeoLocation
+        geoRadius?: number
+        photoStart?: boolean
+        photoEnd?: boolean
+    }
+    checkIn?: Date | Timestamp
+    checkOut?: Date | Timestamp
     status?:
         | "present"
         | "absent"
@@ -31,8 +33,8 @@ export interface Attendance {
     scheduleId: string
     scheduleName?: string
     userId: string
-    session1?: AttendanceSession
-    session2?: AttendanceSession
+    sessions: AttendanceSession[]
+    attendanceDate: Date | Timestamp
     overallStatus?:
         | "present"
         | "half-day"
@@ -40,10 +42,6 @@ export interface Attendance {
         | "excused"
         | "undertime"
         | "overtime"
-    scheduledWorkMinutes?: number
-    totalWorkMinutes?: number
-    totalOvertimeMinutes?: number
-    totalUndertimeMinutes?: number
     markedBy: "self" | "admin" | "agency"
     createdAt: Date | Timestamp | FieldValue
     updatedAt: Date | Timestamp | FieldValue
