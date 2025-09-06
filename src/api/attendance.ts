@@ -193,7 +193,7 @@ export async function getAttendances(filter: AttendanceFilter = {}) {
     }
 
     if (filter.scheduleId) {
-        conditions.push(where("scheduleId", "==", filter.scheduleId))
+        conditions.push(where("schedule.id", "==", filter.scheduleId))
     }
 
     if (filter.status) {
@@ -202,17 +202,17 @@ export async function getAttendances(filter: AttendanceFilter = {}) {
 
     if (filter.from) {
         conditions.push(
-            where("attendanceDate", ">=", Timestamp.fromDate(filter.from))
+            where("schedule.date", ">=", Timestamp.fromDate(filter.from))
         )
     }
 
     if (filter.to) {
         conditions.push(
-            where("attendanceDate", "<=", Timestamp.fromDate(filter.to))
+            where("schedule.date", "<=", Timestamp.fromDate(filter.to))
         )
     }
 
-    const q = query(colRef, ...conditions, orderBy("attendanceDate", "desc"))
+    const q = query(colRef, ...conditions, orderBy("schedule.date", "desc"))
 
     const snapshot = await getDocs(q)
 

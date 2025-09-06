@@ -13,6 +13,8 @@ export interface AttendanceSession {
         geoRadius?: number
         photoStart?: boolean
         photoEnd?: boolean
+        lateThresholdMins?: number
+        undertimeThresholdMins?: number
     }
     checkIn?: Date | Timestamp
     checkOut?: Date | Timestamp
@@ -25,24 +27,33 @@ export interface AttendanceSession {
         | "overtime"
     remarks?: string
     geoLocation?: GeoLocation
+    address?: string
     photoUrl?: string
 }
 
 export interface Attendance {
     id: string
-    scheduleId: string
-    scheduleName?: string
-    userId: string
+    schedule: {
+        id: string
+        name: string
+        date: Date | Timestamp
+    }
+    user: {
+        id: string
+        name: string
+        photoUrl?: string
+    }
     sessions: AttendanceSession[]
-    attendanceDate: Date | Timestamp
     overallStatus?:
         | "present"
+        | "late"
         | "half-day"
         | "absent"
         | "excused"
         | "undertime"
         | "overtime"
     markedBy: "self" | "admin" | "agency"
+    totalWorkMinutes?: number
     createdAt: Date | Timestamp | FieldValue
     updatedAt: Date | Timestamp | FieldValue
 }

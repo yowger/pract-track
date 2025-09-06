@@ -85,15 +85,18 @@ export default function DataTable<TData, TValue>({
     }, [rowSelection])
 
     return (
-        <div className="rounded-md overflow-clip">
+        <div className="rounded-md">
             <div className="rounded-md border w-full whitespace-nowrap">
                 <Table>
-                    <TableHeader className="bg-muted sticky top-0">
+                    <TableHeader className="sticky top-0">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
+                                        <TableHead
+                                            key={header.id}
+                                            className="font-medium text-muted-foreground"
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(

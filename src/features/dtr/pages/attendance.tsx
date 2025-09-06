@@ -41,7 +41,7 @@ export default function Attendance() {
     const [attendanceRecord, setAttendanceRecord] = useState<Attendance | null>(
         null
     )
-    const [currentTime, setCurrentTime] = useState(serverTime || new Date())
+    const [currentTime, setCurrentTime] = useState(serverTime || null)
 
     const attendance =
         user && isStudent(user) ? user.studentData.assignedSchedule : null
@@ -68,12 +68,20 @@ export default function Attendance() {
     const todaysSchedule = schedule?.weeklySchedule.find(
         (day) => day.day === today
     )
+    const hasSession = todaysSchedule?.sessions.some((s) => s.start && s.end)
 
     const isInRange = true
     // const isClockedIn = false
 
     async function handleClockToggle() {
-        if (!user || !todaysSchedule || !schedule || !serverTime) return
+        if (
+            !user ||
+            !todaysSchedule ||
+            !schedule ||
+            !currentTime ||
+            !hasSession
+        )
+            return
 
         const todaysDate = serverTime || new Date()
 
@@ -99,10 +107,16 @@ export default function Attendance() {
                 Attendance,
                 "id" | "createdAt" | "updatedAt"
             > = {
-                scheduleId: schedule.id,
-                scheduleName: schedule.scheduleName,
-                attendanceDate: todaysDate,
-                userId: user.uid,
+                schedule: {
+                    id: schedule.id,
+                    name: schedule.scheduleName,
+                    date: todaysDate,
+                },
+                user: {
+                    id: user.uid,
+                    name: user.firstName + " " + user.lastName,
+                    photoUrl: user.photoUrl || "",
+                },
                 sessions: [
                     {
                         schedule: {
@@ -112,8 +126,8 @@ export default function Attendance() {
                             photoEnd: currentSessions.photoEnd,
                         },
                         checkIn: currentTime,
-                        // checkOut: null,
                         status: "present",
+                        // checkOut: null,
                         // remarks: null,
                         // geoLocation: null,
                         // photoUrl: null,
@@ -164,11 +178,12 @@ export default function Attendance() {
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
                 <TimeTrackingCard
                     todaysSchedule={todaysSchedule}
-                    time={currentTime}
+                    time={currentTime || new Date()}
                     isClockedIn={isClockedIn}
                     isInRange={isInRange}
                     onClockToggle={handleClockToggle}
-                    isDisabled={!todaysSchedule || !isInRange}
+                    isDisabled={!todaysSchedule || !isInRange || !hasSession}
+                    isLoading={!currentTime}
                 />
 
                 <AttendanceList attendances={attendanceList || []} />

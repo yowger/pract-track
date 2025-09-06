@@ -56,7 +56,7 @@ export default function TimeTrackingCard({
     )
 
     return (
-        <Card className="col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-8">
+        <Card className="col-span-12 lg:col-span-4">
             <CardHeader>
                 <CardTitle>Time Tracking</CardTitle>
             </CardHeader>
