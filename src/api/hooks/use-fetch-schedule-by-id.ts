@@ -10,9 +10,7 @@ export function useSchedule(
     scheduleId?: string,
     options: UseScheduleOptions = {}
 ) {
-    const [schedule, setSchedule] = useState<
-        (Scheduler & { id: string }) | null
-    >(null)
+    const [schedule, setSchedule] = useState<Scheduler | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 

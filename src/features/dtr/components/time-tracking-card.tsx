@@ -1,13 +1,15 @@
-import { format, parse } from "date-fns"
+import { format } from "date-fns"
 import { ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { Link } from "react-router-dom"
+import type { Attendance } from "@/types/attendance"
+import type { Timestamp } from "firebase/firestore"
 
 interface TimeTrackingCardProps {
-    todaysSchedule?: { sessions: { start: string; end: string }[] }
+    attendance: Attendance
     time: Date
     isClockedIn: boolean
     isInRange: boolean
@@ -16,8 +18,12 @@ interface TimeTrackingCardProps {
     onClockToggle: () => void
 }
 
+function toDate(value: Date | Timestamp): Date {
+    return value instanceof Date ? value : value.toDate()
+}
+
 export default function TimeTrackingCard({
-    todaysSchedule,
+    attendance,
     time,
     isClockedIn,
     isInRange,
@@ -30,20 +36,19 @@ export default function TimeTrackingCard({
         hour: "numeric",
         minute: "2-digit",
     })
-
-    const hasSessions = todaysSchedule?.sessions?.some((s) => s.start && s.end)
+    const hasSessions = attendance?.sessions?.some(
+        (schedule) => schedule.schedule.start && schedule.schedule.end
+    )
 
     const sessionContent = hasSessions ? (
-        todaysSchedule!.sessions.map((session, i) => {
-            if (!session.start || !session.end) return null
-            const startTime = format(
-                parse(session.start, "HH:mm", new Date()),
-                "hh:mm a"
-            )
-            const endTime = format(
-                parse(session.end, "HH:mm", new Date()),
-                "hh:mm a"
-            )
+        attendance!.sessions.map((session, i) => {
+            if (!session.schedule.start || !session.schedule.end) return null
+            const startDate = toDate(session.schedule.start)
+            const endDate = toDate(session.schedule.end)
+
+            const startTime = format(startDate, "hh:mm a")
+            const endTime = format(endDate, "hh:mm a")
+
             return (
                 <div key={i} className="flex p-2">
                     <span className="text-sm">

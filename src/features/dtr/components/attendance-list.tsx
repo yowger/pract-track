@@ -7,195 +7,34 @@ import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 
-const mockAttendances: Attendance[] = [
-    // --- On-time Morning + Afternoon ---
-    {
-        id: "1",
-        schedule: {
-            id: "sched1",
-            name: "Morning + Afternoon Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u1",
-            name: "John Doe",
-            photoUrl: "https://placehold.co/40x40",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(12, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 5)), // within threshold
-                checkOut: new Date(new Date().setHours(12, 0)),
-                status: "present",
-            },
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(13, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(13, 5)), // within threshold
-                checkOut: new Date(new Date().setHours(17, 0)),
-                status: "present",
-            },
-        ],
-        overallStatus: "present",
-        totalWorkMinutes: 480,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+// interface FlattenedSession extends Omit<AttendanceSession, "schedule"> {
+//     user: Attendance["user"]
+//     attendanceSchedule: Attendance["schedule"]
+//     sessionSchedule: AttendanceSession["schedule"]
+//     overallStatus?: Attendance["overallStatus"]
+// }
 
-    // --- Late Arrival ---
-    {
-        id: "2",
-        schedule: {
-            id: "sched2",
-            name: "Morning Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u2",
-            name: "Jane Smith",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 30)), // 30 min late
-                checkOut: new Date(new Date().setHours(17, 0)),
-                status: "late",
-            },
-        ],
-        overallStatus: "late",
-        totalWorkMinutes: 450,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+// function flattenAttendances(attendances: Attendance): FlattenedSession[] {
+//     return attendances.flatMap((att) =>
+//         att.sessions.map((session) => ({
+//             ...session,
+//             sessionSchedule: session.schedule,
+//             attendanceSchedule: att.schedule,
+//             user: att.user,
+//             overallStatus: att.overallStatus,
+//         }))
+//     )
+// }
 
-    // --- Undertime ---
-    {
-        id: "3",
-        schedule: {
-            id: "sched3",
-            name: "Afternoon Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u3",
-            name: "Mark Lee",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(13, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(13, 0)), // on time
-                checkOut: new Date(new Date().setHours(16, 30)), // 30 min undertime
-                status: "undertime",
-            },
-        ],
-        overallStatus: "undertime",
-        totalWorkMinutes: 210,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-
-    // --- Both Late & Undertime ---
-    {
-        id: "4",
-        schedule: {
-            id: "sched4",
-            name: "Morning Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u4",
-            name: "Sarah Connor",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(12, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 25)), // late
-                checkOut: new Date(new Date().setHours(11, 45)), // undertime
-                status: "late",
-            },
-        ],
-        overallStatus: "undertime",
-        totalWorkMinutes: 200,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-
-    // --- Perfect Full Day ---
-    {
-        id: "5",
-        schedule: {
-            id: "sched5",
-            name: "Full Day Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u5",
-            name: "Alex Turner",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(9, 0)),
-                    end: new Date(new Date().setHours(18, 0)),
-                },
-                checkIn: new Date(new Date().setHours(9, 20)),
-                checkOut: new Date(new Date().setHours(17, 40)),
-                status: "late",
-            },
-        ],
-        overallStatus: "late",
-        totalWorkMinutes: 500,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-]
-
-interface FlattenedSession extends Omit<AttendanceSession, "schedule"> {
-    user: Attendance["user"]
-    attendanceSchedule: Attendance["schedule"]
-    sessionSchedule: AttendanceSession["schedule"]
-    overallStatus?: Attendance["overallStatus"]
-}
-
-function flattenAttendances(attendances: Attendance[]): FlattenedSession[] {
-    return attendances.flatMap((att) =>
-        att.sessions.map((session) => ({
-            ...session,
-            sessionSchedule: session.schedule,
-            attendanceSchedule: att.schedule,
-            user: att.user,
-            overallStatus: att.overallStatus,
-        }))
-    )
-}
-
-const attendanceColumns: ColumnDef<FlattenedSession>[] = [
+const attendanceColumns: ColumnDef<AttendanceSession>[] = [
     {
         accessorKey: "timeRange",
         header: "Clock-in & Out",
         size: 50,
         cell: ({ row, column }) => {
-            const { checkIn, checkOut, sessionSchedule } = row.original
+            const { checkIn, checkOut, schedule } = row.original
             if (!checkIn && !checkOut) return "-"
 
             const formatTime = (d?: Date | null) =>
@@ -206,11 +45,11 @@ const attendanceColumns: ColumnDef<FlattenedSession>[] = [
                       })
                     : "-"
 
-            const scheduledStart = sessionSchedule?.start as Date
-            const scheduledEnd = sessionSchedule?.end as Date
-            const lateThresholdMins = sessionSchedule?.lateThresholdMins ?? 15
+            const scheduledStart = schedule?.start as Date
+            const scheduledEnd = schedule?.end as Date
+            const lateThresholdMins = schedule?.lateThresholdMins ?? 15
             const undertimeThresholdMins =
-                sessionSchedule?.undertimeThresholdMins ?? 15
+                schedule?.undertimeThresholdMins ?? 15
 
             const inDate = firebaseTimestampToDate(checkIn)
             const outDate = firebaseTimestampToDate(checkOut)
@@ -280,39 +119,74 @@ const attendanceColumns: ColumnDef<FlattenedSession>[] = [
             )
         },
     },
-
     {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
             const { status } = row.original
 
-            let bgColor = "dark:text-white"
-            const textColor = "text-white"
+            const statuses = Array.isArray(status) ? status : [status]
 
-            if (status === "present") {
-                bgColor = "bg-green-500 dark:bg-green-600"
-            } else if (status === "late") {
-                bgColor = "bg-red-500 dark:bg-red-600"
-            } else if (status === "absent") {
-                bgColor = " bg-gray-500 dark:bg-gray-600"
-            } else if (status === "undertime") {
-                bgColor = " bg-amber-500 dark:bg-amber-600"
+            if (!statuses.length || !statuses[0]) return null
+
+            const order = [
+                "present",
+                "late",
+                "undertime",
+                "overtime",
+                "absent",
+                "excused",
+            ]
+
+            const sortedStatuses = statuses.sort(
+                (a, b) => order.indexOf(a || "") - order.indexOf(b || "")
+            )
+
+            const getBadgeColors = (s: string) => {
+                switch (s) {
+                    case "present":
+                        return "bg-green-600 dark:bg-green-700 text-white"
+                    case "late":
+                        return "bg-red-600 dark:bg-red-700 text-white"
+                    case "absent":
+                        return "bg-gray-600 dark:bg-gray-700 text-white"
+                    case "undertime":
+                        return "bg-amber-600 dark:bg-amber-700 text-white"
+                    case "overtime":
+                        return "bg-blue-600 dark:bg-blue-700 text-white"
+                    case "excused":
+                        return "bg-purple-600 dark:bg-purple-700 text-white"
+                    default:
+                        return "bg-gray-600 dark:bg-gray-700 text-white"
+                }
             }
 
-            return <Badge className={`${textColor} ${bgColor}`}>{status}</Badge>
+            return (
+                <div className="flex flex-wrap gap-2">
+                    {sortedStatuses.map((s, idx) =>
+                        s ? (
+                            <Badge key={idx} className={getBadgeColors(s)}>
+                                {s}
+                            </Badge>
+                        ) : null
+                    )}
+                </div>
+            )
         },
     },
 ]
 
 interface AttendanceListProps {
-    attendances: Attendance[]
+    attendances: Attendance
+    loading: boolean
 }
 
-export function AttendanceList({ attendances }: AttendanceListProps) {
+export function AttendanceList({ attendances, loading }: AttendanceListProps) {
     console.log("🚀 ~ AttendanceList ~ attendances:", attendances)
     // const flattened = flattenAttendances(attendances)
-    const flattened = flattenAttendances(mockAttendances)
+    // const flattened = flattenAttendances(mockAttendances)
+    // const flattened = flattenAttendances(attendances)
+    const sessions = attendances.sessions
 
     return (
         <Card className="col-span-12 lg:col-span-8">
@@ -331,7 +205,19 @@ export function AttendanceList({ attendances }: AttendanceListProps) {
             </CardHeader>
 
             <CardContent>
-                <DataTable columns={attendanceColumns} data={flattened} />
+                {loading ? (
+                    <div className="space-y-3">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="flex w-full gap-4">
+                                <Skeleton className="h-5 w-[30%]" />
+                                <Skeleton className="h-5 w-[30%]" />
+                                <Skeleton className="h-5 w-[40%]" />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <DataTable columns={attendanceColumns} data={sessions} />
+                )}
             </CardContent>
         </Card>
     )

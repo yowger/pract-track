@@ -60,7 +60,7 @@ export async function getSchedules({ companyId }: GetSchedulesParams = {}) {
 
 export async function getScheduleById(
     scheduleId: string
-): Promise<(Scheduler & { id: string }) | null> {
+): Promise<Scheduler | null> {
     const scheduleRef = doc(db, "schedules", scheduleId)
     const snapshot = await getDoc(scheduleRef)
 
@@ -71,5 +71,5 @@ export async function getScheduleById(
     return {
         id: snapshot.id,
         ...snapshot.data(),
-    } as Scheduler & { id: string }
+    } as Scheduler
 }

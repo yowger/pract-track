@@ -9,138 +9,13 @@ import {
     query,
     getDocs,
     updateDoc,
+    getDoc,
 } from "firebase/firestore"
 
 import { db } from "@/service/firebase/firebase"
-import type { Attendance } from "@/types/attendance"
-
-// const computeSession = (session?: AttendanceSession) => {
-//     if (
-//         !session ||
-//         !session.checkIn ||
-//         !session.checkOut ||
-//         !session.scheduledStart ||
-//         !session.scheduledEnd
-//     )
-//         return session
-
-//     const scheduledMinutes = Math.round(
-//         (session.scheduledEnd.getTime() - session.scheduledStart.getTime()) /
-//             60000
-//     )
-//     const totalWorkMinutes = Math.round(
-//         (session.checkOut.getTime() - session.checkIn.getTime()) / 60000
-//     )
-//     const overtimeMinutes =
-//         totalWorkMinutes > scheduledMinutes
-//             ? totalWorkMinutes - scheduledMinutes
-//             : 0
-//     const undertimeMinutes =
-//         totalWorkMinutes < scheduledMinutes
-//             ? scheduledMinutes - totalWorkMinutes
-//             : 0
-
-//     let status: AttendanceSession["status"] = "present"
-//     if (totalWorkMinutes === 0) status = "absent"
-//     else if (overtimeMinutes > 0) status = "overtime"
-//     else if (undertimeMinutes > 0) status = "undertime"
-
-//     return {
-//         ...session,
-//         scheduledMinutes,
-//         totalWorkMinutes,
-//         overtimeMinutes,
-//         undertimeMinutes,
-//         status,
-//     }
-// }
-
-// const computeOverallStatus = (sessions: AttendanceSession[] = []) => {
-//     const statuses = sessions.map((s) => s.status)
-
-//     if (statuses.every((s) => s === "excused")) return "excused"
-//     if (
-//         statuses.every(
-//             (s) =>
-//                 s === "present" ||
-//                 s === "late" ||
-//                 s === "overtime" ||
-//                 s === "undertime"
-//         )
-//     )
-//         return "present"
-//     if (
-//         statuses.some(
-//             (s) =>
-//                 s === "present" ||
-//                 s === "late" ||
-//                 s === "overtime" ||
-//                 s === "undertime" ||
-//                 s === "excused"
-//         )
-//     )
-//         return "half-day"
-
-//     return "absent"
-// }
-
-// export const saveAttendance = async (
-//     attendance: Omit<
-//         Attendance,
-//         | "id"
-//         | "createdAt"
-//         | "updatedAt"
-//         | "sessions"
-//         | "overallStatus"
-//         | "scheduledWorkMinutes"
-//         | "totalWorkMinutes"
-//         | "totalOvertimeMinutes"
-//         | "totalUndertimeMinutes"
-//     > & { sessions: AttendanceSession[] }
-// ) => {
-//     const computedSessions = attendance.sessions.map(computeSession)
-
-//     const validSessions = computedSessions.filter(
-//         (s): s is AttendanceSession => s !== undefined
-//     )
-
-//     const scheduledWorkMinutes = computedSessions.reduce(
-//         (sum, s) => sum + (s?.scheduledMinutes || 0),
-//         0
-//     )
-//     const totalWorkMinutes = computedSessions.reduce(
-//         (sum, s) => sum + (s?.totalWorkMinutes || 0),
-//         0
-//     )
-//     const totalOvertimeMinutes = computedSessions.reduce(
-//         (sum, s) => sum + (s?.overtimeMinutes || 0),
-//         0
-//     )
-//     const totalUndertimeMinutes = computedSessions.reduce(
-//         (sum, s) => sum + (s?.undertimeMinutes || 0),
-//         0
-//     )
-
-//     const overallStatus = computeOverallStatus(validSessions)
-
-//     const docRef = doc(collection(db, "attendances"))
-
-//     const data: Attendance = {
-//         ...attendance,
-//         id: docRef.id,
-//         sessions: validSessions,
-//         scheduledWorkMinutes,
-//         totalWorkMinutes,
-//         totalOvertimeMinutes,
-//         totalUndertimeMinutes,
-//         overallStatus,
-//         updatedAt: serverTimestamp(),
-//         createdAt: serverTimestamp(),
-//     }
-
-//     await setDoc(docRef, data, { merge: true })
-//     return data
-// }
+import type { Attendance, AttendanceSession } from "@/types/attendance"
+import type { Scheduler } from "@/types/scheduler"
+import { parseScheduleTime } from "@/lib/date-utils"
 
 export async function saveAttendance(
     attendance: Omit<Attendance, "id" | "createdAt" | "updatedAt"> & {
@@ -163,7 +38,7 @@ export async function saveAttendance(
     return data
 }
 
-export async function updateAttendanceRaw(
+export async function updateAttendance(
     id: string,
     updates: Partial<Omit<Attendance, "id">>
 ) {
@@ -221,4 +96,74 @@ export async function getAttendances(filter: AttendanceFilter = {}) {
     })
 
     return attendances
+}
+
+export async function getOrCreateAttendance(data: {
+    user: {
+        id: string
+        name: string
+        photoUrl?: string
+    }
+    scheduler: Scheduler
+    today: Date
+}): Promise<Attendance | null> {
+    const { user, scheduler, today = new Date() } = data
+
+    const attendanceId = `${user.id}_${today.toISOString().split("T")[0]}`
+    const docRef = doc(db, "attendances", attendanceId)
+    const snapshot = await getDoc(docRef)
+
+    if (snapshot.exists()) {
+        return snapshot.data() as Attendance
+    }
+
+    const weekday = today
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase() as Scheduler["weeklySchedule"][number]["day"]
+
+    const daySchedule = scheduler.weeklySchedule.find((d) => d.day === weekday)
+
+    if (!daySchedule || !daySchedule.available) {
+        return null
+    }
+
+    const sessions: AttendanceSession[] = daySchedule.sessions.map(
+        (session) => {
+            const sessionStart = parseScheduleTime(session.start, today)
+            const sessionEnd = parseScheduleTime(session.end, today)
+
+            return {
+                schedule: {
+                    start: sessionStart,
+                    end: sessionEnd,
+                    photoStart: session.photoStart,
+                    photoEnd: session.photoEnd,
+                    lateThresholdMins: session.lateThresholdMins ?? 0,
+                    undertimeThresholdMins: session.undertimeThresholdMins ?? 0,
+                },
+            }
+        }
+    )
+
+    const attendance: Attendance = {
+        id: attendanceId,
+        schedule: {
+            id: scheduler.id!,
+            name: scheduler.scheduleName,
+            date: today,
+        },
+        user: { id: user.id, name: user.name, photoUrl: user.photoUrl },
+        sessions,
+        markedBy: "self",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    }
+
+    try {
+        await setDoc(docRef, attendance, { merge: true })
+        return attendance
+    } catch (err) {
+        console.error("Failed to create attendance:", err)
+        return null
+    }
 }

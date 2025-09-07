@@ -12,6 +12,8 @@ export interface Session {
     end: string
     photoStart: boolean
     photoEnd: boolean
+    lateThresholdMins?: number
+    undertimeThresholdMins?: number
 }
 
 export interface DaySchedule {

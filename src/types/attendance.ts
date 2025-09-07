@@ -18,13 +18,9 @@ export interface AttendanceSession {
     }
     checkIn?: Date | Timestamp
     checkOut?: Date | Timestamp
-    status?:
-        | "present"
-        | "absent"
-        | "late"
-        | "excused"
-        | "undertime"
-        | "overtime"
+    status?: Array<
+        "present" | "absent" | "late" | "excused" | "undertime" | "overtime"
+    >
     remarks?: string
     geoLocation?: GeoLocation
     address?: string
@@ -47,7 +43,6 @@ export interface Attendance {
     overallStatus?:
         | "present"
         | "late"
-        | "half-day"
         | "absent"
         | "excused"
         | "undertime"
