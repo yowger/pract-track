@@ -3,6 +3,9 @@ import type { Attendance, AttendanceSession } from "@/types/attendance"
 import DataTable from "@/components/data-table"
 import type { ColumnDef } from "@tanstack/react-table"
 import { firebaseTimestampToDate } from "@/lib/date-utils"
+import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
+import { ArrowUpRight } from "lucide-react"
 
 const mockAttendances: Attendance[] = [
     // --- On-time Morning + Afternoon ---
@@ -189,8 +192,8 @@ const attendanceColumns: ColumnDef<FlattenedSession>[] = [
     {
         accessorKey: "timeRange",
         header: "Clock-in & Out",
-        size: 100,
-        cell: ({ row }) => {
+        size: 50,
+        cell: ({ row, column }) => {
             const { checkIn, checkOut, sessionSchedule } = row.original
             if (!checkIn && !checkOut) return "-"
 
@@ -229,7 +232,10 @@ const attendanceColumns: ColumnDef<FlattenedSession>[] = [
             }
 
             return (
-                <div className="flex items-center gap-2">
+                <div
+                    className="inline-flex items-center gap-2"
+                    style={{ width: column.getSize() }}
+                >
                     <span
                         className={`
                     ${checkIn ? "" : "text-muted-foreground"}
@@ -304,8 +310,18 @@ export function AttendanceList({ attendances }: AttendanceListProps) {
 
     return (
         <Card className="col-span-12 lg:col-span-8">
-            <CardHeader>
+            <CardHeader className="flex justify-between items-center">
                 <CardTitle>Today's summary</CardTitle>
+                <Button
+                    variant="link"
+                    asChild
+                    size="sm"
+                    className="text-blue-600 dark:text-blue-700 text-xs"
+                >
+                    <Link to="#">
+                        View History <ArrowUpRight />
+                    </Link>
+                </Button>
             </CardHeader>
 
             <CardContent>
@@ -314,82 +330,3 @@ export function AttendanceList({ attendances }: AttendanceListProps) {
         </Card>
     )
 }
-
-/*
-{
-  accessorKey: "timeRange",
-  header: "Clock-in & Out",
-  cell: ({ row }) => {
-    const { checkIn, checkOut, schedule } = row.original
-    if (!checkIn && !checkOut) return "-"
-
-    const formatTime = (d?: Date) =>
-      d
-        ? d.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "-"
-
-    // compare against scheduled times
-    const scheduledStart = schedule.start as Date
-    const scheduledEnd = schedule.end as Date
-
-    const isLate = checkIn && scheduledStart && checkIn > scheduledStart
-    const isUndertime = checkOut && scheduledEnd && checkOut < scheduledEnd
-
-    return (
-      <div className="flex items-center gap-2">
-        <span
-          className={`
-            ${checkIn ? "" : "text-muted-foreground"}
-            ${isLate ? "text-red-600 font-medium" : ""}
-          `}
-        >
-          {formatTime(checkIn)}
-        </span>
-        <span className="text-muted-foreground mx-1">→</span>
-        <span
-          className={`
-            ${checkOut ? "" : "text-muted-foreground"}
-            ${isUndertime ? "text-orange-600 font-medium" : ""}
-          `}
-        >
-          {formatTime(checkOut)}
-        </span>
-      </div>
-    )
-  },
-}
-*/
-
-// {
-//     accessorKey: "timeRange",
-//     header: "Clock-in & Out",
-//     size: 100,
-//     cell: ({ row }) => {
-//         const checkIn = row.original.checkIn as Date
-//         const checkOut = row.original.checkOut as Date
-//         if (!checkIn && !checkOut) return "-"
-
-//         const formatTime = (d?: Date) =>
-//             d
-//                 ? d.toLocaleTimeString([], {
-//                       hour: "2-digit",
-//                       minute: "2-digit",
-//                   })
-//                 : "-"
-
-//         return (
-//             <div className="flex items-center gap-2">
-//                 <span className={checkIn ? "" : "text-muted-foreground"}>
-//                     {formatTime(checkIn)}
-//                 </span>
-//                 <span className="text-muted-foreground mx-1">→</span>
-//                 <span className={checkOut ? "" : "text-muted-foreground"}>
-//                     {formatTime(checkOut)}
-//                 </span>
-//             </div>
-//         )
-//     },
-// },

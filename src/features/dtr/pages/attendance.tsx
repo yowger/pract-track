@@ -166,11 +166,13 @@ export default function Attendance() {
             <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">
-                        Attendance
+                        Clock-in & Out
                     </h1>
                     <p className="text-muted-foreground">
-                        Track your clock-ins and clock-outs, and monitor your
-                        daily schedule.
+                        <p>
+                            Manage your work sessions and track your daily
+                            schedule.
+                        </p>
                     </p>
                 </div>
             </div>

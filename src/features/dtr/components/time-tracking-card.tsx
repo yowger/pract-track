@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { Link } from "react-router-dom"
 
 interface TimeTrackingCardProps {
     todaysSchedule?: { sessions: { start: string; end: string }[] }
@@ -107,10 +108,13 @@ export default function TimeTrackingCard({
                             ) : (
                                 <Button
                                     variant="link"
+                                    asChild
                                     size="sm"
                                     className="text-blue-600 dark:text-blue-700 text-xs"
                                 >
-                                    View Schedule <ArrowUpRight />
+                                    <Link to="#">
+                                        View Schedule <ArrowUpRight />
+                                    </Link>
                                 </Button>
                             )}
                         </div>
