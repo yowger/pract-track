@@ -6,6 +6,7 @@ import { firebaseTimestampToDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 const mockAttendances: Attendance[] = [
     // --- On-time Morning + Afternoon ---
@@ -283,19 +284,24 @@ const attendanceColumns: ColumnDef<FlattenedSession>[] = [
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-            <span
-                className={`px-2 py-1 text-xs rounded ${
-                    row.original.status === "present"
-                        ? "bg-green-100 text-green-800"
-                        : row.original.status === "late"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-red-100 text-red-800"
-                }`}
-            >
-                {row.original.status}
-            </span>
-        ),
+        cell: ({ row }) => {
+            const { status } = row.original
+
+            let bgColor = "dark:text-white"
+            const textColor = "text-white"
+
+            if (status === "present") {
+                bgColor = "bg-green-500 dark:bg-green-600"
+            } else if (status === "late") {
+                bgColor = "bg-red-500 dark:bg-red-600"
+            } else if (status === "absent") {
+                bgColor = " bg-gray-500 dark:bg-gray-600"
+            } else if (status === "undertime") {
+                bgColor = " bg-amber-500 dark:bg-amber-600"
+            }
+
+            return <Badge className={`${textColor} ${bgColor}`}>{status}</Badge>
+        },
     },
 ]
 
