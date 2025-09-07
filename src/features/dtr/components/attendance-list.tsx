@@ -177,16 +177,12 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
 ]
 
 interface AttendanceListProps {
-    attendances: Attendance
+    attendances: Attendance | null
     loading: boolean
 }
 
 export function AttendanceList({ attendances, loading }: AttendanceListProps) {
-    console.log("🚀 ~ AttendanceList ~ attendances:", attendances)
-    // const flattened = flattenAttendances(attendances)
-    // const flattened = flattenAttendances(mockAttendances)
-    // const flattened = flattenAttendances(attendances)
-    const sessions = attendances.sessions
+    const sessions = attendances?.sessions
 
     return (
         <Card className="col-span-12 lg:col-span-8">
@@ -216,7 +212,10 @@ export function AttendanceList({ attendances, loading }: AttendanceListProps) {
                         ))}
                     </div>
                 ) : (
-                    <DataTable columns={attendanceColumns} data={sessions} />
+                    <DataTable
+                        columns={attendanceColumns}
+                        data={sessions || []}
+                    />
                 )}
             </CardContent>
         </Card>

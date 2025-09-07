@@ -77,22 +77,21 @@ export default function Attendance() {
 
     const hasData = !!user && !!todaysSchedule && !!schedule && !!serverTime
 
-    const { attendance: attendanceList, loading: loadingAttendances } =
-        useAttendance(
-            {
-                user: {
-                    id: user?.uid || "",
-                    name: user?.displayName || "",
-                    photoUrl: user?.photoUrl || "",
-                },
-                scheduler: schedule || undefined,
-
-                today: serverTime || undefined,
+    const { attendance: attendanceList } = useAttendance(
+        {
+            user: {
+                id: user?.uid || "",
+                name: user?.displayName || "",
+                photoUrl: user?.photoUrl || "",
             },
-            {
-                enabled: hasData,
-            }
-        )
+            scheduler: schedule || undefined,
+
+            today: serverTime || undefined,
+        },
+        {
+            enabled: hasData,
+        }
+    )
 
     async function handleClockToggle() {
         if (
@@ -147,7 +146,7 @@ export default function Attendance() {
                 />
 
                 <AttendanceList
-                    attendances={attendanceList!}
+                    attendances={attendanceList}
                     loading={!hasData}
                 />
             </div>
