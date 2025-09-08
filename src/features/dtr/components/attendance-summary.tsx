@@ -8,167 +8,167 @@ import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-const mockAttendances: Attendance[] = [
-    // --- On-time Morning + Afternoon ---
-    {
-        id: "1",
-        schedule: {
-            id: "sched1",
-            name: "Morning + Afternoon Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u1",
-            name: "John Doe",
-            photoUrl: "https://placehold.co/40x40",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(12, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 5)), // within threshold
-                checkOut: new Date(new Date().setHours(12, 0)),
-                status: ["present"],
-            },
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(13, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(13, 5)), // within threshold
-                checkOut: new Date(new Date().setHours(17, 0)),
-                status: ["present"],
-            },
-        ],
-        overallStatus: "present",
-        totalWorkMinutes: 480,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+// const mockAttendances: Attendance[] = [
+//     // --- On-time Morning + Afternoon ---
+//     {
+//         id: "1",
+//         schedule: {
+//             id: "sched1",
+//             name: "Morning + Afternoon Shift",
+//             date: new Date(),
+//         },
+//         user: {
+//             id: "u1",
+//             name: "John Doe",
+//             photoUrl: "https://placehold.co/40x40",
+//         },
+//         sessions: [
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(8, 0)),
+//                     end: new Date(new Date().setHours(12, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(8, 5)), // within threshold
+//                 checkOut: new Date(new Date().setHours(12, 0)),
+//                 status: ["present"],
+//             },
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(13, 0)),
+//                     end: new Date(new Date().setHours(17, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(13, 5)), // within threshold
+//                 checkOut: new Date(new Date().setHours(17, 0)),
+//                 status: ["present"],
+//             },
+//         ],
+//         overallStatus: "present",
+//         totalWorkMinutes: 480,
+//         markedBy: "self",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//     },
 
-    // --- Late Arrival ---
-    {
-        id: "2",
-        schedule: {
-            id: "sched2",
-            name: "Morning Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u2",
-            name: "Jane Smith",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 30)), // 30 min late
-                checkOut: new Date(new Date().setHours(17, 0)),
-                status: ["late", "present"], // mark both late and present
-            },
-        ],
-        overallStatus: "late",
-        totalWorkMinutes: 450,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+//     // --- Late Arrival ---
+//     {
+//         id: "2",
+//         schedule: {
+//             id: "sched2",
+//             name: "Morning Shift",
+//             date: new Date(),
+//         },
+//         user: {
+//             id: "u2",
+//             name: "Jane Smith",
+//         },
+//         sessions: [
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(8, 0)),
+//                     end: new Date(new Date().setHours(17, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(8, 30)), // 30 min late
+//                 checkOut: new Date(new Date().setHours(17, 0)),
+//                 status: ["late", "present"], // mark both late and present
+//             },
+//         ],
+//         overallStatus: "late",
+//         totalWorkMinutes: 450,
+//         markedBy: "self",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//     },
 
-    // --- Undertime ---
-    {
-        id: "3",
-        schedule: {
-            id: "sched3",
-            name: "Afternoon Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u3",
-            name: "Mark Lee",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(13, 0)),
-                    end: new Date(new Date().setHours(17, 0)),
-                },
-                checkIn: new Date(new Date().setHours(13, 0)), // on time
-                checkOut: new Date(new Date().setHours(16, 30)), // 30 min undertime
-                status: ["present", "undertime"], // present but left early
-            },
-        ],
-        overallStatus: "undertime",
-        totalWorkMinutes: 210,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+//     // --- Undertime ---
+//     {
+//         id: "3",
+//         schedule: {
+//             id: "sched3",
+//             name: "Afternoon Shift",
+//             date: new Date(),
+//         },
+//         user: {
+//             id: "u3",
+//             name: "Mark Lee",
+//         },
+//         sessions: [
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(13, 0)),
+//                     end: new Date(new Date().setHours(17, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(13, 0)), // on time
+//                 checkOut: new Date(new Date().setHours(16, 30)), // 30 min undertime
+//                 status: ["present", "undertime"], // present but left early
+//             },
+//         ],
+//         overallStatus: "undertime",
+//         totalWorkMinutes: 210,
+//         markedBy: "self",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//     },
 
-    // --- Both Late & Undertime ---
-    {
-        id: "4",
-        schedule: {
-            id: "sched4",
-            name: "Morning Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u4",
-            name: "Sarah Connor",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(8, 0)),
-                    end: new Date(new Date().setHours(12, 0)),
-                },
-                checkIn: new Date(new Date().setHours(8, 25)), // late
-                checkOut: new Date(new Date().setHours(11, 45)), // undertime
-                status: ["late", "undertime"], // both statuses
-            },
-        ],
-        overallStatus: "undertime",
-        totalWorkMinutes: 200,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
+//     // --- Both Late & Undertime ---
+//     {
+//         id: "4",
+//         schedule: {
+//             id: "sched4",
+//             name: "Morning Shift",
+//             date: new Date(),
+//         },
+//         user: {
+//             id: "u4",
+//             name: "Sarah Connor",
+//         },
+//         sessions: [
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(8, 0)),
+//                     end: new Date(new Date().setHours(12, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(8, 25)), // late
+//                 checkOut: new Date(new Date().setHours(11, 45)), // undertime
+//                 status: ["late", "undertime"], // both statuses
+//             },
+//         ],
+//         overallStatus: "undertime",
+//         totalWorkMinutes: 200,
+//         markedBy: "self",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//     },
 
-    // --- Full Day Late & Undertime ---
-    {
-        id: "5",
-        schedule: {
-            id: "sched5",
-            name: "Full Day Shift",
-            date: new Date(),
-        },
-        user: {
-            id: "u5",
-            name: "Alex Turner",
-        },
-        sessions: [
-            {
-                schedule: {
-                    start: new Date(new Date().setHours(9, 0)),
-                    end: new Date(new Date().setHours(18, 0)),
-                },
-                checkIn: new Date(new Date().setHours(9, 20)), // late
-                checkOut: new Date(new Date().setHours(17, 40)), // undertime
-                status: ["late", "undertime"],
-            },
-        ],
-        overallStatus: "late",
-        totalWorkMinutes: 500,
-        markedBy: "self",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    },
-]
+//     // --- Full Day Late & Undertime ---
+//     {
+//         id: "5",
+//         schedule: {
+//             id: "sched5",
+//             name: "Full Day Shift",
+//             date: new Date(),
+//         },
+//         user: {
+//             id: "u5",
+//             name: "Alex Turner",
+//         },
+//         sessions: [
+//             {
+//                 schedule: {
+//                     start: new Date(new Date().setHours(9, 0)),
+//                     end: new Date(new Date().setHours(18, 0)),
+//                 },
+//                 checkIn: new Date(new Date().setHours(9, 20)), // late
+//                 checkOut: new Date(new Date().setHours(17, 40)), // undertime
+//                 status: ["late", "undertime"],
+//             },
+//         ],
+//         overallStatus: "late",
+//         totalWorkMinutes: 500,
+//         markedBy: "self",
+//         createdAt: new Date(),
+//         updatedAt: new Date(),
+//     },
+// ]
 
 interface FlattenedSession extends Omit<AttendanceSession, "schedule"> {
     user: Attendance["user"]
@@ -340,7 +340,7 @@ interface AttendanceListProps {
 export function AttendanceList({ attendances }: AttendanceListProps) {
     console.log("🚀 ~ AttendanceList ~ attendances:", attendances)
     // const flattened = flattenAttendances(attendances)
-    const flattened = flattenAttendances(mockAttendances)
+    // const flattened = flattenAttendances(mockAttendances)
 
     return (
         <Card className="col-span-12 lg:col-span-8">
@@ -359,7 +359,7 @@ export function AttendanceList({ attendances }: AttendanceListProps) {
             </CardHeader>
 
             <CardContent>
-                <DataTable columns={attendanceColumns} data={flattened} />
+                {/* <DataTable columns={attendanceColumns} data={flattened} /> */}
             </CardContent>
         </Card>
     )

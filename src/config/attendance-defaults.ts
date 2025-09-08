@@ -1,1 +1,1 @@
-export const GRACE_PERIOD_MS = 30 * 60 * 1000
+export const DEFAULT_LATE_THRESHOLD = 15

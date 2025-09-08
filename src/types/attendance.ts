@@ -5,6 +5,14 @@ export interface GeoLocation {
     lng: number
 }
 
+export type StatusTypes =
+    | "present"
+    | "absent"
+    | "late"
+    | "excused"
+    | "undertime"
+    | "overtime"
+
 export interface AttendanceSession {
     id: string
     schedule: {
@@ -20,9 +28,7 @@ export interface AttendanceSession {
     }
     checkIn?: Date | Timestamp
     checkOut?: Date | Timestamp
-    status?: Array<
-        "present" | "absent" | "late" | "excused" | "undertime" | "overtime"
-    >
+    status?: Array<StatusTypes>
     remarks?: string
     geoLocation?: GeoLocation
     address?: string
