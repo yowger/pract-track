@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { format } from "date-fns"
 
 // const mockAttendances: Attendance[] = [
 //     // --- On-time Morning + Afternoon ---
@@ -191,6 +192,15 @@ function flattenAttendances(attendances: Attendance[]): FlattenedSession[] {
 
 const attendanceColumns: ColumnDef<FlattenedSession>[] = [
     {
+        accessorKey: "schedule.date",
+        header: "Date",
+        cell: ({ row }) => {
+            const d = row.original.attendanceSchedule.date
+            const scheduleDate = firebaseTimestampToDate(d)
+            return scheduleDate ? format(scheduleDate, "MMM d, yyyy") : "-"
+        },
+    },
+    {
         accessorKey: "timeRange",
         header: "Clock-in & Out",
         size: 50,
@@ -337,30 +347,31 @@ interface AttendanceListProps {
     attendances: Attendance[]
 }
 
-export function AttendanceList({ attendances }: AttendanceListProps) {
+export function AttendanceSummary({ attendances }: AttendanceListProps) {
     console.log("🚀 ~ AttendanceList ~ attendances:", attendances)
-    // const flattened = flattenAttendances(attendances)
     // const flattened = flattenAttendances(mockAttendances)
+    const flattened = flattenAttendances(attendances)
+    console.log("🚀 ~ AttendanceSummary ~ flattened:", flattened)
 
     return (
-        <Card className="col-span-12 lg:col-span-8">
-            <CardHeader className="flex justify-between items-center">
-                <CardTitle>Today's summary</CardTitle>
-                <Button
-                    variant="link"
-                    asChild
-                    size="sm"
-                    className="text-blue-600 dark:text-blue-700 text-xs"
-                >
-                    <Link to="#">
-                        View History <ArrowUpRight />
-                    </Link>
-                </Button>
-            </CardHeader>
+        // <Card className="col-span-12 lg:col-span-8">
+        //     <CardHeader className="flex justify-between items-center">
+        //         <CardTitle>Today's summary</CardTitle>
+        //         <Button
+        //             variant="link"
+        //             asChild
+        //             size="sm"
+        //             className="text-blue-600 dark:text-blue-700 text-xs"
+        //         >
+        //             <Link to="#">
+        //                 View History <ArrowUpRight />
+        //             </Link>
+        //         </Button>
+        //     </CardHeader>
 
-            <CardContent>
-                {/* <DataTable columns={attendanceColumns} data={flattened} /> */}
-            </CardContent>
-        </Card>
+        //     <CardContent>
+        <DataTable columns={attendanceColumns} data={flattened} />
+        //     </CardContent>
+        // </Card>
     )
 }
