@@ -6,6 +6,7 @@ export interface GeoLocation {
 }
 
 export interface AttendanceSession {
+    id: string
     schedule: {
         start?: Date | Timestamp
         end?: Date | Timestamp
@@ -15,6 +16,7 @@ export interface AttendanceSession {
         photoEnd?: boolean
         lateThresholdMins?: number
         undertimeThresholdMins?: number
+        earlyClockInMins?: number
     }
     checkIn?: Date | Timestamp
     checkOut?: Date | Timestamp

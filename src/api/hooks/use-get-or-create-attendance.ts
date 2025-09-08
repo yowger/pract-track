@@ -18,7 +18,7 @@ interface UseAttendancesOptions {
     enabled?: boolean
 }
 
-export function useAttendance(
+export function useGetOrCreateAttendance(
     params: AttendanceFilter = { user: { id: "", name: "" } },
     options: UseAttendancesOptions = {}
 ) {

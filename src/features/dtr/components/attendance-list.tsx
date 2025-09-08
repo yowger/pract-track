@@ -45,8 +45,8 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                       })
                     : "-"
 
-            const scheduledStart = schedule?.start as Date
-            const scheduledEnd = schedule?.end as Date
+            const scheduledStart = firebaseTimestampToDate(schedule?.start)
+            const scheduledEnd = firebaseTimestampToDate(schedule?.end)
             const lateThresholdMins = schedule?.lateThresholdMins ?? 15
             const undertimeThresholdMins =
                 schedule?.undertimeThresholdMins ?? 15

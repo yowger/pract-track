@@ -1,57 +1,17 @@
-import { endOfDay, format, startOfDay } from "date-fns"
-import { useEffect, useState, useCallback } from "react"
+import { format } from "date-fns"
+import { useEffect, useState } from "react"
 import { useGeolocated } from "react-geolocated"
 
 import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
 import { useServerTime } from "@/api/hooks/use-get-server-time"
-import { useAttendances } from "@/api/hooks/use-fetch-attendance"
-import { saveAttendance } from "@/api/attendance"
 import TimeTrackingCard from "../components/time-tracking-card"
 import { AttendanceList } from "../components/attendance-list"
 import { useUser } from "@/hooks/use-user"
 import { isStudent } from "@/types/user"
-import { firebaseTimestampToDate, parseScheduleTime } from "@/lib/date-utils"
 import type { Attendance } from "@/types/attendance"
-import type { Session } from "@/types/scheduler"
-import { getCurrentSession } from "@/service/attendance-service"
-import { useAttendance } from "@/api/hooks/use-get-or-create-attendance"
-
-const getCurrentOrNextSession = (
-    sessions: Session[],
-    now: Date
-): Session | undefined => {
-    if (!sessions?.length) return undefined
-
-    const inProgress = sessions.find((s) => {
-        const start = firebaseTimestampToDate(s.start)!
-        const end = firebaseTimestampToDate(s.end)!
-        return now >= start && now <= end
-    })
-    if (inProgress) return inProgress
-
-    return (
-        sessions.find((s) => now < firebaseTimestampToDate(s.start)!) ??
-        sessions[sessions.length - 1]
-    )
-}
-
-const reverseGeocode = async (
-    coords?: GeolocationCoordinates
-): Promise<string> => {
-    if (!coords) return "Unknown address"
-
-    try {
-        const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}&format=json`
-        )
-        if (!res.ok) throw new Error(res.statusText)
-        const data = await res.json()
-        return data.display_name ?? "Unknown address"
-    } catch (err) {
-        console.error("Reverse geocoding error:", err)
-        return "Unknown address"
-    }
-}
+import { useGetOrCreateAttendance } from "@/api/hooks/use-get-or-create-attendance"
+import { toast } from "sonner"
+import { useCreateAttendance } from "@/api/hooks/use-create-attendance"
 
 export default function Attendance() {
     const { user } = useUser()
@@ -65,8 +25,8 @@ export default function Attendance() {
         positionOptions: { enableHighAccuracy: false },
         userDecisionTimeout: 5000,
     })
-    const today = format(new Date(), "EEEE").toLowerCase()
 
+    const today = format(new Date(), "EEEE").toLowerCase()
     const attendance =
         user && isStudent(user) ? user.studentData.assignedSchedule : null
     const { schedule } = useSchedule(attendance?.id, { enabled: !!attendance })
@@ -74,10 +34,9 @@ export default function Attendance() {
         (day) => day.day === today
     )
     const hasSession = todaysSchedule?.sessions.some((s) => s.start && s.end)
-
     const hasData = !!user && !!todaysSchedule && !!schedule && !!serverTime
 
-    const { attendance: attendanceList } = useAttendance(
+    const { attendance: attendanceList } = useGetOrCreateAttendance(
         {
             user: {
                 id: user?.uid || "",
@@ -93,21 +52,35 @@ export default function Attendance() {
         }
     )
 
+    const {
+        loading: loadingCreateAttendance,
+        error: errorCreateAttendance,
+        handleToggleClock,
+    } = useCreateAttendance()
+
+    useEffect(() => {
+        if (errorCreateAttendance) toast.error(errorCreateAttendance)
+    }, [errorCreateAttendance])
+
     async function handleClockToggle() {
         if (
             !user ||
             !todaysSchedule ||
             !schedule ||
             !currentTime ||
-            !hasSession
+            !hasSession ||
+            !coords
         )
             return
 
-        // const currentSession = getCurrentSession({
-        //     attendance: attendanceList?.[0],
-        //     schedule: todaysSchedule,
-        // })
-        // console.log("🚀 ~ handleClockToggle ~ currentSession:", currentSession)
+        handleToggleClock({
+            attendance: attendanceList!,
+            date: serverTime || new Date(),
+            geo: {
+                lat: coords.latitude,
+                lng: coords.longitude,
+            },
+        })
     }
 
     useEffect(() => {
@@ -142,7 +115,12 @@ export default function Attendance() {
                     isInRange={isInRange}
                     onClockToggle={handleClockToggle}
                     isLoading={!hasData}
-                    isDisabled={!attendanceList || !isInRange || !hasSession}
+                    isDisabled={
+                        !attendanceList ||
+                        !isInRange ||
+                        !hasSession ||
+                        loadingCreateAttendance
+                    }
                 />
 
                 <AttendanceList

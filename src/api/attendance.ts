@@ -11,11 +11,12 @@ import {
     updateDoc,
     getDoc,
 } from "firebase/firestore"
+import { nanoid } from "nanoid"
 
+import { parseScheduleTime } from "@/lib/date-utils"
 import { db } from "@/service/firebase/firebase"
 import type { Attendance, AttendanceSession } from "@/types/attendance"
 import type { Scheduler } from "@/types/scheduler"
-import { parseScheduleTime } from "@/lib/date-utils"
 
 export async function saveAttendance(
     attendance: Omit<Attendance, "id" | "createdAt" | "updatedAt"> & {
@@ -129,10 +130,12 @@ export async function getOrCreateAttendance(data: {
 
     const sessions: AttendanceSession[] = daySchedule.sessions.map(
         (session) => {
+            const sessionId = nanoid()
             const sessionStart = parseScheduleTime(session.start, today)
             const sessionEnd = parseScheduleTime(session.end, today)
 
             return {
+                id: sessionId,
                 schedule: {
                     start: sessionStart,
                     end: sessionEnd,
