@@ -36,7 +36,11 @@ export default function Attendance() {
     const hasSession = todaysSchedule?.sessions.some((s) => s.start && s.end)
     const hasData = !!user && !!todaysSchedule && !!schedule && !!serverTime
 
-    const { attendance: attendanceList } = useGetOrCreateAttendance(
+    const {
+        attendance: attendanceList,
+        loading: loadingAttendance,
+        refetch: refetchAttendance,
+    } = useGetOrCreateAttendance(
         {
             user: {
                 id: user?.uid || "",
@@ -51,6 +55,7 @@ export default function Attendance() {
             enabled: hasData,
         }
     )
+    console.log("🚀 ~ Attendance ~ attendanceList:", attendanceList)
 
     const {
         loading: loadingCreateAttendance,
@@ -73,7 +78,7 @@ export default function Attendance() {
         )
             return
 
-        handleToggleClock({
+        await handleToggleClock({
             attendance: attendanceList!,
             date: serverTime || new Date(),
             geo: {
@@ -81,6 +86,8 @@ export default function Attendance() {
                 lng: coords.longitude,
             },
         })
+
+        refetchAttendance()
     }
 
     useEffect(() => {
@@ -119,6 +126,7 @@ export default function Attendance() {
                         !attendanceList ||
                         !isInRange ||
                         !hasSession ||
+                        loadingAttendance ||
                         loadingCreateAttendance
                     }
                 />

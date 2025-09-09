@@ -16,3 +16,19 @@ export function firebaseTimestampToDate(value: ToDateInput): Date | null {
 export function parseScheduleTime(timeStr: string, baseDate: Date): Date {
     return parse(timeStr, "HH:mm", baseDate)
 }
+
+export function formatTime(date: Date | null) {
+    if (!date) return "-"
+
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+export function formatDate(date: Date | null) {
+    if (!date) return "-"
+
+    return date.toLocaleDateString([], {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    })
+}

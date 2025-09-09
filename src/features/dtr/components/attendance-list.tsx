@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import type { Attendance, AttendanceSession } from "@/types/attendance"
 import DataTable from "@/components/data-table"
 import type { ColumnDef } from "@tanstack/react-table"
-import { firebaseTimestampToDate } from "@/lib/date-utils"
+import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
@@ -35,15 +35,10 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
         size: 50,
         cell: ({ row, column }) => {
             const { checkIn, checkOut, schedule } = row.original
-            if (!checkIn && !checkOut) return "-"
-
-            const formatTime = (d?: Date | null) =>
-                d
-                    ? d.toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                      })
-                    : "-"
+            
+            if (!checkIn && !checkOut) {
+                return <span className="text-muted-foreground">-</span>
+            }
 
             const scheduledStart = firebaseTimestampToDate(schedule?.start)
             const scheduledEnd = firebaseTimestampToDate(schedule?.end)
@@ -84,7 +79,9 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                     >
                         {formatTime(inDate)}
                     </span>
+
                     <span className="text-muted-foreground mx-1">→</span>
+
                     <span
                         className={`
                     ${checkOut ? "" : "text-muted-foreground"}
@@ -101,8 +98,8 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
         accessorKey: "overallTime",
         header: "Duration",
         cell: ({ row }) => {
-            const checkIn = row.original.checkIn as Date
-            const checkOut = row.original.checkOut as Date
+            const checkIn = firebaseTimestampToDate(row.original.checkIn)
+            const checkOut = firebaseTimestampToDate(row.original.checkOut)
 
             const mins =
                 checkIn && checkOut

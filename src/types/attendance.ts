@@ -32,7 +32,8 @@ export interface AttendanceSession {
     remarks?: string
     geoLocation?: GeoLocation
     address?: string
-    photoUrl?: string
+    photoStartUrl?: string
+    photoEndUrl?: string
 }
 
 export interface Attendance {

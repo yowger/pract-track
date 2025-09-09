@@ -19,7 +19,7 @@ export default function AttendanceHistory() {
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
-                <div className="col-span-12 lg:col-span-8">
+                <div className="col-span-12 lg:col-span-12">
                     <AttendanceSummary attendances={Attendances || []} />
                 </div>
             </div>

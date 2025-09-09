@@ -150,7 +150,7 @@ export function getCurrentSession(data: {
             scheduleStart.getTime() - earlyClockInMins * 60000
         )
 
-        if (now >= earliestClockIn && now <= scheduleEnd) {
+        if (session.checkIn && !session.checkOut && now > scheduleEnd) {
             return { session, reason: undefined }
         }
 
@@ -265,34 +265,3 @@ export async function toggleClock(params: {
         ),
     }
 }
-
-// if (!userHasCheckedIn) {
-//     session.checkIn = now
-//     session.geoLocation = geo
-//     session.address = address
-
-//     const userIsLate = isLate({
-//         checkIn: session.checkIn,
-//         lateThresholdMins: session.schedule.lateThresholdMins || 0,
-//         scheduledStart,
-//     })
-
-//     session.status = userIsLate ? ["late"] : ["present"]
-// } else if (!userHasCheckedOut) {
-//     session.checkOut = now
-//     session.geoLocation = geo
-//     session.address = address
-
-//     const userIsUndertime = isUndertime({
-//         checkOut: session.checkOut,
-//         undertimeThresholdMins:
-//             session.schedule.undertimeThresholdMins || 0,
-//         scheduledEnd,
-//     })
-
-//     session.status = userIsUndertime
-//         ? [...(session.status || []), "undertime"]
-//         : session.status
-// } else {
-//     throw new Error("You have already completed this session.")
-// }
