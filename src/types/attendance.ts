@@ -26,14 +26,22 @@ export interface AttendanceSession {
         undertimeThresholdMins?: number
         earlyClockInMins?: number
     }
-    checkIn?: Date | Timestamp
-    checkOut?: Date | Timestamp
-    status?: Array<StatusTypes>
+    checkInInfo?: {
+        time: Date | Timestamp
+        geo: GeoLocation
+        address: string
+        photoUrl?: string
+        status: StatusTypes
+    }
+    checkOutInfo?: {
+        time: Date | Timestamp
+        geo: GeoLocation
+        address: string
+        photoUrl?: string
+        status: StatusTypes
+    }
     remarks?: string
-    geoLocation?: GeoLocation
-    address?: string
-    photoStartUrl?: string
-    photoEndUrl?: string
+    totalWorkMinutes?: number
 }
 
 export interface Attendance {

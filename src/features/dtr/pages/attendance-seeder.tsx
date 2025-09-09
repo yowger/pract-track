@@ -27,8 +27,8 @@ function makeSessionFromTemplate(
     return {
         id: crypto.randomUUID(),
         schedule: {
-            start,
-            end,
+            start: Timestamp.fromDate(start),
+            end: Timestamp.fromDate(end),
             photoStart: session.photoStart,
             photoEnd: session.photoEnd,
             lateThresholdMins: session.lateThresholdMins ?? 10,
@@ -38,7 +38,7 @@ function makeSessionFromTemplate(
                 lat: 14.5995 + Math.random() * 0.01,
                 lng: 120.9842 + Math.random() * 0.01,
             },
-            geoRadius: 50, // meters
+            geoRadius: 50,
         },
         status: ["absent"],
         geoLocation: {
@@ -46,7 +46,10 @@ function makeSessionFromTemplate(
             lng: 120.9842 + Math.random() * 0.01,
         },
         address: "Sample Address, Manila, PH",
-        photoUrl:
+        photoStartUrl:
+            "https://picsum.photos/200?random=" +
+            Math.floor(Math.random() * 1000),
+        photoEndUrl:
             "https://picsum.photos/200?random=" +
             Math.floor(Math.random() * 1000),
     }
@@ -118,10 +121,16 @@ const scheduler: Scheduler = {
             available: true,
             sessions: [
                 {
-                    start: "09:00",
-                    end: "17:00",
+                    start: "08:00",
+                    end: "12:00",
                     photoStart: true,
-                    photoEnd: true,
+                    photoEnd: false,
+                },
+                {
+                    start: "1:00",
+                    end: "5:00",
+                    photoStart: true,
+                    photoEnd: false,
                 },
             ],
         },
@@ -130,10 +139,16 @@ const scheduler: Scheduler = {
             available: true,
             sessions: [
                 {
-                    start: "09:00",
-                    end: "17:00",
+                    start: "08:00",
+                    end: "12:00",
                     photoStart: true,
-                    photoEnd: true,
+                    photoEnd: false,
+                },
+                {
+                    start: "1:00",
+                    end: "5:00",
+                    photoStart: true,
+                    photoEnd: false,
                 },
             ],
         },
@@ -142,10 +157,16 @@ const scheduler: Scheduler = {
             available: true,
             sessions: [
                 {
-                    start: "09:00",
-                    end: "17:00",
+                    start: "08:00",
+                    end: "12:00",
                     photoStart: true,
-                    photoEnd: true,
+                    photoEnd: false,
+                },
+                {
+                    start: "1:00",
+                    end: "5:00",
+                    photoStart: true,
+                    photoEnd: false,
                 },
             ],
         },
@@ -154,10 +175,16 @@ const scheduler: Scheduler = {
             available: true,
             sessions: [
                 {
-                    start: "09:00",
-                    end: "17:00",
+                    start: "08:00",
+                    end: "12:00",
                     photoStart: true,
-                    photoEnd: true,
+                    photoEnd: false,
+                },
+                {
+                    start: "1:00",
+                    end: "5:00",
+                    photoStart: true,
+                    photoEnd: false,
                 },
             ],
         },
@@ -167,9 +194,9 @@ const scheduler: Scheduler = {
             sessions: [
                 {
                     start: "09:00",
-                    end: "17:00",
+                    end: "11:00",
                     photoStart: true,
-                    photoEnd: true,
+                    photoEnd: false,
                 },
             ],
         },
