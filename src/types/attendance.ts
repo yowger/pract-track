@@ -11,7 +11,6 @@ export type StatusTypes =
     | "late"
     | "excused"
     | "undertime"
-    | "overtime"
 
 export interface AttendanceSession {
     id: string
@@ -32,6 +31,7 @@ export interface AttendanceSession {
         address: string
         photoUrl?: string
         status: StatusTypes
+        remarks?: string
     }
     checkOutInfo?: {
         time: Date | Timestamp
@@ -39,8 +39,8 @@ export interface AttendanceSession {
         address: string
         photoUrl?: string
         status: StatusTypes
+        remarks?: string
     }
-    remarks?: string
     totalWorkMinutes?: number
 }
 

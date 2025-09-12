@@ -4,205 +4,164 @@ import {
     serverTimestamp,
     Timestamp,
 } from "firebase/firestore"
-
-import type { Attendance, AttendanceSession } from "@/types/attendance"
-import type { Scheduler, Session } from "@/types/scheduler"
 import { db } from "@/service/firebase/firebase"
-import { Button } from "@/components/ui/button"
+import { faker } from "@faker-js/faker"
 import { nanoid } from "nanoid"
+import type {
+    Attendance,
+    AttendanceSession,
+    GeoLocation,
+} from "@/types/attendance"
+import { Button } from "@/components/ui/button"
 
-function makeSessionFromTemplate(
-    session: Session,
-    baseDate: Date
-): AttendanceSession {
-    const [startH, startM] = session.start.split(":").map(Number)
-    const [endH, endM] = session.end.split(":").map(Number)
+const WORK_START = 9
+const WORK_END = 17
 
-    const start = new Date(baseDate)
-    start.setHours(startH, startM, 0, 0)
-
-    const end = new Date(baseDate)
-    end.setHours(endH, endM, 0, 0)
-
+function randomGeoLocation(): GeoLocation {
     return {
-        id: crypto.randomUUID(),
-        schedule: {
-            start: Timestamp.fromDate(start),
-            end: Timestamp.fromDate(end),
-            photoStart: session.photoStart,
-            photoEnd: session.photoEnd,
-            lateThresholdMins: session.lateThresholdMins ?? 10,
-            undertimeThresholdMins: session.undertimeThresholdMins ?? 10,
-            earlyClockInMins: 15,
-            geoLocation: {
-                lat: 14.5995 + Math.random() * 0.01,
-                lng: 120.9842 + Math.random() * 0.01,
-            },
-            geoRadius: 50,
-        },
-        status: ["absent"],
-        geoLocation: {
-            lat: 14.5995 + Math.random() * 0.01,
-            lng: 120.9842 + Math.random() * 0.01,
-        },
-        address: "Sample Address, Manila, PH",
-        photoStartUrl:
-            "https://picsum.photos/200?random=" +
-            Math.floor(Math.random() * 1000),
-        photoEndUrl:
-            "https://picsum.photos/200?random=" +
-            Math.floor(Math.random() * 1000),
+        lat: 14.5995 + Math.random() * 0.02,
+        lng: 120.9842 + Math.random() * 0.02,
     }
 }
 
-async function seedAttendancesForUser(
-    user: { id: string; name: string; photoUrl?: string },
-    scheduler: Scheduler
-) {
-    const start = new Date(scheduler.startDate)
-    const end = new Date(scheduler.endDate)
+function makeRandomSession(date: Date): AttendanceSession {
+    const startHour = WORK_START + Math.floor(Math.random() * 2)
+    const endHour = WORK_END - Math.floor(Math.random() * 2)
 
-    const current = new Date(start)
-    while (current <= end) {
-        const weekday = current
-            .toLocaleDateString("en-US", { weekday: "long" })
-            .toLowerCase()
+    const scheduledStart = new Date(date)
+    scheduledStart.setHours(startHour, 0, 0, 0)
 
-        const dayTemplate = scheduler.weeklySchedule.find(
-            (d) => d.day === weekday
+    const scheduledEnd = new Date(date)
+    scheduledEnd.setHours(endHour, 0, 0, 0)
+
+    const checkedIn = faker.datatype.boolean()
+    const checkedOut = checkedIn ? faker.datatype.boolean() : false
+
+    const session: AttendanceSession = {
+        id: nanoid(),
+        schedule: {
+            start: scheduledStart,
+            end: scheduledEnd,
+            geoLocation: randomGeoLocation(),
+            geoRadius: 50,
+            photoStart: true,
+            photoEnd: true,
+            lateThresholdMins: 15,
+            undertimeThresholdMins: 15,
+            earlyClockInMins: 15,
+        },
+        totalWorkMinutes: 0,
+    }
+
+    let actualCheckIn: Date | null = null
+    let actualCheckOut: Date | null = null
+
+    if (checkedIn) {
+        actualCheckIn = new Date(
+            scheduledStart.getTime() +
+                faker.number.int({ min: -10, max: 40 }) * 60000
         )
-        if (!dayTemplate || !dayTemplate.available) {
-            current.setDate(current.getDate() + 1)
-            continue
+        session.checkInInfo = {
+            time: actualCheckIn,
+            geo: randomGeoLocation(),
+            address: faker.location.streetAddress(),
+            photoUrl: `https://picsum.photos/200?random=${faker.number.int({
+                min: 0,
+                max: 1000,
+            })}`,
+            status:
+                actualCheckIn.getTime() >
+                scheduledStart.getTime() +
+                    (session.schedule.lateThresholdMins ?? 15) * 60000
+                    ? "late"
+                    : "present",
+        }
+    }
+
+    if (checkedOut) {
+        actualCheckOut = new Date(
+            scheduledEnd.getTime() +
+                faker.number.int({ min: -40, max: 20 }) * 60000
+        )
+        session.checkOutInfo = {
+            time: actualCheckOut,
+            geo: randomGeoLocation(),
+            address: faker.location.streetAddress(),
+            photoUrl: `https://picsum.photos/200?random=${faker.number.int({
+                min: 0,
+                max: 1000,
+            })}`,
+            status:
+                actualCheckOut.getTime() <
+                scheduledEnd.getTime() -
+                    (session.schedule.undertimeThresholdMins ?? 15) * 60000
+                    ? "undertime"
+                    : "present",
+        }
+    }
+
+    if (actualCheckIn && actualCheckOut) {
+        session.totalWorkMinutes = Math.floor(
+            (actualCheckOut.getTime() - actualCheckIn.getTime()) / 60000
+        )
+    }
+
+    return session
+}
+
+async function seedRandomAttendances(
+    user: { id: string; name: string; photoUrl?: string },
+    days = 10
+) {
+    const attendances: Attendance[] = []
+
+    for (let i = 0; i < days; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+
+        const numSessions = 1 + Math.floor(Math.random() * 2) // 1-2 sessions per day
+        const sessions: AttendanceSession[] = []
+
+        for (let s = 0; s < numSessions; s++) {
+            const randomSession = makeRandomSession(date)
+
+            sessions.push(randomSession)
         }
 
-        const sessions = dayTemplate.sessions.map((s) =>
-            makeSessionFromTemplate(s, current)
+        const totalWorkMinutes = sessions.reduce(
+            (sum, s) => sum + (s.totalWorkMinutes || 0),
+            0
         )
+        const overallStatus = sessions.some((s) => s.checkInInfo)
+            ? "present"
+            : "absent"
 
         const attendance: Attendance = {
             id: nanoid(),
             schedule: {
-                id: scheduler.id!,
-                name: scheduler.scheduleName,
-                date: Timestamp.fromDate(new Date(current)),
+                id: "sched-" + nanoid(4),
+                name: "Default Schedule",
+                date: Timestamp.fromDate(date),
             },
             user,
             sessions,
-            overallStatus: "absent",
+            overallStatus,
             markedBy: "self",
-            totalWorkMinutes: 0,
+            totalWorkMinutes,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         }
 
-        try {
-            await addDoc(collection(db, "attendances"), attendance)
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(error.message)
-                throw error
-            }
-        }
-
-        current.setDate(current.getDate() + 1)
+        attendances.push(attendance)
     }
-}
 
-const scheduler: Scheduler = {
-    id: "sched-123",
-    companyId: "comp-001",
-    scheduleName: "Default 9-5",
-    startDate: "2025-09-01",
-    endDate: "2025-09-30",
-    weeklySchedule: [
-        {
-            day: "monday",
-            available: true,
-            sessions: [
-                {
-                    start: "08:00",
-                    end: "12:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-                {
-                    start: "1:00",
-                    end: "5:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-            ],
-        },
-        {
-            day: "tuesday",
-            available: true,
-            sessions: [
-                {
-                    start: "08:00",
-                    end: "12:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-                {
-                    start: "1:00",
-                    end: "5:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-            ],
-        },
-        {
-            day: "wednesday",
-            available: true,
-            sessions: [
-                {
-                    start: "08:00",
-                    end: "12:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-                {
-                    start: "1:00",
-                    end: "5:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-            ],
-        },
-        {
-            day: "thursday",
-            available: true,
-            sessions: [
-                {
-                    start: "08:00",
-                    end: "12:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-                {
-                    start: "1:00",
-                    end: "5:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-            ],
-        },
-        {
-            day: "friday",
-            available: true,
-            sessions: [
-                {
-                    start: "09:00",
-                    end: "11:00",
-                    photoStart: true,
-                    photoEnd: false,
-                },
-            ],
-        },
-        { day: "saturday", available: false, sessions: [] },
-        { day: "sunday", available: false, sessions: [] },
-    ],
+    for (const att of attendances) {
+        await addDoc(collection(db, "attendances"), att)
+    }
+
+    console.log(
+        `${attendances.length} random attendances seeded for ${user.name}`
+    )
 }
 
 const user = { id: "xtB1yKlcRZcFVw0KaXAj0F9YwAN2", name: "roger pantil" }
@@ -210,7 +169,7 @@ const user = { id: "xtB1yKlcRZcFVw0KaXAj0F9YwAN2", name: "roger pantil" }
 export default function AttendanceSeeder() {
     async function handleClick() {
         try {
-            await seedAttendancesForUser(user, scheduler)
+            await seedRandomAttendances(user)
         } catch (error) {
             if (error instanceof Error) {
                 console.error(error.message)

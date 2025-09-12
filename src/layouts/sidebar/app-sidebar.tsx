@@ -5,9 +5,9 @@ import {
     GalleryVerticalEnd,
     Settings2,
     FileUp,
-    History,
+    // History,
     UserCheck,
-    CalendarDays,
+    // CalendarDays,
     Map,
     BookOpen,
     // QrCode,
@@ -18,6 +18,7 @@ import {
     Briefcase,
     LayoutDashboard,
     Timer,
+    Newspaper,
 } from "lucide-react"
 
 import { AppNavMain, type NavItem } from "./app-nav-main"
@@ -72,30 +73,50 @@ const sidebarConfig: SidebarConfig = {
     ],
 
     student: [
+        // {
+        //     title: "Dashboard",
+        //     url: "/student/dashboard",
+        //     icon: Settings2,
+        // },
+        // {
+        //     title: "Files & Reports",
+        //     url: "/files",
+        //     icon: FileUp,
+        // },
+        // {
+        //     title: "Evaluation History",
+        //     url: "/evaluation/history",
+        //     icon: History,
+        // },
+        // {
+        //     title: "Daily Time Record",
+        //     url: "/dtr",
+        //     icon: CalendarDays,
+        // },
+        // {
+        //     title: "Attendance",
+        //     url: "/attendance",
+        //     icon: UserCheck,
+        // },
+        {
+            title: "Clock In & Out",
+            url: "/",
+            icon: Timer,
+        },
         {
             title: "Dashboard",
-            url: "/student/dashboard",
+            url: "/dashboard",
             icon: Settings2,
-        },
-        {
-            title: "Files & Reports",
-            url: "/files",
-            icon: FileUp,
-        },
-        {
-            title: "Evaluation History",
-            url: "/evaluation/history",
-            icon: History,
-        },
-        {
-            title: "Daily Time Record",
-            url: "/dtr",
-            icon: CalendarDays,
         },
         {
             title: "Attendance",
             url: "/attendance",
             icon: UserCheck,
+        },
+        {
+            title: "Schedule",
+            url: "/schedule",
+            icon: Newspaper,
         },
     ],
 

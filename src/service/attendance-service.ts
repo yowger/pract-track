@@ -1,5 +1,4 @@
 import { serverTimestamp } from "firebase/firestore"
-
 import { updateAttendance } from "@/api/attendance"
 import { firebaseTimestampToDate } from "@/lib/date-utils"
 import type {
@@ -21,13 +20,11 @@ export async function reverseGeocode(coords?: GeoLocation): Promise<string> {
         const res = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lng}&format=json`
         )
-
         if (!res.ok) throw new Error(res.statusText)
         const data = await res.json()
         return data.display_name ?? "Unknown address"
     } catch (err) {
         console.error("Reverse geocoding error:", err)
-
         return "Unknown address"
     }
 }
@@ -54,7 +51,6 @@ export function isLate(params: {
     )
 
     if (checkIn < earliestAllowed) return false
-
     return checkIn > latestAllowed
 }
 
@@ -64,30 +60,27 @@ export function isUndertime(params: {
     undertimeThresholdMins: number
 }): boolean {
     const { checkOut, scheduledEnd, undertimeThresholdMins } = params
-
     if (!checkOut || !scheduledEnd) return false
 
     const thresholdEnd = new Date(
         scheduledEnd.getTime() - undertimeThresholdMins * 60000
     )
-
     return checkOut < thresholdEnd
 }
 
 export function deriveSessionStatus(session: AttendanceSession): StatusTypes[] {
     const scheduledStart = firebaseTimestampToDate(session.schedule.start)
     const scheduledEnd = firebaseTimestampToDate(session.schedule.end)
-
     if (!scheduledStart || !scheduledEnd) return ["absent"]
 
     const statuses: StatusTypes[] = []
 
-    if (session.checkIn) {
+    if (session.checkInInfo) {
         const late = isLate({
             checkIn:
-                session.checkIn instanceof Date
-                    ? session.checkIn
-                    : session.checkIn.toDate(),
+                session.checkInInfo.time instanceof Date
+                    ? session.checkInInfo.time
+                    : session.checkInInfo.time.toDate(),
             scheduledStart,
             lateThresholdMins: session.schedule.lateThresholdMins || 0,
             earlyClockInMins: session.schedule.earlyClockInMins,
@@ -97,12 +90,12 @@ export function deriveSessionStatus(session: AttendanceSession): StatusTypes[] {
         statuses.push("absent")
     }
 
-    if (session.checkOut) {
+    if (session.checkOutInfo) {
         const undertime = isUndertime({
             checkOut:
-                session.checkOut instanceof Date
-                    ? session.checkOut
-                    : session.checkOut.toDate(),
+                session.checkOutInfo.time instanceof Date
+                    ? session.checkOutInfo.time
+                    : session.checkOutInfo.time.toDate(),
             scheduledEnd,
             undertimeThresholdMins:
                 session.schedule.undertimeThresholdMins || 0,
@@ -117,7 +110,6 @@ export function deriveOverallStatus(
     sessions: AttendanceSession[]
 ): Attendance["overallStatus"] {
     const all = sessions.flatMap(deriveSessionStatus)
-
     if (all.includes("late")) return "late"
     if (all.includes("undertime")) return "undertime"
     if (all.includes("present")) return "present"
@@ -138,7 +130,6 @@ export function getCurrentSession(data: {
             session.schedule.start instanceof Date
                 ? session.schedule.start
                 : session.schedule.start.toDate()
-
         const scheduleEnd =
             session.schedule.end instanceof Date
                 ? session.schedule.end
@@ -150,7 +141,12 @@ export function getCurrentSession(data: {
             scheduleStart.getTime() - earlyClockInMins * 60000
         )
 
-        if (session.checkIn && !session.checkOut && now > scheduleEnd) {
+        const activeSession =
+            !session.checkOutInfo &&
+            now >= earliestClockIn &&
+            now <= scheduleEnd
+
+        if (activeSession) {
             return { session, reason: undefined }
         }
 
@@ -162,11 +158,7 @@ export function getCurrentSession(data: {
                 hour: "2-digit",
                 minute: "2-digit",
             })})`
-
-            return {
-                session: null,
-                reason,
-            }
+            return { session: null, reason }
         }
     }
 
@@ -175,17 +167,20 @@ export function getCurrentSession(data: {
 
 export function calculateTotalMinutes(sessions: AttendanceSession[]): number {
     return sessions.reduce((total, s) => {
-        if (s.checkIn && s.checkOut) {
+        if (s.checkInInfo && s.checkOutInfo) {
             const inTime =
-                s.checkIn instanceof Date ? s.checkIn : s.checkIn.toDate()
+                s.checkInInfo.time instanceof Date
+                    ? s.checkInInfo.time
+                    : s.checkInInfo.time.toDate()
             const outTime =
-                s.checkOut instanceof Date ? s.checkOut : s.checkOut.toDate()
+                s.checkOutInfo.time instanceof Date
+                    ? s.checkOutInfo.time
+                    : s.checkOutInfo.time.toDate()
             return (
                 total +
                 Math.floor((outTime.getTime() - inTime.getTime()) / 60000)
             )
         }
-
         return total
     }, 0)
 }
@@ -194,8 +189,10 @@ export async function toggleClock(params: {
     attendance: Attendance
     date: Date
     geo: GeoLocation
+    photoUrl?: string
+    remarks?: string
 }) {
-    const { attendance, date: now, geo } = params
+    const { attendance, date: now, geo, photoUrl, remarks } = params
 
     const { session: currentSession, reason } = getCurrentSession({
         attendance,
@@ -204,29 +201,61 @@ export async function toggleClock(params: {
     if (!currentSession)
         throw new Error(reason || "No active session available")
 
-    const userHasCheckedIn = currentSession.checkIn
-    const userHasCheckedOut = currentSession.checkOut
+    const isClockIn = !currentSession.checkInInfo
+    const isClockOut =
+        currentSession.checkInInfo && !currentSession.checkOutInfo
     const address = await reverseGeocode(geo)
 
     const updatedSessions: AttendanceSession[] = attendance.sessions.map(
-        (updatedSession) => {
-            if (updatedSession !== currentSession) return updatedSession
+        (session) => {
+            if (session !== currentSession) return session
 
-            if (!userHasCheckedIn) {
+            if (isClockIn) {
                 return {
-                    ...updatedSession,
-                    checkIn: now,
-                    geoLocation: geo,
-                    address,
+                    ...session,
+                    checkInInfo: {
+                        time: now,
+                        geo,
+                        address,
+                        photoUrl,
+                        status: isLate({
+                            checkIn: now,
+                            scheduledStart:
+                                session.schedule.start instanceof Date
+                                    ? session.schedule.start
+                                    : session.schedule.start?.toDate() ?? now,
+                            lateThresholdMins:
+                                session.schedule.lateThresholdMins || 0,
+                            earlyClockInMins: session.schedule.earlyClockInMins,
+                        })
+                            ? "late"
+                            : "present",
+                        remarks,
+                    },
                 }
             }
 
-            if (!userHasCheckedOut) {
+            if (isClockOut) {
                 return {
-                    ...updatedSession,
-                    checkOut: now,
-                    geoLocation: geo,
-                    address,
+                    ...session,
+                    checkOutInfo: {
+                        time: now,
+                        geo,
+                        address,
+                        photoUrl,
+                        status: isUndertime({
+                            checkOut: now,
+                            scheduledEnd:
+                                session.schedule.end instanceof Date
+                                    ? session.schedule.end
+                                    : session.schedule.end?.toDate() ?? now,
+                            undertimeThresholdMins:
+                                session.schedule.undertimeThresholdMins || 0,
+                        })
+                            ? "undertime"
+                            : session.checkInInfo?.status || "present",
+                        remarks,
+                    },
                 }
             }
 
@@ -234,19 +263,12 @@ export async function toggleClock(params: {
         }
     )
 
-    const sessionsWithStatuses: AttendanceSession[] = updatedSessions.map(
-        (session) => ({
-            ...session,
-            status: deriveSessionStatus(session),
-        })
-    )
-
     const totalWorkMinutes = calculateTotalMinutes(updatedSessions)
-    const overallStatus = deriveOverallStatus(sessionsWithStatuses)
+    const overallStatus = deriveOverallStatus(updatedSessions)
 
     const updatedAttendance: Attendance = {
         ...attendance,
-        sessions: sessionsWithStatuses,
+        sessions: updatedSessions,
         totalWorkMinutes,
         overallStatus,
     }
@@ -260,8 +282,8 @@ export async function toggleClock(params: {
 
     return {
         updatedAttendance,
-        updatedSessions: sessionsWithStatuses.find(
-            (s) => s.id === currentSession.id
+        updatedSession: updatedSessions.find(
+            (updatedSession) => updatedSession.id === currentSession.id
         ),
     }
 }

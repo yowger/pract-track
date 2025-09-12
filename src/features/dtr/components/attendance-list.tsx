@@ -1,32 +1,14 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import type { Attendance, AttendanceSession } from "@/types/attendance"
-import DataTable from "@/components/data-table"
 import type { ColumnDef } from "@tanstack/react-table"
-import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
-import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { ArrowUpRight } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import DataTable from "@/components/data-table"
 import { Skeleton } from "@/components/ui/skeleton"
-
-// interface FlattenedSession extends Omit<AttendanceSession, "schedule"> {
-//     user: Attendance["user"]
-//     attendanceSchedule: Attendance["schedule"]
-//     sessionSchedule: AttendanceSession["schedule"]
-//     overallStatus?: Attendance["overallStatus"]
-// }
-
-// function flattenAttendances(attendances: Attendance): FlattenedSession[] {
-//     return attendances.flatMap((att) =>
-//         att.sessions.map((session) => ({
-//             ...session,
-//             sessionSchedule: session.schedule,
-//             attendanceSchedule: att.schedule,
-//             user: att.user,
-//             overallStatus: att.overallStatus,
-//         }))
-//     )
-// }
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
+import type { Attendance, AttendanceSession } from "@/types/attendance"
 
 const attendanceColumns: ColumnDef<AttendanceSession>[] = [
     {
@@ -34,9 +16,9 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
         header: "Clock-in & Out",
         size: 50,
         cell: ({ row, column }) => {
-            const { checkIn, checkOut, schedule } = row.original
-            
-            if (!checkIn && !checkOut) {
+            const { checkInInfo, checkOutInfo, schedule } = row.original
+
+            if (!checkInInfo && !checkOutInfo) {
                 return <span className="text-muted-foreground">-</span>
             }
 
@@ -46,25 +28,29 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
             const undertimeThresholdMins =
                 schedule?.undertimeThresholdMins ?? 15
 
-            const inDate = firebaseTimestampToDate(checkIn)
-            const outDate = firebaseTimestampToDate(checkOut)
+            const inDate = checkInInfo
+                ? firebaseTimestampToDate(checkInInfo.time)
+                : null
+            const outDate = checkOutInfo
+                ? firebaseTimestampToDate(checkOutInfo.time)
+                : null
 
-            let isLate = false
-            let isUndertime = false
+            const isLate =
+                inDate && scheduledStart
+                    ? inDate >
+                      new Date(
+                          scheduledStart.getTime() + lateThresholdMins * 60000
+                      )
+                    : false
 
-            if (checkIn && scheduledStart) {
-                const thresholdStart = new Date(
-                    scheduledStart.getTime() + lateThresholdMins * 60000
-                )
-                isLate = inDate! > thresholdStart
-            }
-
-            if (checkOut && scheduledEnd) {
-                const thresholdEnd = new Date(
-                    scheduledEnd.getTime() - undertimeThresholdMins * 60000
-                )
-                isUndertime = outDate! < thresholdEnd
-            }
+            const isUndertime =
+                outDate && scheduledEnd
+                    ? outDate <
+                      new Date(
+                          scheduledEnd.getTime() -
+                              undertimeThresholdMins * 60000
+                      )
+                    : false
 
             return (
                 <div
@@ -72,23 +58,21 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                     style={{ width: column.getSize() }}
                 >
                     <span
-                        className={`
-                    ${checkIn ? "" : "text-muted-foreground"}
-                    ${isLate ? "text-red-600 dark:text-red-700" : ""}
-                `}
+                        className={`${inDate ? "" : "text-muted-foreground"} ${
+                            isLate ? "text-red-600 dark:text-red-700" : ""
+                        }`}
                     >
-                        {formatTime(inDate)}
+                        {inDate ? formatTime(inDate) : "—"}
                     </span>
-
                     <span className="text-muted-foreground mx-1">→</span>
-
                     <span
-                        className={`
-                    ${checkOut ? "" : "text-muted-foreground"}
-                    ${isUndertime ? "text-amber-600 dark:text-amber-700" : ""}
-                `}
+                        className={`${outDate ? "" : "text-muted-foreground"} ${
+                            isUndertime
+                                ? "text-amber-600 dark:text-amber-700"
+                                : ""
+                        }`}
                     >
-                        {formatTime(outDate)}
+                        {outDate ? formatTime(outDate) : "—"}
                     </span>
                 </div>
             )
@@ -98,33 +82,34 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
         accessorKey: "overallTime",
         header: "Duration",
         cell: ({ row }) => {
-            const checkIn = firebaseTimestampToDate(row.original.checkIn)
-            const checkOut = firebaseTimestampToDate(row.original.checkOut)
+            const { checkInInfo, checkOutInfo } = row.original
+            const checkIn = checkInInfo
+                ? firebaseTimestampToDate(checkInInfo.time)
+                : null
+            const checkOut = checkOutInfo
+                ? firebaseTimestampToDate(checkOutInfo.time)
+                : null
 
-            const mins =
-                checkIn && checkOut
-                    ? Math.floor((+checkOut - +checkIn) / 60000)
-                    : 0
+            if (!checkIn || !checkOut)
+                return <span className="text-muted-foreground">-</span>
+
+            const mins = Math.floor((+checkOut - +checkIn) / 60000)
             const h = Math.floor(mins / 60)
             const m = mins % 60
-            const duration = mins > 0 ? `${h}h ${m}m` : "-"
-
-            return (
-                <span className={mins > 0 ? "" : "text-muted-foreground"}>
-                    {duration}
-                </span>
-            )
+            return <span>{`${h}h ${m}m`}</span>
         },
     },
     {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-            const { status } = row.original
+            const { checkInInfo, checkOutInfo } = row.original
+            const statuses = [checkInInfo?.status, checkOutInfo?.status].filter(
+                Boolean
+            ) as string[]
 
-            const statuses = Array.isArray(status) ? status : [status]
-
-            if (!statuses.length || !statuses[0]) return null
+            if (!statuses.length)
+                return <span className="text-muted-foreground">-</span>
 
             const order = [
                 "present",
@@ -134,9 +119,8 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                 "absent",
                 "excused",
             ]
-
             const sortedStatuses = statuses.sort(
-                (a, b) => order.indexOf(a || "") - order.indexOf(b || "")
+                (a, b) => order.indexOf(a) - order.indexOf(b)
             )
 
             const getBadgeColors = (s: string) => {
@@ -160,13 +144,11 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
 
             return (
                 <div className="flex flex-wrap gap-2">
-                    {sortedStatuses.map((s, idx) =>
-                        s ? (
-                            <Badge key={idx} className={getBadgeColors(s)}>
-                                {s}
-                            </Badge>
-                        ) : null
-                    )}
+                    {sortedStatuses.map((s, idx) => (
+                        <Badge key={idx} className={getBadgeColors(s)}>
+                            {s}
+                        </Badge>
+                    ))}
                 </div>
             )
         },
@@ -179,7 +161,7 @@ interface AttendanceListProps {
 }
 
 export function AttendanceList({ attendances, loading }: AttendanceListProps) {
-    const sessions = attendances?.sessions
+    const sessions = attendances?.sessions ?? []
 
     return (
         <Card className="col-span-12 lg:col-span-8">
@@ -196,7 +178,6 @@ export function AttendanceList({ attendances, loading }: AttendanceListProps) {
                     </Link>
                 </Button>
             </CardHeader>
-
             <CardContent>
                 {loading ? (
                     <div className="space-y-3">
@@ -209,10 +190,7 @@ export function AttendanceList({ attendances, loading }: AttendanceListProps) {
                         ))}
                     </div>
                 ) : (
-                    <DataTable
-                        columns={attendanceColumns}
-                        data={sessions || []}
-                    />
+                    <DataTable columns={attendanceColumns} data={sessions} />
                 )}
             </CardContent>
         </Card>

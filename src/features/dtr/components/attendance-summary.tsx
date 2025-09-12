@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import DataTable from "@/components/data-table"
-import { Badge } from "@/components/ui/badge"
+// import { Badge } from "@/components/ui/badge"
 import {
     firebaseTimestampToDate,
     formatDate,
@@ -16,8 +16,11 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         cell: ({ row }) => {
             const date = row.original.schedule.date
             const d = date instanceof Date ? date : date?.toDate?.()
-
-            return <span>{formatDate(d ?? null)}</span>
+            return (
+                <div className="align-top flex items-start">
+                    <span>{formatDate(d ?? null)}</span>
+                </div>
+            )
         },
     },
     {
@@ -25,13 +28,11 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         header: "Schedule",
         cell: ({ row }) => {
             const sessions = row.original.sessions
-
             return (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
                     {sessions.map((s) => {
                         const start = firebaseTimestampToDate(s.schedule.start)
                         const end = firebaseTimestampToDate(s.schedule.end)
-
                         return (
                             <div key={s.id}>
                                 <span>
@@ -48,83 +49,88 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         accessorKey: "sessions",
         header: "Sessions",
         enableSorting: false,
-        cell: ({ row, column }) => {
+        cell: ({ row }) => {
             const sessions = row.original.sessions
-
-            const hasAnyTime = sessions.some((s) => s.checkIn || s.checkOut)
-
-            if (!hasAnyTime)
+            if (!sessions.length)
                 return <span className="text-muted-foreground">-</span>
 
             return (
-                <div className="flex flex-col gap-2">
-                    {sessions.map((session) => {
-                        const { checkIn, checkOut, schedule } = session
+                <div className="flex flex-col gap-1">
+                    {sessions.map((s) => {
+                        const inDate = s.checkInInfo
+                            ? firebaseTimestampToDate(s.checkInInfo.time)
+                            : null
+                        const outDate = s.checkOutInfo
+                            ? firebaseTimestampToDate(s.checkOutInfo.time)
+                            : null
 
-                        if (!checkIn && !checkOut) {
+                        if (!inDate && !outDate)
                             return (
-                                <span className="text-muted-foreground">-</span>
+                                <span
+                                    key={s.id}
+                                    className="text-muted-foreground"
+                                >
+                                    -
+                                </span>
                             )
-                        }
 
                         const scheduledStart = firebaseTimestampToDate(
-                            schedule?.start
+                            s.schedule.start
                         )
                         const scheduledEnd = firebaseTimestampToDate(
-                            schedule?.end
+                            s.schedule.end
                         )
                         const lateThresholdMins =
-                            schedule?.lateThresholdMins ?? 15
+                            s.schedule.lateThresholdMins ?? 15
                         const undertimeThresholdMins =
-                            schedule?.undertimeThresholdMins ?? 15
+                            s.schedule.undertimeThresholdMins ?? 15
 
-                        const inDate = firebaseTimestampToDate(checkIn)
-                        const outDate = firebaseTimestampToDate(checkOut)
-
-                        let isLate = false
-                        let isUndertime = false
-
-                        if (checkIn && scheduledStart) {
-                            const thresholdStart = new Date(
-                                scheduledStart.getTime() +
-                                    lateThresholdMins * 60000
-                            )
-                            isLate = inDate! > thresholdStart
-                        }
-
-                        if (checkOut && scheduledEnd) {
-                            const thresholdEnd = new Date(
-                                scheduledEnd.getTime() -
-                                    undertimeThresholdMins * 60000
-                            )
-                            isUndertime = outDate! < thresholdEnd
-                        }
+                        const isLate =
+                            inDate && scheduledStart
+                                ? inDate >
+                                  new Date(
+                                      scheduledStart.getTime() +
+                                          lateThresholdMins * 60000
+                                  )
+                                : false
+                        const isUndertime =
+                            outDate && scheduledEnd
+                                ? outDate <
+                                  new Date(
+                                      scheduledEnd.getTime() -
+                                          undertimeThresholdMins * 60000
+                                  )
+                                : false
 
                         return (
                             <div
+                                key={s.id}
                                 className="inline-flex items-center gap-2"
-                                style={{ width: column.getSize() }}
                             >
                                 <span
-                                    className={`
-                    ${checkIn ? "" : "text-muted-foreground"}
-                    ${isLate ? "text-red-600 dark:text-red-700" : ""}
-                `}
+                                    className={`${
+                                        inDate ? "" : "text-muted-foreground"
+                                    } ${
+                                        isLate
+                                            ? "text-red-600 dark:text-red-700"
+                                            : ""
+                                    }`}
                                 >
-                                    {formatTime(inDate)}
+                                    {inDate ? formatTime(inDate) : "-"}
                                 </span>
-
                                 <span className="text-muted-foreground mx-1">
                                     →
                                 </span>
-
                                 <span
-                                    className={`
-                    ${checkOut ? "" : "text-muted-foreground"}
-                    ${isUndertime ? "text-amber-600 dark:text-amber-700" : ""}
-                `}
+                                    className={`${
+                                        outDate ? "" : "text-muted-foreground"
+                                    } ${
+                                        isUndertime
+                                            ? "text-amber-600 dark:text-amber-700"
+                                            : ""
+                                    }`}
                                 >
-                                    {formatTime(outDate)}
+                                    {outDate ? formatTime(outDate) : "-"}
                                 </span>
                             </div>
                         )
@@ -138,149 +144,59 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         header: "Duration",
         cell: ({ row }) => {
             const sessions = row.original.sessions
-
             return (
-                <div className="flex flex-col gap-2">
-                    {sessions.map((session) => {
-                        const checkIn = firebaseTimestampToDate(session.checkIn)
-                        const checkOut = firebaseTimestampToDate(
-                            session.checkOut
-                        )
-
-                        const mins =
-                            checkIn && checkOut
-                                ? Math.floor((+checkOut - +checkIn) / 60000)
-                                : 0
-                        const h = Math.floor(mins / 60)
-                        const m = mins % 60
-                        const duration = mins > 0 ? `${h}h ${m}m` : "-"
-
-                        return (
-                            <span
-                                className={
-                                    mins > 0 ? "" : "text-muted-foreground"
-                                }
-                            >
-                                {duration}
-                            </span>
-                        )
-                    })}
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-
-            const status = row.original.overallStatus ?? "absent"
-
-            const statuses = Array.isArray(status) ? status : [status]
-
-            const order = [
-                "present",
-                "late",
-                "undertime",
-                "overtime",
-                "absent",
-                "excused",
-            ]
-
-            const sortedStatuses = statuses
-                .filter((s) => s !== null && s !== undefined)
-                .sort((a, b) => order.indexOf(a!) - order.indexOf(b!))
-
-            const getBadgeColors = (s: string) => {
-                switch (s) {
-                    case "present":
-                        return "bg-green-600 dark:bg-green-700 text-white"
-                    case "late":
-                        return "bg-red-600 dark:bg-red-700 text-white"
-                    case "absent":
-                        return "bg-gray-600 dark:bg-gray-700 text-white"
-                    case "undertime":
-                        return "bg-amber-600 dark:bg-amber-700 text-white"
-                    case "overtime":
-                        return "bg-blue-600 dark:bg-blue-700 text-white"
-                    case "excused":
-                        return "bg-purple-600 dark:bg-purple-700 text-white"
-                    default:
-                        return ""
-                }
-            }
-
-            if (sortedStatuses.length === 0) return null
-
-            return (
-                <div className="flex flex-col gap-2">
-                    {sessions.map((session) => {
-                        const status = session.status ?? "absent"
-                        const statuses = Array.isArray(status)
-                            ? status
-                            : [status]
-
-                        const order = [
-                            "present",
-                            "late",
-                            "undertime",
-                            "overtime",
-                            "absent",
-                            "excused",
-                        ]
-
-                        const sortedStatuses = statuses
-                            .filter((s) => s !== null && s !== undefined)
-                            .sort(
-                                (a, b) => order.indexOf(a!) - order.indexOf(b!)
-                            )
-
-                        return sortedStatuses.map((status, idx) => (
-                            <Badge key={idx} className={getBadgeColors(status)}>
-                                {status}
-                            </Badge>
-                        ))
-                    })}
-                    {/* {sortedStatuses.map((status, idx) => (
-                        <Badge key={idx} className={getBadgeColors(status)}>
-                            {status}
-                        </Badge>
-                    ))} */}
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "photoUrl",
-        header: "Photos",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-
-            return (
-                <div className="flex flex-col gap-2">
-                    {sessions.map((session) => {
-                        const photos: string[] = []
-
-                        if (session.photoStartUrl)
-                            photos.push(session.photoStartUrl)
-                        if (session.photoEndUrl)
-                            photos.push(session.photoEndUrl)
-
-                        if (photos.length === 0) {
+                <div className="flex flex-col gap-1">
+                    {sessions.map((s) => {
+                        const inDate = s.checkInInfo
+                            ? firebaseTimestampToDate(s.checkInInfo.time)
+                            : null
+                        const outDate = s.checkOutInfo
+                            ? firebaseTimestampToDate(s.checkOutInfo.time)
+                            : null
+                        if (!inDate || !outDate)
                             return (
                                 <span
-                                    key={session.id}
+                                    key={s.id}
                                     className="text-muted-foreground"
                                 >
                                     -
                                 </span>
                             )
-                        }
+                        const mins = Math.floor((+outDate - +inDate) / 60000)
+                        const h = Math.floor(mins / 60)
+                        const m = mins % 60
+                        return <span key={s.id}>{`${h}h ${m}m`}</span>
+                    })}
+                </div>
+            )
+        },
+    },
 
+    {
+        accessorKey: "photos",
+        header: "Photos",
+        cell: ({ row }) => {
+            const sessions = row.original.sessions
+            return (
+                <div className="flex flex-col gap-1">
+                    {sessions.map((s) => {
+                        const photos: string[] = []
+                        if (s.checkInInfo?.photoUrl)
+                            photos.push(s.checkInInfo.photoUrl)
+                        if (s.checkOutInfo?.photoUrl)
+                            photos.push(s.checkOutInfo.photoUrl)
+                        if (!photos.length)
+                            return (
+                                <span
+                                    key={s.id}
+                                    className="text-muted-foreground"
+                                >
+                                    -
+                                </span>
+                            )
                         return photos.map((url, idx) => (
                             <a
-                                key={`${session.id}-${idx}`}
+                                key={`${s.id}-${idx}`}
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -300,15 +216,24 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         header: "Location",
         cell: ({ row }) => {
             const sessions = row.original.sessions
-
             return (
-                <div className="flex flex-col gap-2">
-                    {sessions.map((session) => {
-                        const geo = session.geoLocation
-                        const address = session.address
-
-                        return geo ? (
+                <div className="flex flex-col gap-1">
+                    {sessions.map((s) => {
+                        const geo = s.checkInInfo?.geo || s.checkOutInfo?.geo
+                        const address =
+                            s.checkInInfo?.address || s.checkOutInfo?.address
+                        if (!geo)
+                            return (
+                                <span
+                                    key={s.id}
+                                    className="text-muted-foreground"
+                                >
+                                    -
+                                </span>
+                            )
+                        return (
                             <a
+                                key={s.id}
                                 href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -317,8 +242,6 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
                             >
                                 {address || "Unknown Address"}
                             </a>
-                        ) : (
-                            <span className="text-muted-foreground">-</span>
                         )
                     })}
                 </div>
@@ -327,10 +250,68 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
     },
 ]
 
-interface AttendanceListProps {
+interface AttendanceSummaryProps {
     attendances: Attendance[]
 }
 
-export function AttendanceSummary({ attendances }: AttendanceListProps) {
+export function AttendanceSummary({ attendances }: AttendanceSummaryProps) {
     return <DataTable columns={attendanceColumns} data={attendances} />
 }
+
+// {
+//     accessorKey: "status",
+//     header: "Status",
+//     cell: ({ row }) => {
+//         const sessions = row.original.sessions
+//         return (
+//             <div className="flex flex-col gap-1">
+//                 {sessions.map((s) => {
+//                     const statuses = [
+//                         s.checkInInfo?.status,
+//                         s.checkOutInfo?.status,
+//                     ].filter(Boolean) as string[]
+
+//                     const order = [
+//                         "present",
+//                         "late",
+//                         "undertime",
+//                         "overtime",
+//                         "absent",
+//                         "excused",
+//                     ]
+//                     const sortedStatuses = statuses.sort(
+//                         (a, b) => order.indexOf(a) - order.indexOf(b)
+//                     )
+
+//                     const getBadgeColors = (s: string) => {
+//                         switch (s) {
+//                             case "present":
+//                                 return "bg-green-600 dark:bg-green-700 text-white"
+//                             case "late":
+//                                 return "bg-red-600 dark:bg-red-700 text-white"
+//                             case "undertime":
+//                                 return "bg-amber-600 dark:bg-amber-700 text-white"
+//                             case "overtime":
+//                                 return "bg-blue-600 dark:bg-blue-700 text-white"
+//                             case "absent":
+//                                 return "bg-gray-600 dark:bg-gray-700 text-white"
+//                             case "excused":
+//                                 return "bg-purple-600 dark:bg-purple-700 text-white"
+//                             default:
+//                                 return "bg-gray-600 dark:bg-gray-700 text-white"
+//                         }
+//                     }
+
+//                     return sortedStatuses.map((status, idx) => (
+//                         <Badge
+//                             key={`${s.id}-${idx}`}
+//                             className={getBadgeColors(status)}
+//                         >
+//                             {status}
+//                         </Badge>
+//                     ))
+//                 })}
+//             </div>
+//         )
+//     },
+// },

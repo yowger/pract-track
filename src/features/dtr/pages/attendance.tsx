@@ -29,12 +29,14 @@ export default function Attendance() {
     const today = format(new Date(), "EEEE").toLowerCase()
     const attendance =
         user && isStudent(user) ? user.studentData.assignedSchedule : null
-    const { schedule } = useSchedule(attendance?.id, { enabled: !!attendance })
+    const { schedule, loading: loadingSchedule } = useSchedule(attendance?.id, {
+        enabled: !!attendance,
+    })
     const todaysSchedule = schedule?.weeklySchedule.find(
         (day) => day.day === today
     )
     const hasSession = todaysSchedule?.sessions.some((s) => s.start && s.end)
-    const hasData = !!user && !!todaysSchedule && !!schedule && !!serverTime
+    const hasData = !!user && !!serverTime && !loadingSchedule
 
     const {
         attendance: attendanceList,
