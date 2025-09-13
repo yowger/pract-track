@@ -1,95 +1,74 @@
 import { type ColumnDef } from "@tanstack/react-table"
+import { MoreHorizontal } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import type { Student } from "@/types/user"
-import { Link } from "react-router-dom"
 
 export const assignedStudentColumns: ColumnDef<Student>[] = [
     {
-        accessorKey: "photoUrl",
-        header: "Photo",
+        accessorKey: "student",
+        header: "Student",
         cell: ({ row }) => {
             const student = row.original
-            return student.photoUrl ? (
-                <img
-                    src={student.photoUrl}
-                    alt={student.firstName}
-                    className="h-8 w-8 rounded-full"
-                />
-            ) : (
-                <div className="h-8 w-8 rounded-full bg-gray-200" />
+
+            return (
+                <div className="flex items-center gap-2">
+                    {student.photoUrl ? (
+                        <img
+                            src={student.photoUrl}
+                            alt={student.firstName}
+                            className="h-8 w-8 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-8 w-8 rounded-full bg-gray-200" />
+                    )}
+                    <span>{`${student.firstName} ${student.lastName}`}</span>
+                </div>
             )
-        },
-        enableSorting: false,
-    },
-    {
-        accessorKey: "fullName",
-        header: "Name",
-        cell: ({ row }) => {
-            const s = row.original
-            return `${s.firstName} ${s.lastName}`
         },
     },
     {
         accessorKey: "program",
         header: "Program",
         cell: ({ row }) => {
-            const program = row.getValue("program") as string
+            const program = row.original.program.toUpperCase()
             return program || <span className="text-muted-foreground">N/A</span>
         },
     },
     {
-        accessorKey: "yearLevel",
-        header: "Year",
-        cell: ({ row }) => {
-            const year = row.getValue("yearLevel") as string | number
-            return year ? (
-                `${year} Year`
-            ) : (
-                <span className="text-muted-foreground">N/A</span>
-            )
-        },
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const status = row.getValue("status") as string
-            return (
-                <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                        status === "Ongoing"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : status === "Completed"
-                            ? "bg-green-100 text-green-800"
-                            : status === "Inactive"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {status || "N/A"}
-                </span>
-            )
+        accessorKey: "adviser",
+        header: "Adviser",
+        cell: () => {
+            return ""
         },
     },
     {
         id: "actions",
-        header: "Actions",
+        header: "",
         cell: ({ row }) => {
-            const s = row.original
+            const student = row.original
             return (
-                <div className="space-x-2">
-                    <button
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                        onClick={() => console.log("Reassign", s.uid)}
-                    >
-                        Reassign
-                    </button>
-                    <Link
-                        to={`/students/${s.uid}`}
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                        View
-                    </Link>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                            onClick={() => console.log("Review", student)}
+                            className="flex items-center gap-2"
+                        >
+                            <span>Review</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             )
         },
     },

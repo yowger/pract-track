@@ -113,10 +113,15 @@ const sidebarConfig: SidebarConfig = {
             url: "/attendance",
             icon: UserCheck,
         },
+        // {
+        //     title: "Schedule",
+        //     url: "/schedule",
+        //     icon: Newspaper,
+        // },
         {
-            title: "Schedule",
-            url: "/schedule",
-            icon: Newspaper,
+            title: "Profile",
+            url: "/profile",
+            icon: User,
         },
     ],
 
@@ -149,10 +154,15 @@ const sidebarConfig: SidebarConfig = {
             url: "/",
             icon: LayoutDashboard,
         },
+        // {
+        //     title: "Interns",
+        //     url: "/interns",
+        //     icon: User,
+        // },
         {
-            title: "Interns",
-            url: "/interns",
-            icon: User,
+            title: "Assigned Students",
+            url: "/students/assigned",
+            icon: Users2Icon,
         },
         {
             title: "Schedules",

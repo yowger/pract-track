@@ -116,7 +116,8 @@ import {
 import { FileSpreadsheet, FileText, Download } from "lucide-react"
 import { firebaseTimestampToDate } from "@/lib/date-utils"
 import { useUser } from "@/hooks/use-user"
-import { toast } from "sonner"
+import { endOfMonth, startOfMonth } from "date-fns"
+import { isStudent } from "@/types/user"
 
 export function ExportDropdown({
     onExportExcel,
@@ -138,11 +139,11 @@ export function ExportDropdown({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onExportExcel} className="gap-2">
                     <FileSpreadsheet className="h-4 w-4 text-green-600" />
-                    Excel
+                    <span>Excel</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onExportWord} className="gap-2">
                     <FileText className="h-4 w-4 text-blue-600" />
-                    Word
+                    <span>Word</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -151,21 +152,30 @@ export function ExportDropdown({
 
 export default function AttendanceHistory() {
     const { user } = useUser()
-    const [dateRange, setDateRange] = useState<DateRange | undefined>()
+
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date()),
+    })
     const { data: Attendances } = useAttendances({
         from: dateRange?.from,
         to: dateRange?.to,
     })
 
     function handleExportExcel() {
-        if (!Attendances || Attendances.length === 0) {
-            toast.warning("No attendance data to export")
+        if (
+            !Attendances ||
+            Attendances.length === 0 ||
+            !user ||
+            !isStudent(user)
+        ) {
+            console.warn("No attendance data to export")
             return
         }
 
         let totalHours = 0
 
-        const rows = Attendances.flatMap((att) =>
+        const tableRows = Attendances.flatMap((att) =>
             att.sessions.map((session) => {
                 let hours = 0
                 if (session.checkInInfo?.time && session.checkOutInfo?.time) {
@@ -188,39 +198,58 @@ export default function AttendanceHistory() {
                     }
                 }
 
-                return {
-                    Student: user?.displayName || "N/A",
-                    Date:
-                        att.schedule.date &&
-                        firebaseTimestampToDate(att.schedule.date),
-                    CheckIn: session.checkInInfo?.time
+                return [
+                    att.schedule.date
+                        ? att.schedule.date instanceof Date
+                            ? att.schedule.date.toLocaleDateString()
+                            : firebaseTimestampToDate(att.schedule.date)
+                        : "",
+                    session.checkInInfo?.time
                         ? session.checkInInfo.time instanceof Date
                             ? session.checkInInfo.time.toLocaleTimeString()
                             : session.checkInInfo.time
                                   .toDate?.()
                                   .toLocaleTimeString()
-                        : "-",
-                    CheckOut: session.checkOutInfo?.time
+                        : "",
+                    session.checkOutInfo?.time
                         ? session.checkOutInfo.time instanceof Date
                             ? session.checkOutInfo.time.toLocaleTimeString()
                             : session.checkOutInfo.time
                                   .toDate?.()
                                   .toLocaleTimeString()
-                        : "-",
-                    HoursWorked: hours.toFixed(2),
-                }
+                        : "",
+                    hours && hours > 0 ? hours.toFixed(2) : "",
+                ]
             })
         )
 
-        rows.push({
-            Student: "TOTAL",
-            Date: null,
-            CheckIn: "",
-            CheckOut: "",
-            HoursWorked: totalHours.toFixed(2),
-        })
+        tableRows.push(["", "", "TOTAL", totalHours.toFixed(2)])
 
-        const worksheet = XLSX.utils.json_to_sheet(rows)
+        const headerRows = [
+            [`Name: ${user?.displayName}`],
+            [
+                `Date Range: ${
+                    dateRange?.from
+                        ? dateRange.from.toLocaleDateString()
+                        : "Any"
+                } - ${
+                    dateRange?.to ? dateRange.to.toLocaleDateString() : "Any"
+                }`,
+            ],
+            [`Department: ${user.studentData.program.toUpperCase()}`],
+            [],
+            ["Date", "Check In", "Check Out", "Hours Worked"],
+        ]
+
+        const aoa = [...headerRows, ...tableRows]
+
+        const worksheet = XLSX.utils.aoa_to_sheet(aoa)
+
+        worksheet["!merges"] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+        ]
+
         const workbook = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance")
 
@@ -231,7 +260,17 @@ export default function AttendanceHistory() {
         const data = new Blob([excelBuffer], {
             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         })
-        saveAs(data, `attendance_${new Date().toISOString().slice(0, 10)}.xlsx`)
+
+        const modifiedName = user?.displayName
+            ? user?.displayName.replace(/ /g, "_")
+            : "unknown"
+
+        saveAs(
+            data,
+            `${modifiedName}_attendance_${new Date()
+                .toISOString()
+                .slice(0, 10)}.xlsx`
+        )
     }
 
     function handleExportWord() {

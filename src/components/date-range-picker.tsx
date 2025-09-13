@@ -18,7 +18,7 @@ export type DateRangeValue = DateRange
 
 interface DatePickerWithRangeProps {
     value?: DateRangeValue
-    onChange?: (value?: DateRangeValue) => void
+    onChange?: (value?: DateRangeValue ) => void
 }
 
 export function DatePickerWithRange({

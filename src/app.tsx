@@ -10,6 +10,28 @@ import { fetchAgency } from "./api/agency"
 import ViewSchedule from "./features/agency-person/pages/view-schedule"
 import AttendanceSeeder from "./features/dtr/pages/attendance-seeder"
 import AttendanceHistory from "./features/dtr/pages/attendance-history"
+// import StudentProfile from "./features/dtr/pages/student-profile"
+// import StudentDashboard from "./features/student/pages/student-dashboard"
+import AgencyAssignedSchedules from "./features/agency-person/pages/agency-assigned-students"
+
+// const AttendanceHistoryPage = lazy(
+//     () => import("@/features/dtr/pages/attendance-history")
+// )
+// const AttendaceSeederPage = lazy(
+//     () => import("@/features/dtr/pages/attendance-seeder")
+// )
+// const ViewScheudulePage = lazy(
+//     () => import("@/features/agency-person/pages/view-schedule")
+// )
+const AgencyAssignedStudentsPage = lazy(
+    () => import("@/features/agency-person/pages/agency-assigned-students")
+)
+const StudentProfilePage = lazy(
+    () => import("@/features/dtr/pages/student-profile")
+)
+const StudentDashboardPage = lazy(
+    () => import("@/features/dtr/pages/student-dashboard")
+)
 
 // const AgencyAssignSchedulesPage = lazy(
 //     () => import("@/features/agency-person/pages/agency-assign-schedules")
@@ -126,6 +148,10 @@ const agencySupervisorRoutes = (
                         path="/students"
                         element={<StudentManagerDashboardPage />}
                     />
+                    <Route
+                        path="/students/assigned"
+                        element={<AgencyAssignedStudentsPage />}
+                    />
                     <Route path="/schedules" element={<SchedulesPage />} />
                     <Route
                         path="/schedules/new"
@@ -149,6 +175,8 @@ const studentRoutes = (
             {/* <Route path="/" element={<Dashboard />} /> */}
             <Route path="/" element={<AttendancePage />} />
             <Route path="/attendance" element={<AttendanceHistory />} />
+            <Route path="/dashboard" element={<StudentDashboardPage />} />
+            <Route path="/profile" element={<StudentProfilePage />} />
             <Route path="/seeder" element={<AttendanceSeeder />} />
             {/* <Route path="/dtr" element={<DtrPage />} /> */}
             {/* <Route path="/dtrCopy" element={<DtrCopyPage />} /> */}
