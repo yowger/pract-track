@@ -161,7 +161,7 @@ const sidebarConfig: SidebarConfig = {
         // },
         {
             title: "Assigned Students",
-            url: "/students/assigned",
+            url: "/students",
             icon: Users2Icon,
         },
         {

@@ -90,8 +90,11 @@ export async function getStudentsPaginated({
             : query(baseQuery, limitToLast(numPerPage))
     }
 
-    const studentSnapshot = await getDocs(paginatedQuery)
-    const countSnap = await getCountFromServer(baseQuery)
+    const [studentSnapshot, countSnap, reviewedCountSnap] = await Promise.all([
+        getDocs(paginatedQuery),
+        getCountFromServer(baseQuery),
+        getCountFromServer(query(baseQuery, where("reviewId", "!=", null))),
+    ])
 
     const students: Student[] = studentSnapshot.docs.map(
         (doc) => ({ ...doc.data(), uid: doc.id } as unknown as Student)
@@ -105,8 +108,10 @@ export async function getStudentsPaginated({
         firstDoc,
         lastDoc,
         totalItems: countSnap.data().count,
+        totalReviewed: reviewedCountSnap.data().count,
     }
 }
+// note to self: Do not use "getCountFromServer" in production.
 
 interface StudentFilter {
     assignedAgencyID?: string

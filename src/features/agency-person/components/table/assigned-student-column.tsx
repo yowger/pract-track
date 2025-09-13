@@ -45,7 +45,9 @@ export const assignedStudentColumns: ColumnDef<Student>[] = [
         accessorKey: "adviser",
         header: "Adviser",
         cell: () => {
-            return ""
+            const adviser = undefined
+
+            return adviser || <span className="text-muted-foreground">N/A</span>
         },
     },
     {

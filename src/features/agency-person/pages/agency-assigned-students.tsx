@@ -21,6 +21,7 @@ export default function AgencyAssignedSchedules() {
         loading: isStudentsLoading,
         error: studentsError,
         totalItems: totalStudents,
+        totalReviewed: totalReviewedStudents,
         pageCount: studentPageCount,
     } = usePaginatedStudents(
         { assignedAgencyId: isAgencyUser ? user.uid : undefined },
@@ -41,14 +42,27 @@ export default function AgencyAssignedSchedules() {
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
-                <div className="col-span-12">
+                <div className="col-span-12 md:col-span-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Total Assigned Students</CardTitle>
+                            <CardTitle>Total Assigned</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <p className="text-2xl font-bold">
                                 {totalStudents}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="col-span-12 md:col-span-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Total Reviewed</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold">
+                                {totalReviewedStudents}
                             </p>
                         </CardContent>
                     </Card>

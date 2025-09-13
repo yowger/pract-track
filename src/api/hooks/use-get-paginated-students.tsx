@@ -31,6 +31,7 @@ export function usePaginatedStudents(
     const [firstDoc, setFirstDoc] = useState<DocumentSnapshot | null>(null)
     const [lastDoc, setLastDoc] = useState<DocumentSnapshot | null>(null)
     const [totalItems, setTotalItems] = useState(0)
+    const [totalReviewed, setTotalReviewed] = useState(0)
 
     const fetchStudents = useCallback(
         async ({
@@ -46,7 +47,7 @@ export function usePaginatedStudents(
             setLoading(true)
             setError(null)
             try {
-                const { result, firstDoc, lastDoc, totalItems } =
+                const { result, firstDoc, lastDoc, totalItems, totalReviewed } =
                     await getStudentsPaginated({
                         direction,
                         numPerPage,
@@ -59,6 +60,7 @@ export function usePaginatedStudents(
                 setFirstDoc(firstDoc ?? null)
                 setLastDoc(lastDoc ?? null)
                 setTotalItems(totalItems)
+                setTotalReviewed(totalReviewed)
             } catch (err) {
                 console.error(err)
                 setError("Failed to fetch students")
@@ -89,6 +91,7 @@ export function usePaginatedStudents(
         loading,
         error,
         totalItems,
+        totalReviewed,
         pageCount,
         refetch: () => fetchStudents(),
         nextPage,

@@ -10,9 +10,10 @@ import { fetchAgency } from "./api/agency"
 import ViewSchedule from "./features/agency-person/pages/view-schedule"
 import AttendanceSeeder from "./features/dtr/pages/attendance-seeder"
 import AttendanceHistory from "./features/dtr/pages/attendance-history"
+import AgencyStudentReview from "./features/agency-person/pages/agency-student-review"
 // import StudentProfile from "./features/dtr/pages/student-profile"
 // import StudentDashboard from "./features/student/pages/student-dashboard"
-import AgencyAssignedSchedules from "./features/agency-person/pages/agency-assigned-students"
+// import AgencyAssignedSchedules from "./features/agency-person/pages/agency-assigned-students"
 
 // const AttendanceHistoryPage = lazy(
 //     () => import("@/features/dtr/pages/attendance-history")
@@ -23,6 +24,9 @@ import AgencyAssignedSchedules from "./features/agency-person/pages/agency-assig
 // const ViewScheudulePage = lazy(
 //     () => import("@/features/agency-person/pages/view-schedule")
 // )
+const AgencyStudentReviewPage = lazy(
+    () => import("@/features/agency-person/pages/agency-student-review")
+)
 const AgencyAssignedStudentsPage = lazy(
     () => import("@/features/agency-person/pages/agency-assigned-students")
 )
@@ -149,8 +153,12 @@ const agencySupervisorRoutes = (
                         element={<StudentManagerDashboardPage />}
                     />
                     <Route
-                        path="/students/assigned"
+                        path="/students/"
                         element={<AgencyAssignedStudentsPage />}
+                    />
+                    <Route
+                        path="/students/:studentId/review"
+                        element={<AgencyStudentReviewPage />}
                     />
                     <Route path="/schedules" element={<SchedulesPage />} />
                     <Route
