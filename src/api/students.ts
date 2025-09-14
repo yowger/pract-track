@@ -111,7 +111,45 @@ export async function getStudentsPaginated({
         totalReviewed: reviewedCountSnap.data().count,
     }
 }
-// note to self: Do not use "getCountFromServer" in production.
+
+export async function getStudent(params: {
+    studentId?: string
+    uid?: string
+}): Promise<Student | null> {
+    const { studentId, uid } = params
+
+    if (uid) {
+        const studentsRef = collection(db, "students")
+        const q = query(studentsRef, where("uid", "==", uid), limit(1))
+        const snapshot = await getDocs(q)
+
+        if (snapshot.empty) return null
+        const docSnap = snapshot.docs[0]
+
+        return {
+            ...(docSnap.data() as Student),
+        }
+    }
+
+    if (studentId) {
+        const studentsRef = collection(db, "students")
+        const q = query(
+            studentsRef,
+            where("studentID", "==", studentId),
+            limit(1)
+        )
+        const snapshot = await getDocs(q)
+
+        if (snapshot.empty) return null
+        const docSnap = snapshot.docs[0]
+
+        return {
+            ...(docSnap.data() as Student),
+        }
+    }
+
+    throw new Error("You must provide either studentId or uid")
+}
 
 interface StudentFilter {
     assignedAgencyID?: string

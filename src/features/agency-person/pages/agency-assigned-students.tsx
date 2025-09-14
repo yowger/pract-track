@@ -36,7 +36,8 @@ export default function AgencyAssignedSchedules() {
                         Assigned Students
                     </h1>
                     <p className="text-muted-foreground">
-                        List of students assigned to your agency
+                        View assigned students, track their details, and provide
+                        feedback on their performance
                     </p>
                 </div>
             </div>

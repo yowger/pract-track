@@ -18,7 +18,7 @@ import {
     Briefcase,
     LayoutDashboard,
     Timer,
-    Newspaper,
+    // Newspaper,
 } from "lucide-react"
 
 import { AppNavMain, type NavItem } from "./app-nav-main"

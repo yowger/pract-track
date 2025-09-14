@@ -51,6 +51,15 @@ export const assignedStudentColumns: ColumnDef<Student>[] = [
         },
     },
     {
+        accessorKey: "reviewed",
+        header: "Reviewed By",
+        cell: () => {
+            const review = undefined
+
+            return review || <span className="text-muted-foreground">N/A</span>
+        },
+    },
+    {
         id: "actions",
         header: "",
         cell: ({ row }) => {

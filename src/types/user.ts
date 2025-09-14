@@ -51,7 +51,10 @@ export interface ChairPerson {
 }
 
 export interface AgencySupervisor {
+    uid: string
     position: string
+    createdAt: Date | Timestamp | FieldValue
+    updatedAt: Date | Timestamp | FieldValue
 }
 
 export type AppUser =
