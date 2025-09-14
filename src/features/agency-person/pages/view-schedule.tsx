@@ -2,7 +2,7 @@ import { Loader2 } from "lucide-react"
 import { useParams } from "react-router-dom"
 import { useState } from "react"
 
-import { useStudents } from "@/api/hooks/use-students"
+import { useStudents } from "@/api/hooks/use-get-students"
 import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
 import { TypographyH2, TypographyH4 } from "@/components/typography"
 import { Button } from "@/components/ui/button"
@@ -53,7 +53,7 @@ export default function ViewSchedule() {
     }
 
     const handleAssignSave = async (studentIds: string[]) => {
-        if (!schedule) return
+        if (!schedule || !schedule.id) return
 
         setUpdatingStudents(true)
         try {

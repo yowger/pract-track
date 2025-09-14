@@ -1,4 +1,11 @@
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore"
+import {
+    arrayUnion,
+    doc,
+    getDoc,
+    serverTimestamp,
+    setDoc,
+    updateDoc,
+} from "firebase/firestore"
 
 import type {
     AgencySupervisor,
@@ -119,6 +126,29 @@ export async function createStudent(data: {
         },
         { merge: true }
     )
+}
+
+type StudentEvaluationRef = {
+    evaluatorId: string
+    evaluatorName: string
+    createdAt: ReturnType<typeof serverTimestamp>
+    updatedAt: ReturnType<typeof serverTimestamp>
+}
+
+export async function addStudentEvaluation(
+    uid: string,
+    evaluation: Omit<StudentEvaluationRef, "createdAt" | "updatedAt">
+) {
+    const studentRef = doc(db, "students", uid)
+
+    await updateDoc(studentRef, {
+        evaluations: arrayUnion({
+            ...evaluation,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        }),
+        updatedAt: serverTimestamp(),
+    })
 }
 
 export async function createAgencySupervisor(data: {

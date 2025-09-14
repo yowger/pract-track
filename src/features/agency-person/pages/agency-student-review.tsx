@@ -1,9 +1,14 @@
 import { useParams } from "react-router-dom"
+import { toast } from "sonner"
 
-import StudentEvaluationForm from "@/components/student-feedback/student-feedback-form"
+import { useCreateEvaluation } from "@/api/hooks/use-create-evaluation"
+import { useAddStudentEvaluation } from "@/api/hooks/use-update-student"
 import { useStudent } from "@/api/hooks/use-get-student"
-import { capitalize } from "@/lib/utils"
+import StudentEvaluationForm, {
+    type EvaluationFormSchema,
+} from "@/components/student-feedback/student-feedback-form"
 import { useUser } from "@/hooks/use-user"
+import { capitalize } from "@/lib/utils"
 import { isAgency } from "@/types/user"
 
 export default function AgencyStudentReview() {
@@ -14,6 +19,12 @@ export default function AgencyStudentReview() {
         error: studentError,
     } = useStudent({ uid: studentId })
     const { user, isLoading: userLoading } = useUser()
+    const { loading: evaluationLoading, mutate: createEvaluation } =
+        useCreateEvaluation()
+    const {
+        mutate: updateStudentEvaluation,
+        loading: studentUpdatingEvaluation,
+    } = useAddStudentEvaluation()
 
     if (studentLoading || userLoading) {
         return (
@@ -52,6 +63,48 @@ export default function AgencyStudentReview() {
     )}`
     const userCompany = isAgency(user) ? user.companyData : null
 
+    function handleCreateEvaluation(data: EvaluationFormSchema) {
+        if (!user || !student || !userCompany) return
+
+        const ratings = Object.fromEntries(
+            Object.entries(data.ratings).map(([key, value]) => [
+                key,
+                Number(value),
+            ])
+        )
+
+        createEvaluation({
+            student: {
+                id: student.uid,
+                name: studentName,
+            },
+            agency: {
+                id: user.uid,
+                name: userCompany.name,
+                address: userCompany?.address || "",
+            },
+            evaluator: {
+                id: user.uid,
+                name: coordinatorName,
+                role: userRole ?? "",
+            },
+            comments: data.comments,
+            ratings,
+        })
+            .then(() => {
+                updateStudentEvaluation(student.uid, {
+                    evaluatorId: user.uid,
+                    evaluatorName: coordinatorName,
+                })
+
+                toast.success("Evaluation created successfully")
+            })
+            .catch((err) => {
+                console.error(err)
+                toast.error("Failed to create evaluation")
+            })
+    }
+
     return (
         <div className="flex flex-col p-4 gap-4">
             <div className="flex flex-col md:flex-row md:justify-between gap-4">
@@ -73,6 +126,10 @@ export default function AgencyStudentReview() {
                         position={userRole ?? undefined}
                         companyName={userCompany?.name.replace("_", " ")}
                         address={userCompany?.address}
+                        isLoading={
+                            evaluationLoading || studentUpdatingEvaluation
+                        }
+                        onSubmit={handleCreateEvaluation}
                     />
                 </div>
             </div>

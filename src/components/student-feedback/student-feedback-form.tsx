@@ -26,12 +26,16 @@ import {
 import { evaluationCriteria } from "./student-feedback-data"
 import { Label } from "../ui/label"
 
+export type EvaluationFormSchema = z.infer<typeof formSchema>
+
 type StudentEvaluationFormProps = {
     coordinatorName?: string
     position?: string
     companyName?: string
     address?: string
     internName?: string
+    isLoading?: boolean
+    onSubmit: (values: EvaluationFormSchema) => void
 }
 
 const ratingScale = [
@@ -51,7 +55,7 @@ const formSchema = z.object({
     coordinatorName: z.string().min(1, "Required"),
     position: z.string().min(1, "Required"),
     companyName: z.string().min(1, "Required"),
-    address: z.string().min(1, "Required"),
+    address: z.string().optional(),
     internName: z.string().min(1, "Required"),
     ratings: z.record(
         z.string(),
@@ -68,8 +72,10 @@ export default function StudentEvaluationForm({
     companyName,
     address,
     internName,
+    isLoading,
+    onSubmit,
 }: StudentEvaluationFormProps) {
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<EvaluationFormSchema>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             coordinatorName: coordinatorName ?? "",
@@ -81,10 +87,6 @@ export default function StudentEvaluationForm({
             comments: "",
         },
     })
-
-    const onSubmit = (values: z.infer<typeof formSchema>) => {
-        console.log("Form submitted:", values)
-    }
 
     return (
         <Form {...form}>
@@ -168,7 +170,7 @@ export default function StudentEvaluationForm({
                                                     disabled={!!address}
                                                     className={
                                                         address &&
-                                                        "disabled:opacity-100 disabled:cursor-not-allowed"
+                                                        "disabled:opacity-100"
                                                     }
                                                 />
                                             </FormControl>
@@ -191,9 +193,7 @@ export default function StudentEvaluationForm({
                                     name="internName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>
-                                                Name of Intern to be Evaluated
-                                            </FormLabel>
+                                            <FormLabel>Name</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     {...field}
@@ -219,15 +219,15 @@ export default function StudentEvaluationForm({
                                     <CardTitle>{section.section}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-8">
-                                    {section.items.map((item, i) => (
+                                    {section.items.map((item) => (
                                         <FormField
-                                            key={i}
+                                            key={item.key}
                                             control={form.control}
-                                            name={`ratings.${item}`}
+                                            name={`ratings.${item.key}`}
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
-                                                        {item}
+                                                        {item.label}
                                                     </FormLabel>
                                                     <FormControl>
                                                         <RadioGroup
@@ -251,11 +251,11 @@ export default function StudentEvaluationForm({
                                                                             value={
                                                                                 scale.value
                                                                             }
-                                                                            id={`${item}-${scale.value}`}
+                                                                            id={`${item.key}-${scale.value}`}
                                                                         />
                                                                         <Label
                                                                             className="text-muted-foreground"
-                                                                            htmlFor={`${item}-${scale.value}`}
+                                                                            htmlFor={`${item.key}-${scale.value}`}
                                                                         >
                                                                             {
                                                                                 scale.label
@@ -306,7 +306,9 @@ export default function StudentEvaluationForm({
 
                     <div className="col-span-12 ">
                         <div className="flex justify-end gap-2">
-                            <Button type="submit">Submit Review</Button>
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading ? "Submitting..." : "Submit Review"}
+                            </Button>
                         </div>
                     </div>
                 </div>

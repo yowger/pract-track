@@ -40,6 +40,12 @@ export interface Student {
         id: string
         name: string
     }
+    evaluations?: {
+        evaluatorId: string
+        evaluatorName: string
+        createdAt: Date | Timestamp | FieldValue
+        updatedAt: Date | Timestamp | FieldValue
+    }[]
 }
 
 export interface PracticumAdviser {
