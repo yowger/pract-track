@@ -280,7 +280,7 @@ export default function StudentEvaluationForm({
                         <Card>
                             <CardHeader>
                                 <CardTitle>Comments</CardTitle>
-                                <CardDescription>
+                                <CardDescription className="max-w-2xl">
                                     Provide any additional feedback or
                                     observations about the student’s
                                     performance, behavior, or areas for
