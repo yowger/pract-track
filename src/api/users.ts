@@ -129,8 +129,15 @@ export async function createStudent(data: {
 }
 
 type StudentEvaluationRef = {
-    evaluatorId: string
-    evaluatorName: string
+    evaluator: {
+        id: string
+        docID: string
+        name: string
+    }
+    agency: {
+        id: string
+        name: string
+    }
     createdAt: ReturnType<typeof serverTimestamp>
     updatedAt: ReturnType<typeof serverTimestamp>
 }
@@ -141,13 +148,15 @@ export async function addStudentEvaluation(
 ) {
     const studentRef = doc(db, "students", uid)
 
+    const now = new Date()
+
     await updateDoc(studentRef, {
         evaluations: arrayUnion({
             ...evaluation,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+            createdAt: now,
+            updatedAt: now,
         }),
-        updatedAt: serverTimestamp(),
+        evaluatedByAgencies: arrayUnion(evaluation.agency.id),
     })
 }
 

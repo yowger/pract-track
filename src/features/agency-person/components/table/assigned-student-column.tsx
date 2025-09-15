@@ -9,8 +9,11 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Student } from "@/types/user"
+import { Link } from "react-router-dom"
 
-export const assignedStudentColumns: ColumnDef<Student>[] = [
+export const assignedStudentColumns = (
+    agencyId?: string
+): ColumnDef<Student>[] => [
     {
         accessorKey: "student",
         header: "Student",
@@ -53,10 +56,17 @@ export const assignedStudentColumns: ColumnDef<Student>[] = [
     {
         accessorKey: "reviewed",
         header: "Reviewed By",
-        cell: () => {
-            const review = undefined
-
-            return review || <span className="text-muted-foreground">N/A</span>
+        cell: ({ row }) => {
+            if (!agencyId || !row.original.evaluations)
+                return <span className="text-muted-foreground">N/A</span>
+            const review = row.original.evaluations.find(
+                (e) => e.agency?.id === agencyId
+            )
+            return review ? (
+                <span>{review.evaluator.name}</span>
+            ) : (
+                <span className="text-muted-foreground">N/A</span>
+            )
         },
     },
     {
@@ -64,6 +74,10 @@ export const assignedStudentColumns: ColumnDef<Student>[] = [
         header: "",
         cell: ({ row }) => {
             const student = row.original
+            const reviewExists = agencyId
+                ? student.evaluations?.some((e) => e.agency?.id === agencyId)
+                : false
+
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -72,12 +86,19 @@ export const assignedStudentColumns: ColumnDef<Student>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                            onClick={() => console.log("Review", student)}
-                            className="flex items-center gap-2"
-                        >
-                            <span>Review</span>
-                        </DropdownMenuItem>
+                        {reviewExists ? (
+                            <DropdownMenuItem asChild>
+                                <Link to={`/students/${student.uid}/review`}>
+                                    See Evaluation
+                                </Link>
+                            </DropdownMenuItem>
+                        ) : (
+                            <DropdownMenuItem asChild>
+                                <Link to={`/students/${student.uid}/review`}>
+                                    Create Evaluation
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             )

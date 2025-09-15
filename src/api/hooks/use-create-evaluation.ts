@@ -11,12 +11,15 @@ export const useCreateEvaluation = () => {
         setLoading(true)
         setError(null)
         try {
-            await createEvaluation(data)
+            const result = await createEvaluation(data)
+            return result
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message)
+                throw err
             } else {
                 setError("Failed to create evaluation")
+                throw new Error("Failed to create evaluation")
             }
         } finally {
             setLoading(false)

@@ -20,6 +20,7 @@ export const useCreateAttendance = () => {
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message)
+                throw err
             } else {
                 setError("Failed to clock in/out")
             }

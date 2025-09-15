@@ -41,11 +41,19 @@ export interface Student {
         name: string
     }
     evaluations?: {
-        evaluatorId: string
-        evaluatorName: string
+        evaluator: {
+            id: string
+            docID: string
+            name: string
+        }
+        agency: {
+            id: string
+            name: string
+        }
         createdAt: Date | Timestamp | FieldValue
         updatedAt: Date | Timestamp | FieldValue
     }[]
+    evaluatedByAgencies?: string[]
 }
 
 export interface PracticumAdviser {

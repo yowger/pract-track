@@ -80,7 +80,11 @@ export default function AgencyAssignedSchedules() {
                             className=" w-full overflow-x-auto"
                         >
                             <DataTable
-                                columns={assignedStudentColumns}
+                                columns={assignedStudentColumns(
+                                    isAgencyUser
+                                        ? user.companyData?.id
+                                        : undefined
+                                )}
                                 data={students}
                                 pagination={pagination}
                                 manualPagination

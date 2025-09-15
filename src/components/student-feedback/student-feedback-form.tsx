@@ -1,5 +1,3 @@
-"use client"
-
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -219,7 +217,7 @@ export default function StudentEvaluationForm({
                                     <CardTitle>{section.section}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-8">
-                                    {section.items.map((item) => (
+                                    {section.items.map((item, index) => (
                                         <FormField
                                             key={item.key}
                                             control={form.control}
@@ -227,6 +225,7 @@ export default function StudentEvaluationForm({
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>
+                                                        {index + 1}.{" "}
                                                         {item.label}
                                                     </FormLabel>
                                                     <FormControl>
@@ -257,9 +256,7 @@ export default function StudentEvaluationForm({
                                                                             className="text-muted-foreground"
                                                                             htmlFor={`${item.key}-${scale.value}`}
                                                                         >
-                                                                            {
-                                                                                scale.label
-                                                                            }
+                                                                            {`${scale.label}`}
                                                                         </Label>
                                                                     </div>
                                                                 )

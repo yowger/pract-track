@@ -2,8 +2,15 @@ import { useState } from "react"
 import { addStudentEvaluation } from "../users"
 
 type EvaluationInput = {
-    evaluatorId: string
-    evaluatorName: string
+    evaluator: {
+        id: string
+        docID: string
+        name: string
+    }
+    agency: {
+        id: string
+        name: string
+    }
 }
 
 export const useAddStudentEvaluation = () => {
@@ -21,6 +28,7 @@ export const useAddStudentEvaluation = () => {
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message)
+                throw err
             } else {
                 setError("Failed to add evaluation")
             }

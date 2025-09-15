@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import { toast } from "sonner"
 
 import { useCreateEvaluation } from "@/api/hooks/use-create-evaluation"
-import { useAddStudentEvaluation } from "@/api/hooks/use-update-student"
+import { useAddStudentEvaluation } from "@/api/hooks/use-update-student-eval"
 import { useStudent } from "@/api/hooks/use-get-student"
 import StudentEvaluationForm, {
     type EvaluationFormSchema,
@@ -64,7 +64,7 @@ export default function AgencyStudentReview() {
     const userCompany = isAgency(user) ? user.companyData : null
 
     function handleCreateEvaluation(data: EvaluationFormSchema) {
-        if (!user || !student || !userCompany) return
+        if (!user || !student || !studentId || !userCompany) return
 
         const ratings = Object.fromEntries(
             Object.entries(data.ratings).map(([key, value]) => [
@@ -75,7 +75,7 @@ export default function AgencyStudentReview() {
 
         createEvaluation({
             student: {
-                id: student.uid,
+                id: studentId,
                 name: studentName,
             },
             agency: {
@@ -88,16 +88,27 @@ export default function AgencyStudentReview() {
                 name: coordinatorName,
                 role: userRole ?? "",
             },
-            comments: data.comments,
+            comments: data?.comments || "",
             ratings,
         })
-            .then(() => {
-                updateStudentEvaluation(student.uid, {
-                    evaluatorId: user.uid,
-                    evaluatorName: coordinatorName,
+            .then(({ id: docId }) => {
+                updateStudentEvaluation(studentId, {
+                    agency: {
+                        id: userCompany.id,
+                        name: userCompany.name,
+                    },
+                    evaluator: {
+                        id: user.uid,
+                        name: coordinatorName,
+                        docID: docId,
+                    },
                 })
-
-                toast.success("Evaluation created successfully")
+                    .then(() => {
+                        toast.success("Evaluation created successfully")
+                    })
+                    .catch(() => {
+                        toast.error("Failed to create evaluation")
+                    })
             })
             .catch((err) => {
                 console.error(err)

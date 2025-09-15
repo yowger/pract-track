@@ -13,6 +13,7 @@ import {
     QueryConstraint,
     writeBatch,
     doc,
+    getDoc,
 } from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
 import { type Student } from "@/types/user"
@@ -93,7 +94,16 @@ export async function getStudentsPaginated({
     const [studentSnapshot, countSnap, reviewedCountSnap] = await Promise.all([
         getDocs(paginatedQuery),
         getCountFromServer(baseQuery),
-        getCountFromServer(query(baseQuery, where("reviewId", "!=", null))),
+        getCountFromServer(
+            query(
+                baseQuery,
+                where(
+                    "evaluatedByAgencies",
+                    "array-contains",
+                    filter.assignedAgencyId
+                )
+            )
+        ),
     ])
 
     const students: Student[] = studentSnapshot.docs.map(
@@ -113,18 +123,16 @@ export async function getStudentsPaginated({
 }
 
 export async function getStudent(params: {
-    studentId?: string
     uid?: string
+    studentId?: string
 }): Promise<Student | null> {
-    const { studentId, uid } = params
+    const { uid, studentId } = params
 
     if (uid) {
-        const studentsRef = collection(db, "students")
-        const q = query(studentsRef, where("uid", "==", uid), limit(1))
-        const snapshot = await getDocs(q)
+        const docRef = doc(db, "students", uid)
+        const docSnap = await getDoc(docRef)
 
-        if (snapshot.empty) return null
-        const docSnap = snapshot.docs[0]
+        if (!docSnap.exists()) return null
 
         return {
             ...(docSnap.data() as Student),
@@ -148,7 +156,7 @@ export async function getStudent(params: {
         }
     }
 
-    throw new Error("You must provide either studentId or uid")
+    throw new Error("You must provide either studentDocId or studentId")
 }
 
 interface StudentFilter {
