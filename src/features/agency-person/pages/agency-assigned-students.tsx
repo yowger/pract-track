@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 import { usePaginatedStudents } from "@/api/hooks/use-get-paginated-students"
 import DataTable from "@/components/data-table"
@@ -7,8 +9,11 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { assignedStudentColumns } from "../components/table/assigned-student-column"
 import { useUser } from "@/hooks/use-user"
 import { isAgency } from "../../../types/user"
+// import StudentEvaluationSheet from "../components/student-evaluation-sheet"
+// import { useEvaluation } from "@/api/hooks/use-get-evaluation"
 
 export default function AgencyAssignedSchedules() {
+    const navigate = useNavigate()
     const { user } = useUser()
     const isAgencyUser = !!(user && isAgency(user))
 
@@ -27,6 +32,28 @@ export default function AgencyAssignedSchedules() {
         { assignedAgencyId: isAgencyUser ? user.uid : undefined },
         { numPerPage: pagination.pageSize, enabled: isAgencyUser }
     )
+
+    // const [evaluationSheet, setEvaluationSheet] = useState<{
+    //     visible: boolean
+    //     evaluationId: string | null
+    // }>({ visible: false, evaluationId: null })
+
+    // const { data: evaluation } = useEvaluation(
+    //     { uid: evaluationSheet.evaluationId || "" },
+    //     {
+    //         enabled: evaluationSheet.visible && !!evaluationSheet.evaluationId,
+    //     }
+    // )
+
+    // console.log("🚀 ~ AgencyAssignedSchedules ~ evaluation:", evaluation)
+
+    // const openEvaluation = (evaluationId: string) => {
+    //     setEvaluationSheet({ visible: true, evaluationId: evaluationId })
+    // }
+
+    // const closeEvaluation = () => {
+    //     setEvaluationSheet({ visible: false, evaluationId: null })
+    // }
 
     return (
         <div className="flex flex-col p-4 gap-4">
@@ -80,11 +107,28 @@ export default function AgencyAssignedSchedules() {
                             className=" w-full overflow-x-auto"
                         >
                             <DataTable
-                                columns={assignedStudentColumns(
-                                    isAgencyUser
+                                columns={assignedStudentColumns({
+                                    agencyId: isAgencyUser
                                         ? user.companyData?.id
-                                        : undefined
-                                )}
+                                        : undefined,
+                                    onSeeEvaluation(evaluationId) {
+                                        if (!evaluationId) {
+                                            toast.error(
+                                                "No evaluation found for this student."
+                                            )
+
+                                            return
+                                        }
+
+                                        // openEvaluation(evaluationId)
+                                    },
+                                    onCreateEvaluation(studentId) {
+                                        navigate(`${studentId}/review`)
+                                    },
+                                    onStudentNameClick(studentId) {
+                                        navigate(`${studentId}`)
+                                    },
+                                })}
                                 data={students}
                                 pagination={pagination}
                                 manualPagination
@@ -101,6 +145,18 @@ export default function AgencyAssignedSchedules() {
                     )}
                 </div>
             </div>
+
+            {/* <StudentEvaluationSheet
+                evaluation={
+                    evaluationSheet.evaluationId && evaluation
+                        ? evaluation
+                        : null
+                }
+                open={evaluationSheet.visible}
+                onClose={closeEvaluation}
+            /> */}
         </div>
     )
 }
+
+// Todo: come back after creating student page

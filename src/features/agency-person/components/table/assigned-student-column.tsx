@@ -9,16 +9,30 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Student } from "@/types/user"
-import { Link } from "react-router-dom"
+import { firebaseTimestampToDate } from "../../../../lib/date-utils"
+import { Timestamp } from "firebase/firestore"
 
-export const assignedStudentColumns = (
+interface AssignedStudentColumnsProps {
     agencyId?: string
-): ColumnDef<Student>[] => [
+    onSeeEvaluation?: (evaluationId: string) => void
+    onCreateEvaluation?: (studentId: string) => void
+    onStudentNameClick?: (studentId: string) => void
+}
+
+export const assignedStudentColumns = ({
+    agencyId,
+    onSeeEvaluation,
+    onCreateEvaluation,
+    onStudentNameClick,
+}: AssignedStudentColumnsProps): ColumnDef<Student>[] => [
     {
         accessorKey: "student",
         header: "Student",
+        size: 250,
         cell: ({ row }) => {
             const student = row.original
+
+            const clickable = !!onStudentNameClick
 
             return (
                 <div className="flex items-center gap-2">
@@ -31,7 +45,18 @@ export const assignedStudentColumns = (
                     ) : (
                         <div className="h-8 w-8 rounded-full bg-gray-200" />
                     )}
-                    <span>{`${student.firstName} ${student.lastName}`}</span>
+                    <span
+                        className={`truncate block max-w-[200px] ${
+                            clickable
+                                ? "cursor-pointer hover:underline"
+                                : ""
+                        }`}
+                        onClick={() =>
+                            clickable && onStudentNameClick?.(student.uid)
+                        }
+                    >
+                        {`${student.firstName} ${student.lastName}`}
+                    </span>
                 </div>
             )
         },
@@ -39,23 +64,37 @@ export const assignedStudentColumns = (
     {
         accessorKey: "program",
         header: "Program",
+        size: 120,
         cell: ({ row }) => {
-            const program = row.original.program.toUpperCase()
-            return program || <span className="text-muted-foreground">N/A</span>
+            const program = row.original.program?.toUpperCase()
+            return (
+                <span className="block max-w-[100px] truncate">
+                    {program || (
+                        <span className="text-muted-foreground">N/A</span>
+                    )}
+                </span>
+            )
         },
     },
     {
         accessorKey: "adviser",
         header: "Adviser",
+        size: 180,
         cell: () => {
             const adviser = undefined
 
-            return adviser || <span className="text-muted-foreground">N/A</span>
+            return adviser ? (
+                <span className="truncate max-w-[150px] block">{adviser}</span>
+            ) : (
+                <span className="text-muted-foreground">N/A</span>
+            )
         },
     },
+
     {
         accessorKey: "reviewed",
         header: "Reviewed By",
+        size: 180,
         cell: ({ row }) => {
             if (!agencyId || !row.original.evaluations)
                 return <span className="text-muted-foreground">N/A</span>
@@ -63,20 +102,52 @@ export const assignedStudentColumns = (
                 (e) => e.agency?.id === agencyId
             )
             return review ? (
-                <span>{review.evaluator.name}</span>
+                <span className="truncate block max-w-[200px]">
+                    {review.evaluator.name}
+                </span>
             ) : (
                 <span className="text-muted-foreground">N/A</span>
             )
         },
     },
     {
+        accessorKey: "reviewedOn",
+        header: "Reviewed On",
+        size: 120,
+        cell: ({ row }) => {
+            if (!agencyId || !row.original.evaluations)
+                return <span className="text-muted-foreground"></span>
+
+            const review = row.original.evaluations.find(
+                (e) => e.agency?.id === agencyId
+            )
+
+            if (!review || !review.createdAt) {
+                return <span className="text-muted-foreground"></span>
+            }
+
+            const date =
+                review.createdAt instanceof Date
+                    ? review.createdAt.toLocaleDateString()
+                    : review.createdAt instanceof Timestamp
+                    ? firebaseTimestampToDate(
+                          review.createdAt
+                      )?.toLocaleDateString()
+                    : ""
+
+            return <span>{date}</span>
+        },
+    },
+
+    {
         id: "actions",
         header: "",
+        size: 56,
         cell: ({ row }) => {
             const student = row.original
-            const reviewExists = agencyId
-                ? student.evaluations?.some((e) => e.agency?.id === agencyId)
-                : false
+            const evaluation = agencyId
+                ? student.evaluations?.find((e) => e.agency?.id === agencyId)
+                : undefined
 
             return (
                 <DropdownMenu>
@@ -86,17 +157,24 @@ export const assignedStudentColumns = (
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {reviewExists ? (
-                            <DropdownMenuItem asChild>
-                                <Link to={`/students/${student.uid}/review`}>
-                                    See Evaluation
-                                </Link>
+                        {evaluation ? (
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    evaluation.agency.id &&
+                                    onSeeEvaluation?.(
+                                        evaluation.evaluator.docID
+                                    )
+                                }
+                            >
+                                See Evaluation
                             </DropdownMenuItem>
                         ) : (
-                            <DropdownMenuItem asChild>
-                                <Link to={`/students/${student.uid}/review`}>
-                                    Create Evaluation
-                                </Link>
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    onCreateEvaluation?.(student.uid)
+                                }
+                            >
+                                Create Evaluation
                             </DropdownMenuItem>
                         )}
                     </DropdownMenuContent>

@@ -96,6 +96,9 @@ export default function DataTable<TData, TValue>({
                                         <TableHead
                                             key={header.id}
                                             className="font-medium text-muted-foreground"
+                                            style={{
+                                                width: header.getSize(),
+                                            }}
                                         >
                                             {header.isPlaceholder
                                                 ? null
