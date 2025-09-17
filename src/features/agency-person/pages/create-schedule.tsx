@@ -1,22 +1,21 @@
-import { useRef, useState } from "react"
-import { type UseFormReturn } from "react-hook-form"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import { type UseFormReturn } from "react-hook-form"
 
 import { saveSchedule } from "@/api/scheduler"
+import { useUser } from "@/hooks/use-user"
+import { isAgency } from "@/types/user"
+import type { DaySchedule, Scheduler, WeekDay } from "@/types/scheduler"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { WeeklySchedule } from "../components/weekly-schedule"
-import OverrideSchedule from "../components/override-schedule"
 import {
     ScheduleForm,
     type ScheduleFormValues,
 } from "../components/schedule-form"
-import type { DaySchedule, Scheduler, WeekDay } from "@/types/scheduler"
-import { TypographyH3, TypographyP } from "@/components/typography"
-import { TypographyH4 } from "../../../components/typography"
-import { useUser } from "@/hooks/use-user"
-import { isAgency } from "@/types/user"
+// import OverrideSchedule from "../components/override-schedule"
 
 const daysOfWeek: WeekDay[] = [
     "monday",
@@ -73,6 +72,10 @@ export default function CreateSchedule() {
         }))
     )
 
+    useEffect(() => {
+        toast.error(scheduleError)
+    }, [scheduleError])
+
     if (!user || !isAgency(user)) {
         return <div>Access Denied</div>
     }
@@ -126,37 +129,63 @@ export default function CreateSchedule() {
     }
 
     return (
-        <div className="p-6 space-y-6">
-            <TypographyH3 className="mb-8">Create new schedule</TypographyH3>
-
-            <div className="flex flex-col mb-8 w-fit">
-                <TypographyH4 className="mb-4">Schedule Details</TypographyH4>
-
-                <ScheduleForm formRef={formRef} onSubmit={handleSubmit} />
-            </div>
-
-            <div className="flex flex-col mb-8">
-                <TypographyH4 className="mb-4">Weekly Schedule</TypographyH4>
-
-                <ScrollArea className="w-full whitespace-nowrap mb-2">
-                    <WeeklySchedule value={schedule} onChange={setSchedule} />
-                    <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-
-                {scheduleError && (
-                    <p className="text-red-500 dark:text-red-400 text-sm mt-1">
-                        {scheduleError}
+        <div className="flex flex-col p-4 gap-4">
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Create Schedule
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Set up a new schedule for your agency.
                     </p>
-                )}
-
-                <div className="flex justify-end mt-4">
-                    <Button onClick={handleExternalSubmit} disabled={isLoading}>
-                        {isLoading ? "Saving..." : "Save Schedule"}
-                    </Button>
                 </div>
             </div>
 
-            <div>
+            <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                <div className="col-span-12 md:col-span-4">
+                    <Card className="h-full">
+                        <CardHeader>
+                            <CardTitle>Schedule Details</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ScheduleForm
+                                formRef={formRef}
+                                onSubmit={handleSubmit}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="col-span-12 md:col-span-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Weekly Schedule</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ScrollArea className="w-full whitespace-nowrap mb-2">
+                                <WeeklySchedule
+                                    value={schedule}
+                                    onChange={setSchedule}
+                                />
+                                <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
+
+                            <div className="flex justify-end mt-4">
+                                <Button
+                                    onClick={handleExternalSubmit}
+                                    disabled={isLoading}
+                                >
+                                    {isLoading
+                                        ? "Creating..."
+                                        : "Create Schedule"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* <div>
                 <TypographyH4 className="mb-2">Override Schedule</TypographyH4>
 
                 <div className="w-[56ch] mb-4">
@@ -165,14 +194,14 @@ export default function CreateSchedule() {
                         day. These will override the default schedule.
                     </TypographyP>
                 </div>
-            </div>
+            </div> */}
 
-            <ScrollArea className="w-full whitespace-nowrap">
+            {/* <ScrollArea className="w-full whitespace-nowrap">
                 <div className="flex flex-col w-fit space-y-5">
                     <OverrideSchedule />
                     <ScrollBar orientation="horizontal" />
                 </div>
-            </ScrollArea>
+            </ScrollArea> */}
         </div>
     )
 }

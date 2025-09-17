@@ -42,7 +42,7 @@ export function ScheduleForm({ onSubmit, formRef }: ScheduleFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
                     name="scheduleName"
@@ -55,7 +55,7 @@ export function ScheduleForm({ onSubmit, formRef }: ScheduleFormProps) {
                     )}
                 />
 
-                <div className="flex gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="startDate"
