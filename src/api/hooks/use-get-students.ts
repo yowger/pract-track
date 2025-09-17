@@ -28,8 +28,8 @@ export function useStudents(
             const all = await getAllStudents(filter)
             setStudents(all)
         } catch (err) {
-            console.error(err)
             setError("Failed to fetch students")
+            throw err
         } finally {
             setLoading(false)
         }

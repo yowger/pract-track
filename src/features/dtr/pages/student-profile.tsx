@@ -1,16 +1,40 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { DownloadIcon, FileText } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import {
-    AlertCircle,
-    DownloadIcon,
-    FileText,
-    type Download,
-} from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { StudentInfo } from "../components/student-info"
+import { AgencyInfo } from "../components/tables/agency-info"
+import { useStudent } from "@/api/hooks/use-get-student"
+import { useAgency } from "@/api/hooks/use-get-agency"
+
+const studentPlaceholderId = "ebe35089-0354-4113-9cf7-a6d4711d3328"
 
 export default function StudentProfile() {
+    const { data: student, loading: studentLoading } = useStudent({
+        uid: studentPlaceholderId,
+    })
+    const { data: agency, loading: agencyLoading } = useAgency(
+        {
+            ownerId: student?.assignedAgencyID || "",
+        },
+        {
+            enabled: Boolean(student?.assignedAgencyID),
+        }
+    )
+    const adviser = undefined
+
+    if (!studentLoading && !student) {
+        return (
+            <div className="flex flex-col p-4 items-center justify-center text-center gap-2">
+                <h1 className="text-xl font-semibold">Student not found</h1>
+                <p className="text-muted-foreground text-sm">
+                    We couldn’t find a student with this ID.
+                </p>
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col p-4 gap-4">
             <div className="flex flex-col md:flex-row  md:justify-between gap-4">
@@ -34,59 +58,43 @@ export default function StudentProfile() {
 
                 <TabsContent value="info" className="mt-4">
                     <div className="grid grid-cols-12 gap-5">
-                        {/* Left (main area) */}
                         <div className="col-span-12 lg:col-span-8 space-y-5">
-                            {/* Profile Information */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Profile</CardTitle>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <Info
-                                        label="Full Name"
-                                        value="Juan Dela Cruz"
-                                    />
-                                    <Info
-                                        label="Student Number"
-                                        value="2021-00001"
-                                    />
-                                    <Info
-                                        label="Email"
-                                        value="juan@example.com"
-                                    />
-                                    <Info
-                                        label="Phone Number"
-                                        value="+63 912 345 6789"
-                                    />
-                                    <Info
-                                        label="Program"
-                                        value="BS Computer Science"
+                                <CardContent>
+                                    <StudentInfo
+                                        isLoading={studentLoading}
+                                        fullName={student?.displayName || ""}
+                                        studentNumber={student?.studentID || ""}
+                                        email={student?.email || ""}
+                                        phoneNumber={"-"}
+                                        program={
+                                            student?.program.toUpperCase() || ""
+                                        }
                                     />
                                 </CardContent>
                             </Card>
 
-                            {/* Agency Information */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Agency</CardTitle>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <Info
-                                        label="Agency Name"
-                                        value="Department of Agriculture"
-                                    />
-                                    <Info
-                                        label="Supervisor"
-                                        value="Engr. Ramon Cruz"
-                                    />
-                                    <Info
-                                        label="Location"
-                                        value="Quezon City, Philippines"
-                                    />
-                                    <Info
-                                        label="Contact"
-                                        value="+63 987 654 3210"
-                                    />
+                                <CardContent>
+                                    {agency ? (
+                                        <AgencyInfo
+                                            isLoading={agencyLoading}
+                                            agencyName={agency.name}
+                                            supervisor={agency.ownerName ?? "-"}
+                                            location={agency.address ?? "-"}
+                                            contact={"-"}
+                                        />
+                                    ) : (
+                                        <p className="text-muted-foreground text-sm">
+                                            No agency assigned
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
 
@@ -94,19 +102,22 @@ export default function StudentProfile() {
                                 <CardHeader>
                                     <CardTitle>Adviser</CardTitle>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <Info
-                                        label="Adviser"
-                                        value="Dr. Maria Santos"
-                                    />
-                                    <Info
-                                        label="Email"
-                                        value="m.santos@univ.edu.ph"
-                                    />
-                                    <Info
-                                        label="Phone"
-                                        value="+63 923 111 2233"
-                                    />
+                                <CardContent>
+                                    {adviser ? (
+                                        <div>Adviser</div>
+                                    ) : (
+                                        // <AgencyInfo
+                                        //     agencyName={
+                                        //         adviser.department ?? "-"
+                                        //     }
+                                        //     supervisor={adviser.name}
+                                        //     location={adviser.location ?? "-"}
+                                        //     contact={adviser.contact ?? "-"}
+                                        // />
+                                        <p className="text-muted-foreground text-sm">
+                                            No adviser assigned
+                                        </p>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>
@@ -201,34 +212,6 @@ export default function StudentProfile() {
                                     </div>
                                 </CardContent>
                             </Card>
-
-                            {/* <Card>
-                                <CardHeader>
-                                    <CardTitle>Attendance</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Calendar
-                                        mode="single"
-                                        selected={new Date()}
-                                        modifiers={{
-                                            present: [
-                                                new Date(2025, 8, 1),
-                                                new Date(2025, 8, 2),
-                                                new Date(2025, 8, 5),
-                                            ],
-                                            absent: [
-                                                new Date(2025, 8, 3),
-                                                new Date(2025, 8, 4),
-                                            ],
-                                        }}
-                                        modifiersClassNames={{
-                                            present:
-                                                "bg-green-100 text-green-700 rounded-md",
-                                            absent: "bg-red-100 text-red-700 rounded-md",
-                                        }}
-                                    />
-                                </CardContent>
-                            </Card> */}
                         </div>
                     </div>
                 </TabsContent>
@@ -276,11 +259,30 @@ export default function StudentProfile() {
     )
 }
 
-function Info({ label, value }: { label: string; value: string }) {
-    return (
-        <div>
-            <Label className="text-sm text-muted-foreground">{label}</Label>
-            <p className="font-medium text-sm">{value}</p>
-        </div>
-    )
+{
+    /* <Card>
+    <CardContent>
+        <Calendar
+            mode="single"
+            selected={new Date()}
+            modifiers={{
+                present: [
+                    new Date(2025, 8, 1),
+                    new Date(2025, 8, 2),
+                    new Date(2025, 8, 5),
+                    new Date(2025, 8, 17),
+                ],
+                absent: [
+                    new Date(2025, 8, 3),
+                    new Date(2025, 8, 4),
+                ],
+            }}
+            modifiersClassNames={{
+                present:
+                    "bg-green-100 text-green-700 rounded-md",
+                absent: "bg-red-100 text-red-700 rounded-md",
+            }}
+        />
+    </CardContent>
+</Card> */
 }

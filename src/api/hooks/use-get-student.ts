@@ -28,6 +28,7 @@ export function useStudent(
             setData(result)
         } catch (err) {
             setError(err instanceof Error ? err : new Error("Unknown error"))
+            throw err
         } finally {
             setLoading(false)
         }
