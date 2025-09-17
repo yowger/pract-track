@@ -8,11 +8,13 @@ import { AgencyInfo } from "../components/tables/agency-info"
 import { useStudent } from "@/api/hooks/use-get-student"
 import { useAgency } from "@/api/hooks/use-get-agency"
 
-const studentPlaceholderId = "ebe35089-0354-4113-9cf7-a6d4711d3328"
+interface StudentProfileProps {
+    studentId: string
+}
 
-export default function StudentProfile() {
+export default function StudentProfile({ studentId }: StudentProfileProps) {
     const { data: student, loading: studentLoading } = useStudent({
-        uid: studentPlaceholderId,
+        uid: studentId,
     })
     const { data: agency, loading: agencyLoading } = useAgency(
         {
@@ -84,7 +86,9 @@ export default function StudentProfile() {
                                 <CardContent>
                                     {agency ? (
                                         <AgencyInfo
-                                            isLoading={agencyLoading}
+                                            isLoading={
+                                                agencyLoading || studentLoading
+                                            }
                                             agencyName={agency.name}
                                             supervisor={agency.ownerName ?? "-"}
                                             location={agency.address ?? "-"}
