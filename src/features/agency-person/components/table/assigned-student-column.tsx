@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Student } from "@/types/user"
@@ -17,6 +19,7 @@ interface AssignedStudentColumnsProps {
     onSeeEvaluation?: (evaluationId: string) => void
     onCreateEvaluation?: (studentId: string) => void
     onStudentNameClick?: (studentId: string) => void
+    onReportViolation?: (studentId: string, studentName: string) => void
 }
 
 export const assignedStudentColumns = ({
@@ -24,6 +27,7 @@ export const assignedStudentColumns = ({
     onSeeEvaluation,
     onCreateEvaluation,
     onStudentNameClick,
+    onReportViolation,
 }: AssignedStudentColumnsProps): ColumnDef<Student>[] => [
     {
         accessorKey: "student",
@@ -47,9 +51,7 @@ export const assignedStudentColumns = ({
                     )}
                     <span
                         className={`truncate block max-w-[200px] ${
-                            clickable
-                                ? "cursor-pointer hover:underline"
-                                : ""
+                            clickable ? "cursor-pointer hover:underline" : ""
                         }`}
                         onClick={() =>
                             clickable && onStudentNameClick?.(student.uid)
@@ -90,7 +92,6 @@ export const assignedStudentColumns = ({
             )
         },
     },
-
     {
         accessorKey: "reviewed",
         header: "Reviewed By",
@@ -138,7 +139,15 @@ export const assignedStudentColumns = ({
             return <span>{date}</span>
         },
     },
-
+    {
+        accessorKey: "violationCount",
+        header: "Violations",
+        size: 100,
+        cell: ({ row }) => {
+            const count = row.original.violationCount ?? 0
+            return <span>{count > 0 ? count : ""}</span>
+        },
+    },
     {
         id: "actions",
         header: "",
@@ -157,26 +166,45 @@ export const assignedStudentColumns = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {evaluation ? (
+                        <DropdownMenuGroup>
+                            {evaluation ? (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        evaluation.agency.id &&
+                                        onSeeEvaluation?.(
+                                            evaluation.evaluator.docID
+                                        )
+                                    }
+                                >
+                                    See Evaluation
+                                </DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        onCreateEvaluation?.(student.uid)
+                                    }
+                                >
+                                    Create Evaluation
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuGroup>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuGroup>
                             <DropdownMenuItem
                                 onClick={() =>
-                                    evaluation.agency.id &&
-                                    onSeeEvaluation?.(
-                                        evaluation.evaluator.docID
+                                    onReportViolation?.(
+                                        student.uid,
+                                        student.displayName
+                                            ? student.displayName
+                                            : `${student.firstName} ${student.lastName}`
                                     )
                                 }
                             >
-                                See Evaluation
+                                Report Violation
                             </DropdownMenuItem>
-                        ) : (
-                            <DropdownMenuItem
-                                onClick={() =>
-                                    onCreateEvaluation?.(student.uid)
-                                }
-                            >
-                                Create Evaluation
-                            </DropdownMenuItem>
-                        )}
+                        </DropdownMenuGroup>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )

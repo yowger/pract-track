@@ -14,6 +14,8 @@ import {
     writeBatch,
     doc,
     getDoc,
+    serverTimestamp,
+    updateDoc,
 } from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
 import { type Student } from "@/types/user"
@@ -227,4 +229,26 @@ export async function updateStudentsScheduleByIds({
     })
 
     await batch.commit()
+}
+
+export async function updateStudent(
+    uid: string,
+    updates: Partial<Omit<Student, "uid" | "createdAt">> & {
+        incrementViolationCount?: number
+    }
+) {
+    const studentRef = doc(db, "students", uid)
+
+    const data = {
+        ...updates,
+        updatedAt: serverTimestamp(),
+    }
+
+    if (updates.incrementViolationCount) {
+        data.violationCount =
+            (updates.violationCount ?? 0) + updates.incrementViolationCount
+        delete data.incrementViolationCount
+    }
+
+    await updateDoc(studentRef, data)
 }

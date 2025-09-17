@@ -54,6 +54,7 @@ export interface Student {
         updatedAt: Date | Timestamp | FieldValue
     }[]
     evaluatedByAgencies?: string[]
+    violationCount?: number
 }
 
 export interface PracticumAdviser {

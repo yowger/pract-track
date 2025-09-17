@@ -1,15 +1,30 @@
 import { DownloadIcon, FileText } from "lucide-react"
+import { format, formatDistanceToNow } from "date-fns"
 
+import { useStudent } from "@/api/hooks/use-get-student"
+import { useAgency } from "@/api/hooks/use-get-agency"
+import { useGetViolations } from "@/api/hooks/use-get-real-violations"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { violationTypeMap } from "@/data/violationts"
 import { StudentInfo } from "../components/student-info"
 import { AgencyInfo } from "../components/tables/agency-info"
-import { useStudent } from "@/api/hooks/use-get-student"
-import { useAgency } from "@/api/hooks/use-get-agency"
 
 interface StudentProfileProps {
     studentId: string
+}
+
+function formatViolationDate(date: Date) {
+    const now = new Date()
+    const diffInMs = now.getTime() - date.getTime()
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24)
+
+    if (diffInDays < 7) {
+        return formatDistanceToNow(date, { addSuffix: true })
+    }
+
+    return format(date, "M/d/yy")
 }
 
 export default function StudentProfile({ studentId }: StudentProfileProps) {
@@ -25,6 +40,10 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
         }
     )
     const adviser = undefined
+    const { data: violations, loading: violationsLoading } = useGetViolations({
+        studentId,
+        limitCount: 3,
+    })
 
     if (!studentLoading && !student) {
         return (
@@ -179,41 +198,57 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                     <CardTitle>Complaints</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-0">
-                                    {[
-                                        {
-                                            title: "Issue with attendance system",
-                                            date: "1 week ago",
-                                        },
-                                        {
-                                            title: "Unclear grading criteria",
-                                            date: "3 weeks ago",
-                                        },
-                                    ].map((complaint, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="flex items-center rounded justify-between py-3"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <div>
-                                                    <p className="text-sm font-medium truncate">
-                                                        {complaint.title}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {complaint.date}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    {violationsLoading && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Loading...
+                                        </p>
+                                    )}
 
-                                    <div className="pt-2 flex justify-center">
-                                        <a
-                                            href="#"
-                                            className="text-sm text-muted-foreground hover:underline"
-                                        >
-                                            See all
-                                        </a>
-                                    </div>
+                                    {!violationsLoading &&
+                                        violations?.length === 0 && (
+                                            <p className="text-sm text-muted-foreground">
+                                                No complaints
+                                            </p>
+                                        )}
+
+                                    {!violationsLoading &&
+                                        violations
+                                            ?.slice(0, 3)
+                                            .map((violation) => (
+                                                <div
+                                                    key={violation.id}
+                                                    className="flex items-center rounded justify-between py-3"
+                                                >
+                                                    <div>
+                                                        <p className="text-sm font-medium truncate">
+                                                            {violationTypeMap[
+                                                                violation
+                                                                    .violationType
+                                                            ] ||
+                                                                violation.violationType}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {violation.createdAt instanceof
+                                                            Date
+                                                                ? formatViolationDate(
+                                                                      violation.createdAt
+                                                                  )
+                                                                : ""}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                    {violations && (
+                                        <div className="pt-2 flex justify-center">
+                                            <a
+                                                href="#"
+                                                className="text-sm text-muted-foreground hover:underline"
+                                            >
+                                                See all
+                                            </a>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </div>

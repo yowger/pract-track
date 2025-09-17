@@ -3,18 +3,22 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { usePaginatedStudents } from "@/api/hooks/use-get-paginated-students"
+import { useReportViolation } from "@/api/hooks/use-create-violation"
 import DataTable from "@/components/data-table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { assignedStudentColumns } from "../components/table/assigned-student-column"
 import { useUser } from "@/hooks/use-user"
+import { ReportViolationModal } from "@/components/report-violation-modal"
 import { isAgency } from "../../../types/user"
+
 // import StudentEvaluationSheet from "../components/student-evaluation-sheet"
 // import { useEvaluation } from "@/api/hooks/use-get-evaluation"
 
 export default function AgencyAssignedSchedules() {
     const navigate = useNavigate()
     const { user } = useUser()
+    console.log("🚀 ~ AgencyAssignedSchedules ~ user:", user)
     const isAgencyUser = !!(user && isAgency(user))
 
     const [pagination, setPagination] = useState({
@@ -28,10 +32,20 @@ export default function AgencyAssignedSchedules() {
         totalItems: totalStudents,
         totalReviewed: totalReviewedStudents,
         pageCount: studentPageCount,
+        refetch: refetchStudents,
     } = usePaginatedStudents(
         { assignedAgencyId: isAgencyUser ? user.uid : undefined },
         { numPerPage: pagination.pageSize, enabled: isAgencyUser }
     )
+
+    const [openViolationForm, setOpenViolationForm] = useState(false)
+    const [selectedStudent, setSelectedStudent] = useState<{
+        id: string
+        name: string
+    } | null>(null)
+
+    const { loading: reportLoading, mutate: reportViolation } =
+        useReportViolation()
 
     // const [evaluationSheet, setEvaluationSheet] = useState<{
     //     visible: boolean
@@ -128,6 +142,13 @@ export default function AgencyAssignedSchedules() {
                                     onStudentNameClick(studentId) {
                                         navigate(`${studentId}`)
                                     },
+                                    onReportViolation(studentId, studentName) {
+                                        setSelectedStudent({
+                                            id: studentId,
+                                            name: studentName,
+                                        })
+                                        setOpenViolationForm(true)
+                                    },
                                 })}
                                 data={students}
                                 pagination={pagination}
@@ -155,6 +176,51 @@ export default function AgencyAssignedSchedules() {
                 open={evaluationSheet.visible}
                 onClose={closeEvaluation}
             /> */}
+
+            <ReportViolationModal
+                open={openViolationForm}
+                onOpenChange={setOpenViolationForm}
+                studentId={selectedStudent?.id || ""}
+                studentName={selectedStudent?.name || ""}
+                onSubmit={async (values) => {
+                    if (
+                        !user ||
+                        reportLoading ||
+                        !isAgencyUser ||
+                        !user.companyData?.id
+                    )
+                        return
+
+                    try {
+                        const violationData = {
+                            studentId: values.studentId,
+                            name: values.name,
+                            violationType: values.violationType,
+                            remarks: values.remarks || "",
+                            agencyId: user.companyData?.id || "",
+                            agencyName: user.companyData?.name || "",
+                            reportedBy: {
+                                id: user.uid,
+                                name: user.displayName || "",
+                            },
+                        }
+
+                        await reportViolation(violationData)
+                        await refetchStudents()
+
+                        setSelectedStudent(null)
+                        setOpenViolationForm(false)
+
+                        toast.success(`Violation reported for ${values.name}`)
+                    } catch (err) {
+                        const message =
+                            err instanceof Error
+                                ? err.message
+                                : "Failed to report violation"
+                        toast.error(message)
+                    }
+                }}
+            />
         </div>
     )
 }
