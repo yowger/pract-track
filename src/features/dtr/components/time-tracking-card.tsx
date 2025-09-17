@@ -1,12 +1,12 @@
 import { format } from "date-fns"
-import { ArrowUpRight } from "lucide-react"
+import { MapPin } from "lucide-react"
+import type { Timestamp } from "firebase/firestore"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
 import type { Attendance } from "@/types/attendance"
-import type { Timestamp } from "firebase/firestore"
 
 interface TimeTrackingCardProps {
     attendance: Attendance
@@ -50,25 +50,34 @@ export default function TimeTrackingCard({
             const endTime = format(endDate, "hh:mm a")
 
             return (
-                <div key={i} className="flex p-2">
-                    <span className="text-sm">
-                        {startTime} – {endTime}
-                    </span>
+                <div key={i} className="text-sm font-medium">
+                    {startTime} – {endTime}
                 </div>
             )
         })
     ) : (
-        <div className="text-sm text-muted-foreground">No sessions today</div>
+        <div className="text-sm font-medium">No sessions today</div>
     )
 
     return (
-        <Card className="col-span-12 lg:col-span-4">
-            <CardHeader>
+        <Card className="col-span-12 md:col-span-4">
+            <CardHeader className="flex items-center justify-between">
                 <CardTitle>Time Tracking</CardTitle>
+
+                {isLoading ? (
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                ) : (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="cursor-pointer"
+                    >
+                        <MapPin className="h-5 w-5" />
+                    </Button>
+                )}
             </CardHeader>
             <CardContent>
-                <div className="flex flex-col gap-5">
-                    {/* Date & Time */}
+                <div className="flex flex-col gap-4">
                     <div>
                         {isLoading ? (
                             <>
@@ -80,7 +89,7 @@ export default function TimeTrackingCard({
                                 <div className="text-sm text-muted-foreground">
                                     {formattedDate}
                                 </div>
-                                <div className="text-4xl font-light mb-2 font-mono">
+                                <div className="text-4xl font-light font-mono">
                                     {formattedTime}
                                 </div>
                             </>
@@ -88,13 +97,13 @@ export default function TimeTrackingCard({
                     </div>
 
                     <div>
-                        <h2 className="font-bold mb-2">Status</h2>
+                        <p className="text-sm text-muted-foreground">Status</p>
                         {isLoading ? (
                             <Skeleton className="h-4 w-24" />
                         ) : (
-                            <p className="text-sm flex items-center">
+                            <p className="text-sm font-medium flex items-center">
                                 <span
-                                    className={`w-2 h-2 rounded-full mr-2 ${
+                                    className={`w-2 h-2 rounded-full mr-1.5 ${
                                         isClockedIn
                                             ? "bg-emerald-700"
                                             : "bg-red-800 dark:bg-red-700"
@@ -106,22 +115,10 @@ export default function TimeTrackingCard({
                     </div>
 
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="font-bold">Today’s Schedule</h2>
-                            {isLoading ? (
-                                <Skeleton className="h-6 w-20" />
-                            ) : (
-                                <Button
-                                    variant="link"
-                                    asChild
-                                    size="sm"
-                                    className="text-blue-600 dark:text-blue-700 text-xs"
-                                >
-                                    <Link to="#">
-                                        View Schedule <ArrowUpRight />
-                                    </Link>
-                                </Button>
-                            )}
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                Today’s Schedule
+                            </p>
                         </div>
                         {isLoading ? (
                             <Skeleton className="h-24 w-full" />
@@ -139,26 +136,17 @@ export default function TimeTrackingCard({
                     </div>
 
                     <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className="font-bold">Location verification</h2>
-                            {isLoading ? (
-                                <Skeleton className="h-6 w-20" />
-                            ) : (
-                                <Button
-                                    variant="link"
-                                    size="sm"
-                                    className="text-blue-600 dark:text-blue-700 text-xs"
-                                >
-                                    View Map
-                                </Button>
-                            )}
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                Location verification
+                            </p>
                         </div>
                         {isLoading ? (
                             <Skeleton className="h-4 w-24" />
                         ) : (
-                            <div className="text-sm flex items-center">
+                            <div className="text-sm flex items-center font-medium">
                                 <span
-                                    className={`w-2 h-2 rounded-full mr-2 ${
+                                    className={`w-2 h-2 rounded-full mr-1.5 ${
                                         isInRange
                                             ? "bg-emerald-700"
                                             : "bg-red-800 dark:bg-red-700"

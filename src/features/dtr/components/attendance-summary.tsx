@@ -2,11 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import DataTable from "@/components/data-table"
 // import { Badge } from "@/components/ui/badge"
-import {
-    firebaseTimestampToDate,
-    formatDate,
-    formatTime,
-} from "@/lib/date-utils"
+import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
 import type { Attendance } from "@/types/attendance"
 
 const attendanceColumns: ColumnDef<Attendance>[] = [
@@ -18,233 +14,158 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
             const d = date instanceof Date ? date : date?.toDate?.()
             return (
                 <div className="align-top flex items-start">
-                    <span>{formatDate(d ?? null)}</span>
+                    <span>{d ? d.toLocaleDateString("en-US") : null}</span>
                 </div>
             )
         },
     },
     {
-        accessorKey: "schedule.name",
-        header: "Schedule",
+        id: "am",
+        header: "AM",
         cell: ({ row }) => {
-            const sessions = row.original.sessions
-            return (
-                <div className="flex flex-col gap-1">
-                    {sessions.map((s) => {
-                        const start = firebaseTimestampToDate(s.schedule.start)
-                        const end = firebaseTimestampToDate(s.schedule.end)
-                        return (
-                            <div key={s.id}>
-                                <span>
-                                    {formatTime(start)} - {formatTime(end)}
-                                </span>
-                            </div>
-                        )
-                    })}
-                </div>
-            )
-        },
-    },
-    {
-        accessorKey: "sessions",
-        header: "Sessions",
-        enableSorting: false,
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-            if (!sessions.length)
-                return <span className="text-muted-foreground">-</span>
+            const session = row.original.sessions[0]
+            if (!session) return null
+
+            const inDate = session.checkInInfo
+                ? firebaseTimestampToDate(session.checkInInfo.time)
+                : null
+            const outDate = session.checkOutInfo
+                ? firebaseTimestampToDate(session.checkOutInfo.time)
+                : null
+
+            if (!inDate && !outDate) return null
 
             return (
-                <div className="flex flex-col gap-1">
-                    {sessions.map((s) => {
-                        const inDate = s.checkInInfo
-                            ? firebaseTimestampToDate(s.checkInInfo.time)
-                            : null
-                        const outDate = s.checkOutInfo
-                            ? firebaseTimestampToDate(s.checkOutInfo.time)
-                            : null
-
-                        if (!inDate && !outDate)
-                            return (
-                                <span
-                                    key={s.id}
-                                    className="text-muted-foreground"
-                                >
-                                    -
-                                </span>
-                            )
-
-                        const scheduledStart = firebaseTimestampToDate(
-                            s.schedule.start
-                        )
-                        const scheduledEnd = firebaseTimestampToDate(
-                            s.schedule.end
-                        )
-                        const lateThresholdMins =
-                            s.schedule.lateThresholdMins ?? 15
-                        const undertimeThresholdMins =
-                            s.schedule.undertimeThresholdMins ?? 15
-
-                        const isLate =
-                            inDate && scheduledStart
-                                ? inDate >
-                                  new Date(
-                                      scheduledStart.getTime() +
-                                          lateThresholdMins * 60000
-                                  )
-                                : false
-                        const isUndertime =
-                            outDate && scheduledEnd
-                                ? outDate <
-                                  new Date(
-                                      scheduledEnd.getTime() -
-                                          undertimeThresholdMins * 60000
-                                  )
-                                : false
-
-                        return (
-                            <div
-                                key={s.id}
-                                className="inline-flex items-center gap-2"
-                            >
-                                <span
-                                    className={`${
-                                        inDate ? "" : "text-muted-foreground"
-                                    } ${
-                                        isLate
-                                            ? "text-red-600 dark:text-red-700"
-                                            : ""
-                                    }`}
-                                >
-                                    {inDate ? formatTime(inDate) : "-"}
-                                </span>
-                                <span className="text-muted-foreground mx-1">
-                                    →
-                                </span>
-                                <span
-                                    className={`${
-                                        outDate ? "" : "text-muted-foreground"
-                                    } ${
-                                        isUndertime
-                                            ? "text-amber-600 dark:text-amber-700"
-                                            : ""
-                                    }`}
-                                >
-                                    {outDate ? formatTime(outDate) : "-"}
-                                </span>
-                            </div>
-                        )
-                    })}
+                <div className="inline-flex items-center gap-1">
+                    <span className={inDate ? "" : "text-muted-foreground"}>
+                        {inDate ? formatTime(inDate) : "-"}
+                    </span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className={outDate ? "" : "text-muted-foreground"}>
+                        {outDate ? formatTime(outDate) : ""}
+                    </span>
                 </div>
             )
         },
     },
     {
-        accessorKey: "overallTime",
+        id: "pm",
+        header: "PM",
+        cell: ({ row }) => {
+            const session = row.original.sessions[1]
+            if (!session) return null
+
+            const inDate = session.checkInInfo
+                ? firebaseTimestampToDate(session.checkInInfo.time)
+                : null
+            const outDate = session.checkOutInfo
+                ? firebaseTimestampToDate(session.checkOutInfo.time)
+                : null
+
+            if (!inDate && !outDate) return null
+
+            return (
+                <div className="inline-flex items-center gap-1">
+                    <span className={inDate ? "" : "text-muted-foreground"}>
+                        {inDate ? formatTime(inDate) : "-"}
+                    </span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className={outDate ? "" : "text-muted-foreground"}>
+                        {outDate ? formatTime(outDate) : ""}
+                    </span>
+                </div>
+            )
+        },
+    },
+    {
+        id: "duration",
         header: "Duration",
         cell: ({ row }) => {
             const sessions = row.original.sessions
-            return (
-                <div className="flex flex-col gap-1">
-                    {sessions.map((s) => {
-                        const inDate = s.checkInInfo
-                            ? firebaseTimestampToDate(s.checkInInfo.time)
-                            : null
-                        const outDate = s.checkOutInfo
-                            ? firebaseTimestampToDate(s.checkOutInfo.time)
-                            : null
-                        if (!inDate || !outDate)
-                            return (
-                                <span
-                                    key={s.id}
-                                    className="text-muted-foreground"
-                                >
-                                    -
-                                </span>
-                            )
-                        const mins = Math.floor((+outDate - +inDate) / 60000)
-                        const h = Math.floor(mins / 60)
-                        const m = mins % 60
-                        return <span key={s.id}>{`${h}h ${m}m`}</span>
-                    })}
-                </div>
-            )
+            let totalMins = 0
+
+            sessions.forEach((s) => {
+                const inDate = s.checkInInfo
+                    ? firebaseTimestampToDate(s.checkInInfo.time)
+                    : null
+                const outDate = s.checkOutInfo
+                    ? firebaseTimestampToDate(s.checkOutInfo.time)
+                    : null
+                if (inDate && outDate) {
+                    totalMins += Math.floor((+outDate - +inDate) / 60000)
+                }
+            })
+
+            if (!totalMins)
+                return <span className="text-muted-foreground"></span>
+
+            const h = Math.floor(totalMins / 60)
+            const m = totalMins % 60
+            return <span>{`${h}h ${m}m`}</span>
         },
     },
-
     {
-        accessorKey: "photos",
+        id: "photos",
         header: "Photos",
         cell: ({ row }) => {
             const sessions = row.original.sessions
+            const photos: string[] = []
+
+            sessions.forEach((s) => {
+                if (s.checkInInfo?.photoUrl) photos.push(s.checkInInfo.photoUrl)
+                if (s.checkOutInfo?.photoUrl)
+                    photos.push(s.checkOutInfo.photoUrl)
+            })
+
+            if (!photos.length)
+                return <span className="text-muted-foreground"></span>
+
             return (
                 <div className="flex flex-col gap-1">
-                    {sessions.map((s) => {
-                        const photos: string[] = []
-                        if (s.checkInInfo?.photoUrl)
-                            photos.push(s.checkInInfo.photoUrl)
-                        if (s.checkOutInfo?.photoUrl)
-                            photos.push(s.checkOutInfo.photoUrl)
-                        if (!photos.length)
-                            return (
-                                <span
-                                    key={s.id}
-                                    className="text-muted-foreground"
-                                >
-                                    -
-                                </span>
-                            )
-                        return photos.map((url, idx) => (
-                            <a
-                                key={`${s.id}-${idx}`}
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 block max-w-[150px] truncate"
-                                title={url}
-                            >
-                                {url}
-                            </a>
-                        ))
-                    })}
+                    {photos.map((url, idx) => (
+                        <a
+                            key={idx}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 block max-w-[150px] truncate"
+                            title={url}
+                        >
+                            {url}
+                        </a>
+                    ))}
                 </div>
             )
         },
     },
     {
-        accessorKey: "geoLocation",
+        id: "location",
         header: "Location",
         cell: ({ row }) => {
             const sessions = row.original.sessions
+            const geo =
+                sessions[0]?.checkInInfo?.geo ||
+                sessions[0]?.checkOutInfo?.geo ||
+                sessions[1]?.checkInInfo?.geo ||
+                sessions[1]?.checkOutInfo?.geo
+            const address =
+                sessions[0]?.checkInInfo?.address ||
+                sessions[0]?.checkOutInfo?.address ||
+                sessions[1]?.checkInInfo?.address ||
+                sessions[1]?.checkOutInfo?.address
+
+            if (!geo) return <span className="text-muted-foreground"></span>
+
             return (
-                <div className="flex flex-col gap-1">
-                    {sessions.map((s) => {
-                        const geo = s.checkInInfo?.geo || s.checkOutInfo?.geo
-                        const address =
-                            s.checkInInfo?.address || s.checkOutInfo?.address
-                        if (!geo)
-                            return (
-                                <span
-                                    key={s.id}
-                                    className="text-muted-foreground"
-                                >
-                                    -
-                                </span>
-                            )
-                        return (
-                            <a
-                                key={s.id}
-                                href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 block max-w-[150px] truncate"
-                                title={address || "Unknown Address"}
-                            >
-                                {address || "Unknown Address"}
-                            </a>
-                        )
-                    })}
-                </div>
+                <a
+                    href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 block max-w-[150px] truncate"
+                    title={address || "Unknown Address"}
+                >
+                    {address || "Unknown Address"}
+                </a>
             )
         },
     },

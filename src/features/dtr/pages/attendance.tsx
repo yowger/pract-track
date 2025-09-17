@@ -1,17 +1,17 @@
 import { format } from "date-fns"
 import { useEffect, useState } from "react"
 import { useGeolocated } from "react-geolocated"
+import { toast } from "sonner"
 
 import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
 import { useServerTime } from "@/api/hooks/use-get-server-time"
+import { useGetOrCreateAttendance } from "@/api/hooks/use-get-or-create-attendance"
+import { useCreateAttendance } from "@/api/hooks/use-create-attendance"
 import TimeTrackingCard from "../components/time-tracking-card"
 import { AttendanceList } from "../components/attendance-list"
 import { useUser } from "@/hooks/use-user"
 import { isStudent } from "@/types/user"
 import type { Attendance } from "@/types/attendance"
-import { useGetOrCreateAttendance } from "@/api/hooks/use-get-or-create-attendance"
-import { toast } from "sonner"
-import { useCreateAttendance } from "@/api/hooks/use-create-attendance"
 
 export default function Attendance() {
     const { user } = useUser()
@@ -19,6 +19,7 @@ export default function Attendance() {
 
     const [currentTime, setCurrentTime] = useState(serverTime || null)
     const [isClockedIn, setIsClockedIn] = useState(false)
+    console.log("🚀 ~ Attendance ~ setIsClockedIn:", setIsClockedIn)
     const isInRange = true
 
     const { coords } = useGeolocated({

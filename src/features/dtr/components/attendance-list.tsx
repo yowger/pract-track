@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { Link } from "react-router-dom"
-import { ArrowUpRight } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -164,7 +163,7 @@ export function AttendanceList({ attendances, loading }: AttendanceListProps) {
     const sessions = attendances?.sessions ?? []
 
     return (
-        <Card className="col-span-12 lg:col-span-8">
+        <Card className="col-span-12 md:col-span-8">
             <CardHeader className="flex justify-between items-center">
                 <CardTitle>Today's summary</CardTitle>
                 <Button
@@ -173,9 +172,7 @@ export function AttendanceList({ attendances, loading }: AttendanceListProps) {
                     size="sm"
                     className="text-blue-600 dark:text-blue-700 text-xs"
                 >
-                    <Link to="#">
-                        View History <ArrowUpRight />
-                    </Link>
+                    <Link to="#">See all</Link>
                 </Button>
             </CardHeader>
             <CardContent>

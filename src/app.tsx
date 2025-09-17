@@ -34,8 +34,11 @@ const AgencyStudentProfilePage = lazy(
     () =>
         import("@/features/agency-person/pages/agency-student-profile-wrapper")
 )
+const StudentProfilePage = lazy(
+    () => import("@/features/dtr/pages/student-profile")
+)
 const StudentDashboardPage = lazy(
-    () => import("@/features/dtr/pages/student-dashboard")
+    () => import("@/features/dtr/pages/student-profile")
 )
 
 // const AgencyAssignSchedulesPage = lazy(
@@ -185,7 +188,7 @@ const studentRoutes = (
             <Route path="/" element={<AttendancePage />} />
             <Route path="/attendance" element={<AttendanceHistory />} />
             <Route path="/dashboard" element={<StudentDashboardPage />} />
-            {/* <Route path="/profile" element={<StudentProfilePage />} /> */}
+            <Route path="/profile" element={<StudentProfilePage />} />
             <Route path="/seeder" element={<AttendanceSeeder />} />
             {/* <Route path="/dtr" element={<DtrPage />} /> */}
             {/* <Route path="/dtrCopy" element={<DtrCopyPage />} /> */}
