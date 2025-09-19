@@ -16,10 +16,9 @@ export function TimeWithPhotoToggle({
     disabled: boolean
 }) {
     return (
-        <div className="flex items-center gap-2 w-44">
+        <div className="flex items-center gap-2">
             <Input
                 type="time"
-                className="w-fit"
                 value={value}
                 disabled={disabled}
                 onChange={(e) => onChange(e.target.value)}

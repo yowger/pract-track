@@ -142,7 +142,7 @@ export default function CreateSchedule() {
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
-                <div className="col-span-12 md:col-span-4">
+                <div className="col-span-12 md:col-span-6">
                     <Card className="h-full">
                         <CardHeader>
                             <CardTitle>Schedule Details</CardTitle>
@@ -156,7 +156,7 @@ export default function CreateSchedule() {
                     </Card>
                 </div>
 
-                <div className="col-span-12 md:col-span-8">
+                <div className="col-span-12 md:col-span-6">
                     <Card>
                         <CardHeader>
                             <CardTitle>Weekly Schedule</CardTitle>
@@ -168,18 +168,18 @@ export default function CreateSchedule() {
                                     onChange={setSchedule}
                                 />
                                 <ScrollBar orientation="horizontal" />
-                            </ScrollArea>
 
-                            <div className="flex justify-end mt-4">
-                                <Button
-                                    onClick={handleExternalSubmit}
-                                    disabled={isLoading}
-                                >
-                                    {isLoading
-                                        ? "Creating..."
-                                        : "Create Schedule"}
-                                </Button>
-                            </div>
+                                <div className="flex justify-end mt-4">
+                                    <Button
+                                        onClick={handleExternalSubmit}
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading
+                                            ? "Creating..."
+                                            : "Create Schedule"}
+                                    </Button>
+                                </div>
+                            </ScrollArea>
                         </CardContent>
                     </Card>
                 </div>

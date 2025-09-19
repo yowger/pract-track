@@ -190,6 +190,15 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                             </Button>
                                         </div>
                                     ))}
+
+                                    <div className="pt-2 flex justify-center">
+                                        <a
+                                            href="#"
+                                            className="text-sm text-muted-foreground hover:underline"
+                                        >
+                                            See all
+                                        </a>
+                                    </div>
                                 </CardContent>
                             </Card>
 
