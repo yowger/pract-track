@@ -1,5 +1,5 @@
 // GeoFenceMap.tsx
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
     MapContainer,
     TileLayer,
@@ -41,7 +41,7 @@ type GeoFenceMapProps = {
 //     ) : null
 // }
 
-function CurrenTLocationMarker() {
+export function CurrenTLocationMarker() {
     const [position, setPosition] = useState<LatLng | null>(null)
 
     const map = useMapEvents({

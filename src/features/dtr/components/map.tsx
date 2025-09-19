@@ -1,15 +1,15 @@
 // GeoFenceMap.tsx
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
     MapContainer,
     TileLayer,
     Marker,
     Circle,
     Popup,
-    useMap,
+    // useMap,
     useMapEvents,
 } from "react-leaflet"
-import L, { LatLng } from "leaflet"
+import { LatLng } from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { Button } from "@/components/ui/button"
 

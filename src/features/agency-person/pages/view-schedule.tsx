@@ -164,7 +164,7 @@ export default function ViewSchedule() {
                 </div>
 
                 <AssignStudentsDialog
-                    scheduleId={schedule.id}
+                    scheduleId={schedule.id || ""}
                     isOpen={dialogOpen}
                     onClose={() => setDialogOpen(false)}
                     assignedStudents={assignedStudentsIds || []}

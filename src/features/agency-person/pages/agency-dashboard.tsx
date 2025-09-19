@@ -106,7 +106,7 @@ export default function AgencyDashboardPage() {
                     <p className="text-muted-foreground">Loading students…</p>
                 ) : (
                     <DataTable
-                        columns={assignedStudentColumns}
+                        columns={assignedStudentColumns({})}
                         data={students}
                     />
                 )}

@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button"
-import { seedStudents } from "../seed-students"
+// import { seedStudents } from "../seed-students"
 
 export default function SeedPage() {
     return (
         <div>
             SeedPage
-            <Button onClick={() => seedStudents(120)}>Seed students</Button>
+            {/* <Button onClick={() => seedStudents(120)}>Seed students</Button> */}
+            <Button onClick={() => console.log("seed")}>Seed students</Button>
         </div>
     )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 
-import { getServerDate } from "@/api/get-server-time"
+import { getServerTimeOffset } from "@/api/get-server-time"
+import { firebaseTimestampToDate } from "@/lib/date-utils"
 
 export function useServerDate() {
     const [serverDate, setServerDate] = useState<Date | null>(null)
@@ -11,7 +12,8 @@ export function useServerDate() {
         async function fetchDate() {
             try {
                 setLoading(true)
-                const date = await getServerDate()
+                const serverTimeOffset = await getServerTimeOffset()
+                const date = firebaseTimestampToDate(serverTimeOffset)
 
                 if (date) {
                     setServerDate(date)
