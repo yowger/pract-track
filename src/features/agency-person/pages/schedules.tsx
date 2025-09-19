@@ -1,87 +1,118 @@
-import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
 
-import { getSchedules } from "@/api/scheduler"
-import type { Scheduler } from "@/types/scheduler"
+import { useSchedules } from "@/api/hooks/use-get-schedules"
+import DataTable from "@/components/data-table"
 import { useUser } from "@/hooks/use-user"
+import {
+    calculateContractHours,
+    calculateTotalWorkingDays,
+} from "@/lib/scheduler"
+import type { Scheduler } from "@/types/scheduler"
 import { isAgency } from "@/types/user"
+
+const schedulerColumns: ColumnDef<Scheduler>[] = [
+    {
+        accessorKey: "scheduleName",
+        header: "Name",
+        cell: ({ row }) => (
+            <Link
+                to={`/schedules/${row.original.id}`}
+                className="hover:underline cursor-pointer"
+            >
+                {row.original.scheduleName}
+            </Link>
+        ),
+    },
+    {
+        accessorKey: "startDate",
+        header: "Start",
+        cell: ({ row }) => {
+            const d = new Date(row.original.startDate)
+            return d.toLocaleDateString("en-US", {
+                year: "2-digit",
+                month: "numeric",
+                day: "numeric",
+            })
+        },
+    },
+    {
+        accessorKey: "endDate",
+        header: "End",
+        cell: ({ row }) => {
+            const d = new Date(row.original.endDate)
+            return d.toLocaleDateString("en-US", {
+                year: "2-digit",
+                month: "numeric",
+                day: "numeric",
+            })
+        },
+    },
+    {
+        id: "totalWorkingDays",
+        header: "Working Days",
+        cell: ({ row }) => {
+            const days = calculateTotalWorkingDays(row.original)
+            return days
+        },
+    },
+    {
+        id: "totalHours",
+        header: "Total Hours",
+        cell: ({ row }) => {
+            const hours = calculateContractHours(row.original)
+            return `${hours.toFixed(1)}h`
+        },
+    },
+    {
+        accessorKey: "totalAssigned",
+        header: "Assigned",
+        cell: ({ row }) =>
+            row.original.totalAssigned ? row.original.totalAssigned : "",
+    },
+]
 
 export default function Schedules() {
     const { user } = useUser()
-    const [schedules, setSchedules] = useState<(Scheduler & { id: string })[]>(
-        []
+
+    const {
+        data: schedules,
+        loading: loadingSchedules,
+        error: errorSchedules,
+    } = useSchedules(
+        {
+            companyId: user && isAgency(user) ? user.companyData?.ownerId : "",
+        },
+        { enabled: !!user }
     )
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        if (!user) return
-
-        if (!isAgency(user)) {
-            setError("Only agency users can view schedules")
-
-            return
-        }
-
-        const fetchSchedules = async () => {
-            setLoading(true)
-            setError(null)
-            
-            try {
-                const data = await getSchedules({
-                    companyId: user.companyData?.ownerId,
-                })
-                setSchedules(data)
-            } catch (err) {
-                console.error(err)
-                setError("Failed to fetch schedules.")
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchSchedules()
-    }, [user])
 
     return (
-        <div className="p-6 space-y-4">
-            <div>
-                <Link
-                    to="/schedules/new"
-                    className="text-blue-600 hover:underline"
-                >
-                    Create new schedule
-                </Link>
+        <div className="flex flex-col p-4 gap-4">
+            <div className="flex flex-col md:flex-row  md:justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Schedules
+                    </h1>
+                    <p className="text-muted-foreground">
+                        View and manage your schedules.
+                    </p>
+                </div>
             </div>
 
-            {loading && <p>Loading schedules...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+            <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                <div className="col-span-12">
+                    {loadingSchedules && <p>Loading schedules...</p>}
+                    {errorSchedules && (
+                        <p className="text-red-500">{errorSchedules.message}</p>
+                    )}
 
-            {!loading && schedules.length === 0 && !error && (
-                <p>No schedules found.</p>
-            )}
+                    {!loadingSchedules &&
+                        schedules.length === 0 &&
+                        !errorSchedules && <p>No schedules found.</p>}
 
-            <ul className="space-y-2">
-                {schedules.map((sched) => (
-                    <li key={sched.id} className="p-2 border rounded">
-                        <Link
-                            to={`/schedules/${sched.id}`}
-                            className="block space-y-1"
-                        >
-                            <div className="font-semibold">
-                                {sched.scheduleName}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                                {sched.startDate} → {sched.endDate}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                                total students assigned:{" "}
-                                {sched.totalAssigned || 0}
-                            </div>
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+                    <DataTable columns={schedulerColumns} data={schedules} />
+                </div>
+            </div>
         </div>
     )
 }
