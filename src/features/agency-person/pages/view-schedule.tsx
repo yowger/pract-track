@@ -1,17 +1,120 @@
-import { Loader2 } from "lucide-react"
-import { useParams } from "react-router-dom"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Loader2, UserPlus } from "lucide-react"
+import { Link, useParams } from "react-router-dom"
 import { useState } from "react"
 
 import { useStudents } from "@/api/hooks/use-get-students"
 import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
-import { TypographyH2, TypographyH4 } from "@/components/typography"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/hooks/use-user"
-import { isAgency } from "@/types/user"
+import { isAgency, type Student } from "@/types/user"
 import { AssignStudentsDialog } from "../components/assign-students-dialog"
 import { updateStudentsScheduleByIds } from "@/api/students"
 import { toast } from "sonner"
 import { updateSchedule } from "@/api/scheduler"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Info } from "@/components/info"
+import {
+    calculateContractHours,
+    calculateTotalWorkingDays,
+} from "@/lib/scheduler"
+import DataTable from "@/components/data-table"
+import type { DaySchedule } from "@/types/scheduler"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+const dayScheduleColumns: ColumnDef<DaySchedule>[] = [
+    {
+        accessorKey: "day",
+        header: "Day",
+        cell: ({ row }) =>
+            row.original.day.charAt(0).toUpperCase() +
+            row.original.day.slice(1),
+    },
+    {
+        id: "am",
+        header: "AM",
+        cell: ({ row }) => {
+            const am = row.original.sessions[0]
+            return am ? `${am.start} - ${am.end}` : "—"
+        },
+    },
+    {
+        id: "pm",
+        header: "PM",
+        cell: ({ row }) => {
+            const pm = row.original.sessions[1]
+            return pm ? `${pm.start} - ${pm.end}` : "—"
+        },
+    },
+    {
+        id: "photo",
+        header: "Photo Proof",
+        cell: ({ row }) => (
+            <div className="flex flex-col">
+                {row.original.sessions.length > 0 ? (
+                    row.original.sessions.map((s, i) => (
+                        <span key={i}>
+                            {i === 0 && (s.photoStart || s.photoEnd)
+                                ? "AM: "
+                                : ""}
+                            {i === 1 && (s.photoStart || s.photoEnd)
+                                ? "PM: "
+                                : ""}
+                            {s.photoStart ? "📷 Start " : ""}
+                            {s.photoEnd ? "📷 End" : ""}
+                        </span>
+                    ))
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                )}
+            </div>
+        ),
+    },
+]
+
+const assignedStudentColumns: ColumnDef<Student>[] = [
+    {
+        id: "student",
+        header: "Student",
+        cell: ({ row }) => {
+            const student = row.original
+            return (
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={student.photoUrl || ""} />
+                        <AvatarFallback>
+                            {student.firstName.charAt(0)}
+                            {student.lastName.charAt(0)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <Link
+                        to={`/students/${student.uid}`}
+                        className="hover:underline font-medium"
+                    >
+                        {student.firstName} {student.lastName}
+                    </Link>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "studentID",
+        header: "ID",
+    },
+    {
+        id: "programYearSection",
+        header: "Program",
+        cell: ({ row }) => {
+            const s = row.original
+            return `${s.program} - ${s.yearLevel}${s.section}`
+        },
+    },
+    {
+        accessorKey: "violationCount",
+        header: "Violations",
+        cell: ({ row }) => row.original.violationCount ?? 0,
+    },
+]
 
 export default function ViewSchedule() {
     const { user } = useUser()
@@ -88,8 +191,7 @@ export default function ViewSchedule() {
 
             toast.success("Scheduled updated successfully.")
         } catch (err) {
-            console.log("🚀 ~ handleAssignSave ~ err:", err)
-
+            console.error(err)
             toast.error("Failed to update schedule.")
         } finally {
             setUpdatingStudents(false)
@@ -101,100 +203,118 @@ export default function ViewSchedule() {
     if (!schedule) return <p>No schedule found</p>
 
     return (
-        <div className="space-y-8 p-6">
-            <div className="flex items-center justify-between">
-                <TypographyH2>{schedule.scheduleName}</TypographyH2>
-                <div className="flex gap-2">
-                    <Button variant="outline">Edit</Button>
-                    <Button variant="destructive">Delete</Button>
-                </div>
-            </div>
-
-            <div className="space-y-2">
-                <TypographyH4>Details</TypographyH4>
-                <p className="text-muted-foreground">
-                    Description: {schedule.description}
-                </p>
-                <p className="text-muted-foreground">
-                    Duration: {schedule.startDate} – {schedule.endDate}
-                </p>
-            </div>
-
-            {schedule.weeklySchedule && (
-                <div className="space-y-2">
-                    <TypographyH4>Weekly Schedule</TypographyH4>
-                    <div className="border rounded-md divide-y">
-                        {schedule.weeklySchedule.map((day) => (
-                            <div key={day.day} className="flex py-2 px-3">
-                                <span className="w-32 font-medium">
-                                    {day.day}
-                                </span>
-                                {day.available ? (
-                                    <div className="flex gap-8">
-                                        {day.sessions.map((s, i) => (
-                                            <div key={i}>
-                                                <span>
-                                                    {s.start} – {s.end}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <span className="text-muted-foreground">
-                                        Unavailable
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <TypographyH4>Assigned Students</TypographyH4>
-
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={handleOpenAssignStudents}
-                    >
-                        Assign Students
-                    </Button>
-                </div>
-
-                <AssignStudentsDialog
-                    scheduleId={schedule.id || ""}
-                    isOpen={dialogOpen}
-                    onClose={() => setDialogOpen(false)}
-                    assignedStudents={assignedStudentsIds || []}
-                    allStudents={allStudents}
-                    onSave={handleAssignSave}
-                    loading={studentsLoading}
-                    disabled={updatingStudents}
-                />
-
-                {assignedStudentsLoading && (
-                    <Loader2 className="animate-spin" />
-                )}
-
-                {assignedStudents?.length ? (
-                    <ul className="list-disc list-inside">
-                        {assignedStudents.map((student) => (
-                            <li
-                                key={student.studentID}
-                                className="text-muted-foreground"
-                            >
-                                {student.displayName}
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
+        <div className="flex flex-col p-4 gap-4">
+            <div className="flex flex-col md:flex-row  md:justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        View Schedule
+                    </h1>
                     <p className="text-muted-foreground">
-                        No students assigned
+                        View and manage assigned students.
                     </p>
-                )}
+                </div>
             </div>
+            <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                <div className="col-span-12">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Schedule Info</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Info
+                                    label="Name"
+                                    value={schedule.scheduleName}
+                                />
+                                <Info
+                                    label="Duration"
+                                    value={`${new Date(
+                                        schedule.startDate
+                                    ).toLocaleDateString("en-US", {
+                                        year: "2-digit",
+                                        month: "numeric",
+                                        day: "numeric",
+                                    })} - ${new Date(
+                                        schedule.endDate
+                                    ).toLocaleDateString("en-US", {
+                                        year: "2-digit",
+                                        month: "numeric",
+                                        day: "numeric",
+                                    })}`}
+                                />
+                                <Info
+                                    label="Total Working Days"
+                                    value={calculateTotalWorkingDays(
+                                        schedule
+                                    ).toString()}
+                                />
+                                <Info
+                                    label="Total Hours"
+                                    value={`${calculateContractHours(
+                                        schedule
+                                    ).toFixed(1)}h`}
+                                />
+                                <Info
+                                    label="Description"
+                                    value={schedule.description || ""}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="col-span-12">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Weekly Schedule</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                                columns={dayScheduleColumns}
+                                data={schedule.weeklySchedule}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="col-span-12">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Assigned Students</CardTitle>
+                                <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    onClick={handleOpenAssignStudents}
+                                >
+                                    <UserPlus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {assignedStudentsLoading ? (
+                                <Loader2 className="animate-spin" />
+                            ) : (
+                                <DataTable
+                                    columns={assignedStudentColumns}
+                                    data={assignedStudents}
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            <AssignStudentsDialog
+                scheduleId={schedule.id || ""}
+                isOpen={dialogOpen}
+                onClose={() => setDialogOpen(false)}
+                assignedStudents={assignedStudentsIds || []}
+                allStudents={allStudents}
+                onSave={handleAssignSave}
+                loading={studentsLoading}
+                disabled={updatingStudents}
+            />
         </div>
     )
 }

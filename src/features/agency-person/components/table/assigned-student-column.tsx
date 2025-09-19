@@ -44,10 +44,10 @@ export const assignedStudentColumns = ({
                         <img
                             src={student.photoUrl}
                             alt={student.firstName}
-                            className="h-8 w-8 rounded-full object-cover"
+                            className="h-6 w-6 rounded-full object-cover"
                         />
                     ) : (
-                        <div className="h-8 w-8 rounded-full bg-gray-200" />
+                        <div className="h-6 w-6 rounded-full bg-gray-200" />
                     )}
                     <span
                         className={`truncate block max-w-[200px] ${
