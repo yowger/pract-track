@@ -50,7 +50,7 @@ export const assignedStudentColumns = ({
                         <div className="h-6 w-6 rounded-full bg-gray-200" />
                     )}
                     <span
-                        className={`truncate block max-w-[200px] ${
+                        className={`truncate block font-medium max-w-[200px] ${
                             clickable ? "cursor-pointer hover:underline" : ""
                         }`}
                         onClick={() =>

@@ -18,8 +18,8 @@ export default function Attendance() {
     const { serverTime } = useServerTime()
 
     const [currentTime, setCurrentTime] = useState(serverTime || null)
-    const [isClockedIn, setIsClockedIn] = useState(false)
-    console.log("🚀 ~ Attendance ~ setIsClockedIn:", setIsClockedIn)
+    const [isClockedIn] = useState(false)
+    // console.log("🚀 ~ Attendance ~ setIsClockedIn:", setIsClockedIn)
     const isInRange = true
 
     const { coords } = useGeolocated({
@@ -58,7 +58,6 @@ export default function Attendance() {
             enabled: hasData,
         }
     )
-    console.log("🚀 ~ Attendance ~ attendanceList:", attendanceList)
 
     const {
         loading: loadingCreateAttendance,
@@ -81,8 +80,12 @@ export default function Attendance() {
         )
             return
 
+        if (!attendanceList) {
+            return toast.error("You are not assigned to any schedule")
+        }
+
         await handleToggleClock({
-            attendance: attendanceList!,
+            attendance: attendanceList,
             date: serverTime || new Date(),
             geo: {
                 lat: coords.latitude,

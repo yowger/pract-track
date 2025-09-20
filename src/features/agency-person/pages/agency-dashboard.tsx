@@ -1,169 +1,213 @@
-// import DataTable from "@/components/data-table"
-// import { assignedStudentColumns } from "../components/table/assigned-student-column"
-// import type { Student } from "@/types/user"
-
-// // const dummyStudents: Partial<Student>[] = [
-// //     {
-// //         uid: "1",
-// //         photoUrl: "J",
-// //         firstName: "Juan",
-// //         lastName: "Dela Cruz",
-// //         program: "BSIT",
-// //         yearLevel: "4",
-// //         status: "Ongoing",
-// //     },
-// //     {
-// //         uid: "2",
-// //         photoUrl: "M",
-// //         firstName: "Maria",
-// //         lastName: "Lopez",
-// //         program: "BSCS",
-// //         yearLevel: "3",
-// //         status: "Active",
-// //     },
-// // ]
-
-import { useEffect, useState } from "react"
+import { useGetRealAttendances } from "@/api/hooks/use-get-real-attendances"
 import DataTable from "@/components/data-table"
-import { assignedStudentColumns } from "../components/table/assigned-student-column"
-import type { Student } from "@/types/user"
-import { getStudentsPaginated } from "@/api/students"
 import { useUser } from "@/hooks/use-user"
+import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
+import type { Attendance } from "@/types/attendance"
+import { isAgency } from "@/types/user"
+import type { ColumnDef } from "@tanstack/react-table"
+
+const attendanceColumns: ColumnDef<Attendance>[] = [
+    {
+        accessorKey: "schedule.date",
+        header: "Date",
+        cell: ({ row }) => {
+            const date = row.original.schedule.date
+            const d = date instanceof Date ? date : date?.toDate?.()
+            return (
+                <div className="align-top flex items-start">
+                    <span>{d ? d.toLocaleDateString("en-US") : null}</span>
+                </div>
+            )
+        },
+    },
+    {
+        id: "am",
+        header: "AM",
+        cell: ({ row }) => {
+            const session = row.original.sessions[0]
+            if (!session) return null
+
+            const inDate = session.checkInInfo
+                ? firebaseTimestampToDate(session.checkInInfo.time)
+                : null
+            const outDate = session.checkOutInfo
+                ? firebaseTimestampToDate(session.checkOutInfo.time)
+                : null
+
+            if (!inDate && !outDate) return null
+
+            return (
+                <div className="inline-flex items-center gap-1">
+                    <span className={inDate ? "" : "text-muted-foreground"}>
+                        {inDate ? formatTime(inDate) : "-"}
+                    </span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className={outDate ? "" : "text-muted-foreground"}>
+                        {outDate ? formatTime(outDate) : ""}
+                    </span>
+                </div>
+            )
+        },
+    },
+    {
+        id: "pm",
+        header: "PM",
+        cell: ({ row }) => {
+            const session = row.original.sessions[1]
+            if (!session) return null
+
+            const inDate = session.checkInInfo
+                ? firebaseTimestampToDate(session.checkInInfo.time)
+                : null
+            const outDate = session.checkOutInfo
+                ? firebaseTimestampToDate(session.checkOutInfo.time)
+                : null
+
+            if (!inDate && !outDate) return null
+
+            return (
+                <div className="inline-flex items-center gap-1">
+                    <span className={inDate ? "" : "text-muted-foreground"}>
+                        {inDate ? formatTime(inDate) : "-"}
+                    </span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className={outDate ? "" : "text-muted-foreground"}>
+                        {outDate ? formatTime(outDate) : ""}
+                    </span>
+                </div>
+            )
+        },
+    },
+    {
+        id: "duration",
+        header: "Duration",
+        cell: ({ row }) => {
+            const sessions = row.original.sessions
+            let totalMins = 0
+
+            sessions.forEach((s) => {
+                const inDate = s.checkInInfo
+                    ? firebaseTimestampToDate(s.checkInInfo.time)
+                    : null
+                const outDate = s.checkOutInfo
+                    ? firebaseTimestampToDate(s.checkOutInfo.time)
+                    : null
+                if (inDate && outDate) {
+                    totalMins += Math.floor((+outDate - +inDate) / 60000)
+                }
+            })
+
+            if (!totalMins)
+                return <span className="text-muted-foreground"></span>
+
+            const h = Math.floor(totalMins / 60)
+            const m = totalMins % 60
+            return <span>{`${h}h ${m}m`}</span>
+        },
+    },
+    {
+        id: "photos",
+        header: "Photos",
+        cell: ({ row }) => {
+            const sessions = row.original.sessions
+            const photos: string[] = []
+
+            sessions.forEach((s) => {
+                if (s.checkInInfo?.photoUrl) photos.push(s.checkInInfo.photoUrl)
+                if (s.checkOutInfo?.photoUrl)
+                    photos.push(s.checkOutInfo.photoUrl)
+            })
+
+            if (!photos.length)
+                return <span className="text-muted-foreground"></span>
+
+            return (
+                <div className="flex flex-col gap-1">
+                    {photos.map((url, idx) => (
+                        <a
+                            key={idx}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 block max-w-[150px] truncate"
+                            title={url}
+                        >
+                            {url}
+                        </a>
+                    ))}
+                </div>
+            )
+        },
+    },
+    {
+        id: "location",
+        header: "Location",
+        cell: ({ row }) => {
+            const sessions = row.original.sessions
+            const geo =
+                sessions[0]?.checkInInfo?.geo ||
+                sessions[0]?.checkOutInfo?.geo ||
+                sessions[1]?.checkInInfo?.geo ||
+                sessions[1]?.checkOutInfo?.geo
+            const address =
+                sessions[0]?.checkInInfo?.address ||
+                sessions[0]?.checkOutInfo?.address ||
+                sessions[1]?.checkInInfo?.address ||
+                sessions[1]?.checkOutInfo?.address
+
+            if (!geo) return <span className="text-muted-foreground"></span>
+
+            return (
+                <a
+                    href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 block max-w-[150px] truncate"
+                    title={address || "Unknown Address"}
+                >
+                    {address || "Unknown Address"}
+                </a>
+            )
+        },
+    },
+]
 
 export default function AgencyDashboardPage() {
     const { user } = useUser()
     console.log("🚀 ~ AgencyDashboardPage ~ user:", user)
 
-    const [students, setStudents] = useState<Student[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        async function fetchStudents() {
-            try {
-                // ⚡ no filters or pagination, just fetch everything
-                const data = await getStudentsPaginated({
-                    numPerPage: 10,
-                    filter: {
-                        assignedAgencyId: user?.uid,
-                    },
-                })
-                setStudents(data.result)
-            } catch (error) {
-                console.error("Failed to fetch students:", error)
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchStudents()
-    }, [user?.uid])
+    const { data: attendances, error: attendancesError } =
+        useGetRealAttendances({
+            agencyId: user && isAgency(user) ? user.companyData?.ownerId : "",
+        })
+    console.log(
+        "🚀 ~ AgencyDashboardPage ~ attendancesError:",
+        attendancesError
+    )
+    console.log("🚀 ~ AgencyDashboardPage ~ attendances:", attendances)
 
     return (
-        <div className="space-y-8 p-6">
-            {/* Agency Info */}
-            <section className="rounded-2xl border p-4 shadow-sm">
-                <header className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">
-                        Agency Information
-                    </h2>
-                    <button className="rounded-lg border px-3 py-1 text-sm hover:bg-muted">
-                        Edit Details
-                    </button>
-                </header>
-                <div className="space-y-2">
-                    <p>
-                        <strong>Name:</strong> {user?.displayName}
-                    </p>
-                    <p>
-                        <strong>Address:</strong> Placeholder Address
-                    </p>
-                    <p>
-                        <strong>Contact Person:</strong> Placeholder Contact
-                    </p>
-                    <p>
-                        <strong>Contact Number/Email:</strong> 0999-999-9999 /
-                        sample@email.com
-                    </p>
-                    <p>
-                        <strong>Status:</strong> Active
+        <div className="flex flex-col p-4 gap-4">
+            <div className="flex flex-col md:flex-row  md:justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold tracking-tight">
+                        Dashboard
+                    </h1>
+                    <p className="text-muted-foreground">
+                        View attendance history, complains and more in real
+                        time.
                     </p>
                 </div>
-            </section>
+            </div>
 
-            {/* Assigned Students */}
-            <section className="rounded-2xl border p-4 shadow-sm">
-                <header className="mb-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold">
-                            Assigned Students
-                        </h2>
-
-                        <button className="rounded-lg border px-3 py-1 text-sm hover:bg-muted">
-                            view all
-                        </button>
-                    </div>
-                </header>
-                {loading ? (
-                    <p className="text-muted-foreground">Loading students…</p>
-                ) : (
+            <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                <div className="col-span-12">
                     <DataTable
-                        columns={assignedStudentColumns({})}
-                        data={students}
+                        columns={attendanceColumns}
+                        data={attendances || []}
                     />
-                )}
-            </section>
-
-            {/* Supervisors */}
-            <section className="rounded-2xl border p-4 shadow-sm">
-                <header className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Supervisors</h2>
-                    <button className="rounded-lg border px-3 py-1 text-sm hover:bg-muted">
-                        Assign / Change
-                    </button>
-                </header>
-                <ul className="list-disc pl-6">
-                    <li>Supervisor Name – supervisor@email.com</li>
-                </ul>
-            </section>
-
-            {/* Tasks / Evaluations */}
-            <section className="rounded-2xl border p-4 shadow-sm">
-                <header className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">
-                        Tasks & Evaluations
-                    </h2>
-                    <button className="rounded-lg border px-3 py-1 text-sm hover:bg-muted">
-                        Download Reports
-                    </button>
-                </header>
-                <div className="text-muted-foreground">
-                    Placeholder for student evaluations, logs, attendance.
                 </div>
-            </section>
-
-            {/* Analytics */}
-            <section className="rounded-2xl border p-4 shadow-sm">
-                <header className="mb-4">
-                    <h2 className="text-xl font-semibold">Analytics</h2>
-                </header>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="rounded-lg border p-4">
-                        <p className="text-sm">Students this term</p>
-                        <p className="text-2xl font-bold">25</p>
-                    </div>
-                    <div className="rounded-lg border p-4">
-                        <p className="text-sm">By Program</p>
-                        <p className="text-2xl font-bold">
-                            BSIT: 15 | BSHM: 10
-                        </p>
-                    </div>
-                    <div className="rounded-lg border p-4">
-                        <p className="text-sm">Status Distribution</p>
-                        <p className="text-2xl font-bold">
-                            20 Ongoing / 5 Completed
-                        </p>
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
     )
 }

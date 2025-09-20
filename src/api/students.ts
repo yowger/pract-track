@@ -81,6 +81,7 @@ export async function getStudentsPaginated({
         ...clauses,
         orderBy("createdAt", "desc")
     )
+    console.log("🚀 ~ getStudentsPaginated ~ baseQuery:", baseQuery)
 
     let paginatedQuery
     if (direction === "next") {
@@ -93,19 +94,9 @@ export async function getStudentsPaginated({
             : query(baseQuery, limitToLast(numPerPage))
     }
 
-    const [studentSnapshot, countSnap, reviewedCountSnap] = await Promise.all([
+    const [studentSnapshot, countSnap] = await Promise.all([
         getDocs(paginatedQuery),
         getCountFromServer(baseQuery),
-        getCountFromServer(
-            query(
-                baseQuery,
-                where(
-                    "evaluatedByAgencies",
-                    "array-contains",
-                    filter.assignedAgencyId
-                )
-            )
-        ),
     ])
 
     const students: Student[] = studentSnapshot.docs.map(
@@ -115,12 +106,27 @@ export async function getStudentsPaginated({
     const firstDoc = studentSnapshot.docs[0]
     const lastDoc = studentSnapshot.docs[studentSnapshot.docs.length - 1]
 
+    let reviewedCount = 0
+    if (filter.assignedAgencyId) {
+        const reviewedCountSnap = await getCountFromServer(
+            query(
+                baseQuery,
+                where(
+                    "evaluatedByAgencies",
+                    "array-contains",
+                    filter.assignedAgencyId
+                )
+            )
+        )
+        reviewedCount = reviewedCountSnap.data().count
+    }
+
     return {
         result: students,
         firstDoc,
         lastDoc,
         totalItems: countSnap.data().count,
-        totalReviewed: reviewedCountSnap.data().count,
+        totalReviewed: reviewedCount,
     }
 }
 

@@ -73,6 +73,8 @@ export default function CreateSchedule() {
     )
 
     useEffect(() => {
+        if (!scheduleError) return
+
         toast.error(scheduleError)
     }, [scheduleError])
 

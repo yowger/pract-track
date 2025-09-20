@@ -43,6 +43,7 @@ export async function updateAttendance(
     id: string,
     updates: Partial<Omit<Attendance, "id">>
 ) {
+    console.log("🚀 ~ updateAttendance ~ updates:", updates)
     const docRef = doc(db, "attendances", id)
 
     await updateDoc(docRef, {
@@ -54,6 +55,7 @@ export async function updateAttendance(
 type AttendanceFilter = {
     userId?: string
     scheduleId?: string
+    agencyId?: string
     status?: Attendance["overallStatus"]
     from?: Date
     to?: Date
@@ -74,6 +76,10 @@ export async function getAttendances(filter: AttendanceFilter = {}) {
 
     if (filter.status) {
         conditions.push(where("overallStatus", "==", filter.status))
+    }
+
+    if (filter.agencyId) {
+        conditions.push(where("schedule.agencyId", "==", filter.agencyId))
     }
 
     if (filter.from) {
@@ -105,10 +111,11 @@ export async function getOrCreateAttendance(data: {
         name: string
         photoUrl?: string
     }
+    agencyId: string
     scheduler: Scheduler
     today: Date
 }): Promise<Attendance | null> {
-    const { user, scheduler, today = new Date() } = data
+    const { user, agencyId, scheduler, today = new Date() } = data
 
     const attendanceId = `${user.id}_${today.toISOString().split("T")[0]}`
     const docRef = doc(db, "attendances", attendanceId)
@@ -155,6 +162,7 @@ export async function getOrCreateAttendance(data: {
             name: scheduler.scheduleName,
             date: today,
         },
+        agencyId,
         user: { id: user.id, name: user.name, photoUrl: user.photoUrl },
         sessions,
         markedBy: "self",

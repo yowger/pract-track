@@ -38,6 +38,7 @@ export function useGetOrCreateAttendance(
 
         try {
             const att = await getOrCreateAttendance({
+                agencyId: scheduler.companyId,
                 user,
                 scheduler,
                 today,

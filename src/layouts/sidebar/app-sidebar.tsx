@@ -182,6 +182,11 @@ const sidebarConfig: SidebarConfig = {
                 },
             ],
         },
+        {
+            title: "Profile",
+            url: "/",
+            icon: User,
+        },
         // {
         //     title: "Generate Attendance QR Code",
         //     url: "/supervisor/qr",

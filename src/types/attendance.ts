@@ -46,6 +46,7 @@ export interface AttendanceSession {
 
 export interface Attendance {
     id: string
+    agencyId: string
     schedule: {
         id: string
         name: string

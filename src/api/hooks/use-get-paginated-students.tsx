@@ -64,6 +64,7 @@ export function usePaginatedStudents(
             } catch (err) {
                 console.error(err)
                 setError("Failed to fetch students")
+                throw err
             } finally {
                 setLoading(false)
             }

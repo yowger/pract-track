@@ -1,9 +1,7 @@
 import type { RowSelectionState } from "@tanstack/react-table"
-import type { DocumentSnapshot } from "firebase/firestore"
-import { useState, useEffect, useRef } from "react"
-import { useDebounceValue } from "usehooks-ts"
+import { useState } from "react"
+// import { useDebounceValue } from "usehooks-ts"
 
-import { getStudentsPaginated } from "@/api/students"
 import { Input } from "@/components/ui/input"
 import {
     Select,
@@ -17,19 +15,11 @@ import { studentColumns } from "@/features/chair-person/components/tables/users/
 import AssignAgencyDrawer from "@/features/chair-person/components/tables/users/assign-agency-drawer"
 import type { Student } from "@/types/user"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useUser } from "@/hooks/use-user"
+import { usePaginatedStudents } from "@/api/hooks/use-get-paginated-students"
+import { useDebounceValue } from "usehooks-ts"
 
 export default function InternshipDashboardPage() {
-    const numPerPage = 10
-    const [students, setStudents] = useState<Student[]>([])
-    const [firstDoc, setFirstDoc] = useState<DocumentSnapshot | undefined>()
-    const [lastDoc, setLastDoc] = useState<DocumentSnapshot | undefined>()
-    const [totalItems, setTotalItems] = useState<number | null>(null)
-    const [pagination, setPagination] = useState({
-        pageIndex: 0,
-        pageSize: numPerPage,
-    })
-    const [pages, setPages] = useState<number>(0)
-
     const [searchFirstName, setSearchFirstName] = useState("")
     const [searchLastName, setSearchLastName] = useState("")
     const [section, setSection] = useState("")
@@ -38,79 +28,40 @@ export default function InternshipDashboardPage() {
     const [program, setProgram] = useState("")
 
     const [debouncedFirstName] = useDebounceValue(searchFirstName, 500)
-    const [debouncedLastName] = useDebounceValue(searchLastName, 500)
-    const [debouncedSection] = useDebounceValue(section, 500)
-    const [debouncedYearLevel] = useDebounceValue(yearLevel, 500)
-    const [debouncedStatus] = useDebounceValue(status, 500)
-    const [debouncedProgram] = useDebounceValue(program, 500)
+    // const [debouncedLastName] = useDebounceValue(searchLastName, 500)
+    // const [debouncedSection] = useDebounceValue(section, 500)
+    // const [debouncedYearLevel] = useDebounceValue(yearLevel, 500)
+    // const [debouncedStatus] = useDebounceValue(status, 500)
+    // const [debouncedProgram] = useDebounceValue(program, 500)
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
     const [selectedStudents, setSelectedStudents] = useState<Student[]>([])
-    const [isLoading, setIsLoading] = useState(false)
 
-    const lastPageIndexRef = useRef(0)
+    const { user } = useUser()
 
-    async function loadStudents(direction?: "next" | "prev") {
-        setIsLoading(true)
-        try {
-            const data = await getStudentsPaginated({
-                direction,
-                startAfterDoc: direction === "next" ? lastDoc : undefined,
-                endBeforeDoc: direction === "prev" ? firstDoc : undefined,
-                numPerPage: pagination.pageSize,
-                filter: {
-                    firstName: debouncedFirstName,
-                    lastName: debouncedLastName,
-                    section: debouncedSection,
-                    yearLevel: debouncedYearLevel,
-                    status: debouncedStatus,
-                    program: debouncedProgram,
-                },
-            })
-
-            setTotalItems(data.totalItems)
-            setPages(Math.ceil(data.totalItems / numPerPage))
-            setStudents(data.result)
-            setFirstDoc(data.firstDoc)
-            setLastDoc(data.lastDoc)
-        } finally {
-            setIsLoading(false)
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 15,
+    })
+    const {
+        students,
+        loading: isStudentsLoading,
+        // error: studentsError,
+        totalItems: totalStudents,
+        // totalReviewed: totalReviewedStudents,
+        pageCount: studentPageCount,
+        refetch: refetchStudents,
+        nextPage,
+        prevPage,
+    } = usePaginatedStudents(
+        {
+            firstName: debouncedFirstName,
+        },
+        {
+            numPerPage: pagination.pageSize,
+            enabled: !!user,
         }
-    }
-
-    useEffect(() => {
-        setPagination({ pageIndex: 0, pageSize: numPerPage })
-        setFirstDoc(undefined)
-        setLastDoc(undefined)
-    }, [
-        debouncedFirstName,
-        debouncedLastName,
-        debouncedSection,
-        debouncedYearLevel,
-        debouncedStatus,
-        debouncedProgram,
-    ])
-
-    useEffect(() => {
-        const direction =
-            pagination.pageIndex > lastPageIndexRef.current
-                ? "next"
-                : pagination.pageIndex < lastPageIndexRef.current
-                ? "prev"
-                : undefined
-
-        lastPageIndexRef.current = pagination.pageIndex
-        loadStudents(direction)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        pagination,
-        debouncedFirstName,
-        debouncedLastName,
-        debouncedSection,
-        debouncedYearLevel,
-        debouncedStatus,
-        debouncedProgram,
-    ])
+    )
 
     const handleSelectedRowsChange = (rows: Student[]) => {
         setSelectedStudents((prev) => {
@@ -180,7 +131,7 @@ export default function InternshipDashboardPage() {
                     <AssignAgencyDrawer
                         selectedStudents={selectedStudents}
                         onSuccess={() => {
-                            loadStudents()
+                            refetchStudents()
                             setSelectedStudents([])
                             setRowSelection({})
                         }}
@@ -191,18 +142,33 @@ export default function InternshipDashboardPage() {
             <div className="p-4 flex">
                 <ScrollArea type="always" className=" w-full overflow-x-auto">
                     <DataTable
-                        columns={studentColumns}
                         data={students}
+                        columns={studentColumns}
+                        pagination={pagination}
+                        manualPagination
+                        pageCount={studentPageCount || 0}
+                        totalItems={totalStudents || 0}
+                        isLoading={isStudentsLoading}
                         rowSelection={rowSelection}
                         onRowSelectionChange={setRowSelection}
                         onSelectedRowsChange={handleSelectedRowsChange}
-                        pagination={pagination}
                         getRowId={(row) => row.studentID}
-                        manualPagination
-                        pageCount={pages || 0}
-                        totalItems={totalItems || 0}
-                        onPaginationChange={setPagination}
-                        isLoading={isLoading}
+                        onPaginationChange={(updater) => {
+                            const newState =
+                                typeof updater === "function"
+                                    ? updater(pagination)
+                                    : updater
+
+                            if (newState.pageIndex > pagination.pageIndex) {
+                                nextPage()
+                            } else if (
+                                newState.pageIndex < pagination.pageIndex
+                            ) {
+                                prevPage()
+                            }
+
+                            setPagination(newState)
+                        }}
                     />
                     <ScrollBar orientation="horizontal" className="w-full" />
                 </ScrollArea>

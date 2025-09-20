@@ -124,11 +124,11 @@ export default function TimeTrackingCard({
                             <Skeleton className="h-24 w-full" />
                         ) : (
                             <div
-                                className={
-                                    hasSessions
-                                        ? "border rounded-md divide-y"
-                                        : ""
-                                }
+                                // className={
+                                //     hasSessions
+                                //         ? "border rounded-md p-1.5 flex flex-col gap-1.5"
+                                //         : ""
+                                // }
                             >
                                 {sessionContent}
                             </div>

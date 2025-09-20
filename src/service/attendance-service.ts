@@ -216,8 +216,8 @@ export async function toggleClock(params: {
                     checkInInfo: {
                         time: now,
                         geo,
-                        address,
-                        photoUrl,
+                        address: address || "",
+                        photoUrl: photoUrl || "",
                         status: isLate({
                             checkIn: now,
                             scheduledStart:
@@ -230,7 +230,7 @@ export async function toggleClock(params: {
                         })
                             ? "late"
                             : "present",
-                        remarks,
+                        remarks: remarks || "",
                     },
                 }
             }
@@ -241,8 +241,8 @@ export async function toggleClock(params: {
                     checkOutInfo: {
                         time: now,
                         geo,
-                        address,
-                        photoUrl,
+                        address: address || "",
+                        photoUrl: photoUrl || "",
                         status: isUndertime({
                             checkOut: now,
                             scheduledEnd:
@@ -254,7 +254,7 @@ export async function toggleClock(params: {
                         })
                             ? "undertime"
                             : session.checkInInfo?.status || "present",
-                        remarks,
+                        remarks: remarks || "",
                     },
                 }
             }
@@ -266,11 +266,14 @@ export async function toggleClock(params: {
     const totalWorkMinutes = calculateTotalMinutes(updatedSessions)
     const overallStatus = deriveOverallStatus(updatedSessions)
 
+    console.log("🚀 ~ toggleClock ~ attendance:", attendance)
+    console.log("🚀 ~ toggleClock ~ updatedSessions:", updatedSessions)
+
     const updatedAttendance: Attendance = {
         ...attendance,
         sessions: updatedSessions,
-        totalWorkMinutes,
-        overallStatus,
+        totalWorkMinutes: totalWorkMinutes || 0,
+        overallStatus: overallStatus || "absent",
     }
 
     await updateAttendance(updatedAttendance.id, {
