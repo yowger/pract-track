@@ -8,7 +8,7 @@ import { useUser } from "./hooks/use-user"
 import { isAgency, type Role } from "./types/user"
 import { fetchAgency } from "./api/agency"
 import ViewSchedule from "./features/agency-person/pages/view-schedule"
-import AttendanceSeeder from "./features/dtr/pages/attendance-seeder"
+// import AttendanceSeeder from "./features/dtr/pages/attendance-seeder"
 import AttendanceHistory from "./features/dtr/pages/attendance-history"
 // import AgencyStudentReview from "./features/agency-person/pages/agency-student-review"
 // import StudentProfile from "./features/dtr/pages/student-profile"
@@ -189,7 +189,7 @@ const studentRoutes = (
             <Route path="/attendance" element={<AttendanceHistory />} />
             <Route path="/dashboard" element={<StudentDashboardPage />} />
             <Route path="/profile" element={<StudentProfilePage />} />
-            <Route path="/seeder" element={<AttendanceSeeder />} />
+            {/* <Route path="/seeder" element={<AttendanceSeeder />} /> */}
             {/* <Route path="/dtr" element={<DtrPage />} /> */}
             {/* <Route path="/dtrCopy" element={<DtrCopyPage />} /> */}
         </Route>
