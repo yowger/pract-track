@@ -1,5 +1,4 @@
 import { db } from "@/service/firebase/firebase"
-import type { Student } from "@/types/user"
 import {
     doc,
     getDoc,
@@ -8,6 +7,10 @@ import {
     collection,
     getDocs,
     writeBatch,
+    query,
+    orderBy,
+    limit,
+    increment,
 } from "firebase/firestore"
 
 import {} from "firebase/firestore"
@@ -18,6 +21,7 @@ export interface Agency {
     address?: string
     ownerId: string
     ownerName: string
+    studentCount?: number
     createdAt?: Date
     updatedAt?: Date
 }
@@ -39,6 +43,39 @@ export async function fetchAgency(ownerId: string): Promise<Agency | null> {
         createdAt: data.createdAt?.toDate?.(),
         updatedAt: data.updatedAt?.toDate?.(),
     }
+}
+
+export async function searchAgencies(
+    search: string,
+    limitCount = 10
+): Promise<Agency[]> {
+    const agenciesCol = collection(db, "agencies")
+
+    const q = query(
+        agenciesCol,
+        orderBy("createdAt", "desc"),
+        limit(limitCount)
+    )
+
+    const snapshot = await getDocs(q)
+    const results: Agency[] = []
+
+    snapshot.forEach((doc) => {
+        const data = doc.data()
+        if (!search || data.name.toLowerCase().includes(search.toLowerCase())) {
+            results.push({
+                id: doc.id,
+                name: data.name,
+                address: data.address ?? undefined,
+                ownerId: data.ownerId,
+                ownerName: data.ownerName,
+                createdAt: data.createdAt?.toDate?.(),
+                updatedAt: data.updatedAt?.toDate?.(),
+            })
+        }
+    })
+
+    return results
 }
 
 export async function fetchAgencies(): Promise<Agency[]> {
@@ -80,23 +117,28 @@ export async function createAgency(data: {
     )
 }
 
-export async function assignStudentsToAgency(
-    studentIds: string[],
-    agencyId: string,
+export async function assignStudentsToAgency(data: {
+    studentIds: string[]
+    agencyId: string
     agencyName: string
-) {
+}) {
+    const { studentIds, agencyId, agencyName } = data
+
     const batch = writeBatch(db)
 
     studentIds.forEach((studentId) => {
         const studentRef = doc(db, "students", studentId)
 
-        const updateData: Partial<Student> = {
+        batch.update(studentRef, {
             assignedAgencyID: agencyId,
             assignedAgencyName: agencyName,
             updatedAt: serverTimestamp(),
-        }
+        })
+    })
 
-        batch.update(studentRef, updateData)
+    const agencyRef = doc(db, "agencies", agencyId)
+    batch.update(agencyRef, {
+        studentCount: increment(studentIds.length),
     })
 
     await batch.commit()

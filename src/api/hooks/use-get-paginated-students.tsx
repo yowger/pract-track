@@ -12,6 +12,9 @@ interface StudentFilter {
     section?: string
     status?: string
     assignedAgencyId?: string
+    assignedAdviserId?: string
+    hasNoAgency?: boolean
+    hasNoAdviser?: boolean
 }
 
 interface UsePaginatedStudentsOptions {
@@ -78,7 +81,7 @@ export function usePaginatedStudents(
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabled])
+    }, [enabled, JSON.stringify(filter)])
 
     const nextPage = () =>
         fetchStudents({ direction: "next", startAfterDoc: lastDoc })

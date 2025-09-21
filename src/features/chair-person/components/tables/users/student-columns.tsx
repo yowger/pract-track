@@ -1,8 +1,9 @@
 import { type ColumnDef } from "@tanstack/react-table"
+import { Link } from "react-router-dom"
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Student } from "@/types/user"
-import { Link } from "react-router-dom"
 
 export const studentColumns: ColumnDef<Student>[] = [
     {
@@ -30,39 +31,41 @@ export const studentColumns: ColumnDef<Student>[] = [
         enableHiding: false,
         size: 20,
     },
-
     {
-        accessorKey: "photoUrl",
-        header: "",
+        accessorKey: "student",
+        header: "Student",
         cell: ({ row }) => {
             const student = row.original
-            return student.photoUrl ? (
-                <img
-                    src={student.photoUrl}
-                    alt={student.firstName}
-                    className="h-8 w-8 rounded-full"
-                />
-            ) : (
-                <div className="h-8 w-8 rounded-full bg-gray-200" />
+            const fullName = `${
+                student.firstName.charAt(0).toUpperCase() +
+                student.firstName.slice(1)
+            } ${
+                student.lastName.charAt(0).toUpperCase() +
+                student.lastName.slice(1)
+            }`
+
+            return (
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                        {student.photoUrl ? (
+                            <AvatarImage
+                                src={student.photoUrl}
+                                alt={fullName}
+                            />
+                        ) : (
+                            <AvatarFallback>
+                                {student.firstName?.[0]}
+                                {student.lastName?.[0]}
+                            </AvatarFallback>
+                        )}
+                    </Avatar>
+                    <span className="font-medium">{fullName}</span>
+                </div>
             )
         },
         enableSorting: false,
         enableHiding: false,
     },
-
-    {
-        accessorKey: "fullName",
-        header: "Name",
-        cell: ({ row }) => {
-            const student = row.original
-            return (
-                <span>
-                    {student.firstName} {student.lastName}
-                </span>
-            )
-        },
-    },
-
     {
         accessorKey: "program",
         header: "Program",
@@ -74,10 +77,6 @@ export const studentColumns: ColumnDef<Student>[] = [
                 <span className="text-muted-foreground">N/A</span>
             )
         },
-    },
-    {
-        accessorKey: "yearLevel",
-        header: "Year",
     },
     {
         accessorKey: "assignedAgencyName",
@@ -105,22 +104,14 @@ export const studentColumns: ColumnDef<Student>[] = [
         },
     },
     {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: "adviserNAme",
+        header: "Adviser",
         cell: ({ row }) => {
-            const status = row.getValue("status") as string
-            return (
-                <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                        status === "active"
-                            ? "bg-green-100 text-green-800"
-                            : status === "inactive"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                    }`}
-                >
-                    {status || "N/A"}
-                </span>
+            const adviserName = row.getValue("adviserNAme") as string
+            return adviserName ? (
+                adviserName
+            ) : (
+                <span className="text-muted-foreground">Unassigned</span>
             )
         },
     },

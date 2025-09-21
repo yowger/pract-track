@@ -22,9 +22,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 //     () => import("./forms/practical-adviser-form")
 // )
 const ChairpersonForm = lazy(() => import("./forms/chair-person-form"))
-// const AgencySupervisorForm = lazy(
-//     () => import("./forms/agency-supervisor-form")
-// )
+const AgencySupervisorForm = lazy(
+    () => import("./forms/agency-supervisor-form")
+)
 
 export default function RoleSwitcher({
     className,
@@ -34,8 +34,8 @@ export default function RoleSwitcher({
 
     const renderForm = () => {
         switch (role) {
-            // case "agency_supervisor":
-            //     return <AgencySupervisorForm />
+            case "agency_supervisor":
+                return <AgencySupervisorForm />
             case "chair_person":
                 return <ChairpersonForm />
             // case "adviser":

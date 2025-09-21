@@ -28,6 +28,8 @@ interface StudentFilter {
     section?: string
     status?: string
     assignedAgencyId?: string
+    hasNoAgency?: boolean
+    hasNoAdviser?: boolean
 }
 
 interface GetUsersPaginatedParams {
@@ -75,13 +77,18 @@ export async function getStudentsPaginated({
         clauses.push(where("status", "==", filter.status.toLowerCase()))
     if (filter.assignedAgencyId)
         clauses.push(where("assignedAgencyID", "==", filter.assignedAgencyId))
+    if (filter.hasNoAdviser) {
+        clauses.push(where("assignedAdviserID", "==", null))
+    }
+    if (filter.hasNoAgency) {
+        clauses.push(where("assignedAgencyID", "==", null))
+    }
 
     const baseQuery = query(
         studentsCollection,
         ...clauses,
         orderBy("createdAt", "desc")
     )
-    console.log("🚀 ~ getStudentsPaginated ~ baseQuery:", baseQuery)
 
     let paginatedQuery
     if (direction === "next") {

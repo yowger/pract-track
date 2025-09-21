@@ -1,193 +1,310 @@
-// import { useState } from "react"
-// import { QueryDocumentSnapshot, type DocumentData } from "firebase/firestore"
+import { useEffect, useState } from "react"
+import type { RowSelectionState } from "@tanstack/react-table"
 
-// import { isStudent } from "@/types/user"
-// import { getStudentsPaginated } from "@/api/students"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Filter } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuCheckboxItem,
+    DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import DataTable from "@/components/data-table"
 
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Input } from "@/components/ui/input"
-// import { Button } from "@/components/ui/button"
-// import {
-//     Table,
-//     TableBody,
-//     TableCell,
-//     TableHead,
-//     TableHeader,
-//     TableRow,
-// } from "@/components/ui/table"
-
-// export default function StudentManagerDashboardPage() {
-//     const PAGE_SIZE = 10
-
-//     // const [students, setStudents] = useState<AppUser[]>([])
-//     // const [firstDoc, setFirstDoc] =
-//     //     useState<QueryDocumentSnapshot<DocumentData> | null>(null)
-//     // const [lastDoc, setLastDoc] =
-//     //     useState<QueryDocumentSnapshot<DocumentData> | null>(null)
-//     // const [prevDocs, setPrevDocs] = useState<
-//     //     QueryDocumentSnapshot<DocumentData>[]
-//     // >([])
-//     const [loading, setLoading] = useState(false)
-//     const [search, setSearch] = useState("")
-
-//     const {  } = getStudentsPaginated({
-//         numPerPage: PAGE_SIZE,
-//         filter: {
-//             status: undefined,
-//             program: undefined,
-//             yearLevel: undefined,
-//         },
-//     })
-
-//     async function loadStudents(next = true) {
-//         if (loading) return
-//         setLoading(true)
-
-//         setStudents(data)
-
-//         // if (next) {
-//         //     if (newLastDoc) setPrevDocs((prev) => [...prev, newLastDoc])
-//         // } else {
-//         //     setPrevDocs((prev) => prev.slice(0, prev.length - 1))
-//         // }
-
-//         setLoading(false)
-//     }
-
-//     // useEffect(() => {
-//     //     loadStudents(true)
-//     // }, [search])
-
-//     const filteredStudents = students.filter((s) =>
-//         s.displayName?.toLowerCase().includes(search.toLowerCase())
-//     )
-
-//     return (
-//         <div className="space-y-6 p-6">
-//             {/* Dashboard cards */}
-//             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-//                 <Card>
-//                     <CardHeader>
-//                         <CardTitle>Total Students</CardTitle>
-//                     </CardHeader>
-//                     <CardContent>
-//                         <p className="text-2xl font-bold">{students.length}</p>
-//                     </CardContent>
-//                 </Card>
-//                 <Card>
-//                     <CardHeader>
-//                         <CardTitle>Active</CardTitle>
-//                     </CardHeader>
-//                     <CardContent>
-//                         <p className="text-2xl font-bold">
-//                             {
-//                                 students.filter(
-//                                     (s) =>
-//                                         isStudent(s) &&
-//                                         s.studentData?.status === "active"
-//                                 ).length
-//                             }
-//                         </p>
-//                     </CardContent>
-//                 </Card>
-//                 <Card>
-//                     <CardHeader>
-//                         <CardTitle>Pending Agency</CardTitle>
-//                     </CardHeader>
-//                     <CardContent>
-//                         <p className="text-2xl font-bold">
-//                             {
-//                                 students.filter(
-//                                     (s) =>
-//                                         isStudent(s) &&
-//                                         s.studentData?.status ===
-//                                             "pending-agency"
-//                                 ).length
-//                             }
-//                         </p>
-//                     </CardContent>
-//                 </Card>
-//                 <Card>
-//                     <CardHeader>
-//                         <CardTitle>Absent Today</CardTitle>
-//                     </CardHeader>
-//                     <CardContent>
-//                         <p className="text-2xl font-bold">8</p>
-//                     </CardContent>
-//                 </Card>
-//             </div>
-
-//             {/* Filters / Search */}
-//             <div className="flex items-center justify-between">
-//                 <Input
-//                     placeholder="Search students..."
-//                     className="max-w-sm"
-//                     value={search}
-//                     onChange={(e) => setSearch(e.target.value)}
-//                 />
-//                 <Button>Add Student</Button>
-//             </div>
-
-//             <Card>
-//                 <CardHeader>
-//                     <CardTitle>Student List</CardTitle>
-//                 </CardHeader>
-//                 <CardContent>
-//                     <Table>
-//                         <TableHeader>
-//                             <TableRow>
-//                                 <TableHead>Name</TableHead>
-//                                 <TableHead>Course</TableHead>
-//                                 <TableHead>Status</TableHead>
-//                                 <TableHead className="text-right">
-//                                     Actions
-//                                 </TableHead>
-//                             </TableRow>
-//                         </TableHeader>
-//                         <TableBody>
-//                             {filteredStudents.map((student) => (
-//                                 <TableRow key={student.uid}>
-//                                     <TableCell>{student.displayName}</TableCell>
-//                                     <TableCell>
-//                                         {isStudent(student) &&
-//                                             student.studentData?.program}
-//                                     </TableCell>
-//                                     <TableCell>
-//                                         {isStudent(student) &&
-//                                             student.studentData?.status}
-//                                     </TableCell>
-//                                     <TableCell className="text-right space-x-2">
-//                                         <Button size="sm" variant="outline">
-//                                             View
-//                                         </Button>
-//                                         <Button size="sm">Assign</Button>
-//                                     </TableCell>
-//                                 </TableRow>
-//                             ))}
-//                         </TableBody>
-//                     </Table>
-
-//                     {/* Next / Previous */}
-//                     <div className="flex justify-center mt-4 space-x-2">
-//                         <Button
-//                             onClick={() => loadStudents(false)}
-//                             disabled={prevDocs.length < 2 || loading}
-//                         >
-//                             Previous
-//                         </Button>
-//                         <Button
-//                             onClick={() => loadStudents(true)}
-//                             disabled={!lastDoc || loading}
-//                         >
-//                             Next
-//                         </Button>
-//                     </div>
-//                 </CardContent>
-//             </Card>
-//         </div>
-//     )
-// }
+import { studentColumns } from "@/features/chair-person/components/tables/users/student-columns"
+import { AssignAgencyModal } from "../components/assign-agency-modal"
+import type { Student } from "@/types/user"
+import { useUser } from "@/hooks/use-user"
+import { usePaginatedStudents } from "@/api/hooks/use-get-paginated-students"
+import { useDebounceValue } from "usehooks-ts"
+import { useSearchAgencies } from "@/api/hooks/use-search-agencies"
+import { useAssignStudentsToAgency } from "@/api/hooks/use-create-students-to-agency"
+import { toast } from "sonner"
+import { useStudentStats } from "@/api/hooks/use-student-stats"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function StudentManagerDashboard() {
-    return <div>Student manager dashboard</div>
+    const { user } = useUser()
+
+    const [searchTerm, setSearchTerm] = useState("")
+    const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500)
+    const [searchName, setSearchName] = useState("")
+    const [debouncedSearchName] = useDebounceValue(searchName, 500)
+    const [searchFields, setSearchFields] = useState({
+        firstName: "",
+        lastName: "",
+    })
+
+    const [filterNoAdviser, setFilterNoAdviser] = useState(false)
+    const [filterNoAgency, setFilterNoAgency] = useState(false)
+
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+    const [selectedStudents, setSelectedStudents] = useState<Student[]>([])
+    const hasAssignedAgency = selectedStudents.some((s) => s.assignedAgencyID)
+
+    const [modalOpen, setModalOpen] = useState(false)
+    const [checkedIds, setCheckedIds] = useState<string[]>([])
+    const [selectedAgencyId, setSelectedAgencyId] = useState<string | null>(
+        null
+    )
+
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 15 })
+
+    useEffect(() => {
+        if (!debouncedSearchName) {
+            setSearchFields({ firstName: "", lastName: "" })
+            return
+        }
+        const query = debouncedSearchName.trim().toLowerCase()
+        const [first, last] = query.split(" ")
+        setSearchFields({ firstName: first, lastName: last ?? "" })
+    }, [debouncedSearchName])
+
+    const {
+        students,
+        loading: isStudentsLoading,
+        totalItems: totalStudents,
+        pageCount: studentPageCount,
+        refetch: refetchStudents,
+        nextPage,
+        prevPage,
+    } = usePaginatedStudents(
+        {
+            firstName: searchFields.firstName,
+            lastName: searchFields.lastName,
+            hasNoAdviser: filterNoAdviser,
+            hasNoAgency: filterNoAgency,
+        },
+        { numPerPage: pagination.pageSize, enabled: !!user }
+    )
+
+    const handleSelectedRowsChange = (rows: Student[]) => {
+        setSelectedStudents((prev) => {
+            const newSelected = [...prev]
+            rows.forEach((row) => {
+                if (!newSelected.find((s) => s.studentID === row.studentID))
+                    newSelected.push(row)
+            })
+            const currentPageIds = students.map((d) => d.studentID)
+            return newSelected.filter(
+                (s) =>
+                    !currentPageIds.includes(s.studentID) ||
+                    rows.find((r) => r.studentID === s.studentID)
+            )
+        })
+    }
+
+    const handleOpenModal = () => {
+        setCheckedIds(selectedStudents.map((s) => s.uid))
+        setModalOpen(true)
+    }
+
+    const { data: agencies } = useSearchAgencies(debouncedSearchTerm, {
+        limitCount: 10,
+    })
+    const { loading: isAssignLoading, mutate: assignStudents } =
+        useAssignStudentsToAgency()
+
+    const {
+        assignedAdviserCount,
+        assignedAgencyCount,
+        totalStudents: studentCount,
+        refetch: refetchStats,
+    } = useStudentStats({ enabled: !!user })
+
+    return (
+        <>
+            <div className="flex flex-col p-4 gap-4">
+                <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            Manage Students
+                        </h1>
+                        <p className="text-muted-foreground">
+                            View and manage students.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                    <div className="col-span-12">
+                        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Total Students</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <span className="text-2xl font-bold">
+                                        {studentCount}
+                                    </span>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>
+                                        Students with Agencies
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <span className="text-2xl font-bold">
+                                        {assignedAgencyCount}
+                                    </span>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Total with Advisers</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <span className="text-2xl font-bold">
+                                        {assignedAdviserCount}
+                                    </span>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    <div className="col-span-12 flex flex-col gap-4">
+                        <div className="flex justify-between items-center">
+                            <div className="w-full max-w-xs flex gap-2">
+                                <Input
+                                    placeholder="Search by name"
+                                    value={searchName}
+                                    onChange={(e) =>
+                                        setSearchName(e.target.value)
+                                    }
+                                />
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <Filter className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="start"
+                                        className="w-48"
+                                    >
+                                        <DropdownMenuCheckboxItem
+                                            checked={filterNoAdviser}
+                                            onCheckedChange={setFilterNoAdviser}
+                                        >
+                                            Unassigned Adviser
+                                        </DropdownMenuCheckboxItem>
+                                        <DropdownMenuCheckboxItem
+                                            checked={filterNoAgency}
+                                            onCheckedChange={setFilterNoAgency}
+                                        >
+                                            Unassigned Agency
+                                        </DropdownMenuCheckboxItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+
+                            {rowSelection &&
+                                Object.keys(rowSelection).length > 0 && (
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button>Actions</Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem>
+                                                Assign Adviser
+                                            </DropdownMenuItem>
+                                            {!hasAssignedAgency && (
+                                                <DropdownMenuItem
+                                                    onSelect={handleOpenModal}
+                                                >
+                                                    Assign Agency
+                                                </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                )}
+                        </div>
+
+                        <ScrollArea
+                            type="always"
+                            className="w-full overflow-x-auto"
+                        >
+                            <DataTable
+                                data={students}
+                                columns={studentColumns}
+                                pagination={pagination}
+                                manualPagination
+                                pageCount={studentPageCount || 0}
+                                totalItems={totalStudents || 0}
+                                isLoading={isStudentsLoading}
+                                rowSelection={rowSelection}
+                                onRowSelectionChange={setRowSelection}
+                                onSelectedRowsChange={handleSelectedRowsChange}
+                                getRowId={(row) => row.studentID}
+                                onPaginationChange={(updater) => {
+                                    const newState =
+                                        typeof updater === "function"
+                                            ? updater(pagination)
+                                            : updater
+                                    if (
+                                        newState.pageIndex >
+                                        pagination.pageIndex
+                                    )
+                                        nextPage()
+                                    else if (
+                                        newState.pageIndex <
+                                        pagination.pageIndex
+                                    )
+                                        prevPage()
+                                    setPagination(newState)
+                                }}
+                            />
+                            <ScrollBar
+                                orientation="horizontal"
+                                className="w-full"
+                            />
+                        </ScrollArea>
+                    </div>
+                </div>
+            </div>
+
+            <AssignAgencyModal
+                open={modalOpen}
+                setOpen={setModalOpen}
+                selectedIds={checkedIds}
+                agencies={agencies || []}
+                selectedAgencyId={selectedAgencyId}
+                onAgencyChange={setSelectedAgencyId}
+                onSearch={setSearchTerm}
+                onCancel={() => setModalOpen(false)}
+                loading={isAssignLoading}
+                onSubmit={async () => {
+                    if (!selectedAgencyId) return
+
+                    await assignStudents({
+                        studentIds: checkedIds,
+                        agencyId: selectedAgencyId,
+                        agencyName:
+                            agencies?.find((a) => a.id === selectedAgencyId)
+                                ?.name || "",
+                    })
+                        .then(() => {
+                            refetchStudents()
+                            refetchStats()
+                            setCheckedIds([])
+                            setSelectedStudents([])
+                            setModalOpen(false)
+                            toast.success("Successfully assigned students")
+                        })
+                        .catch(() => {
+                            toast.error("Failed to assign students to agency")
+                            setModalOpen(false)
+                        })
+                }}
+            />
+        </>
+    )
 }

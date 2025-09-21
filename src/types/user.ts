@@ -34,6 +34,8 @@ export interface Student {
     photoUrl: string | null
     assignedAgencyID: string | null
     assignedAgencyName: string | null
+    assignedAdviserID: string | null
+    assignedAdviserName: string | null
     createdAt: Date | Timestamp | FieldValue
     updatedAt: Date | Timestamp | FieldValue
     assignedSchedule?: {
