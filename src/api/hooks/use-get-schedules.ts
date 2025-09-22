@@ -1,30 +1,27 @@
 import { useEffect, useState } from "react"
 
-import type { Scheduler } from "@/types/scheduler"
-import { getSchedules } from "../scheduler"
+import type { AppUser } from "@/types/user"
+import { getPracticumAdviser } from "../advisers"
 
-interface UseSchedulesOptions {
+interface UseAdviserOptions {
     enabled?: boolean
 }
 
-type SchedulesFilter = {
-    companyId?: string
-}
-
-export function useSchedules(
-    filter: SchedulesFilter = {},
-    options: UseSchedulesOptions = {}
+export function useAdviser(
+    uid: string | null,
+    options: UseAdviserOptions = {}
 ) {
-    const [data, setData] = useState<(Scheduler & { id: string })[]>([])
+    const [data, setData] = useState<AppUser | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
-    async function fetchSchedules() {
+    async function fetchAdviser() {
+        if (!uid) return
         setLoading(true)
         setError(null)
 
         try {
-            const result = await getSchedules(filter)
+            const result = await getPracticumAdviser(uid)
             setData(result)
         } catch (err) {
             setError(err instanceof Error ? err : new Error("Unknown error"))
@@ -36,11 +33,11 @@ export function useSchedules(
 
     useEffect(() => {
         if (options.enabled === false) return
+        if (!uid) return
 
-        fetchSchedules()
-
+        fetchAdviser()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [JSON.stringify(filter), options.enabled])
+    }, [uid, options.enabled])
 
-    return { data, loading, error, refetch: fetchSchedules }
+    return { data, loading, error, refetch: fetchAdviser }
 }

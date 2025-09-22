@@ -8,6 +8,7 @@ import {
     doc,
     serverTimestamp,
     setDoc,
+    getDoc,
 } from "firebase/firestore"
 
 import { db } from "@/service/firebase/firebase"
@@ -84,4 +85,39 @@ export async function createPracticumAdviser(
     await setDoc(userDoc, payload, { merge: true })
 
     return payload as AppUser
+}
+
+export async function getPracticumAdviser(
+    uid: string
+): Promise<AppUser | null> {
+    const userRef = doc(db, "users", uid)
+    const snap = await getDoc(userRef)
+
+    if (!snap.exists()) {
+        return null
+    }
+
+    const d = snap.data() as DocumentData
+
+    return {
+        uid: snap.id,
+        firstName: d.firstName,
+        lastName: d.lastName,
+        email: d.email,
+        displayName: d.displayName ?? null,
+        photoUrl: d.photoUrl ?? null,
+        role: d.role,
+        createdAt:
+            d.createdAt instanceof Timestamp
+                ? d.createdAt
+                : Timestamp.fromDate(new Date()),
+        updatedAt:
+            d.updatedAt instanceof Timestamp
+                ? d.updatedAt
+                : Timestamp.fromDate(new Date()),
+        adviserData: {
+            department: d.adviserData?.department ?? "",
+            studentCount: d.adviserData?.studentCount ?? 0,
+        },
+    } as AppUser
 }

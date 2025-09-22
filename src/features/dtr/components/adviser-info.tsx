@@ -3,14 +3,14 @@ import { Info } from "@/components/info"
 interface AdviserInfoProps {
     adviser: string
     email: string
-    phone: string
+    contact: string
     isLoading?: boolean
 }
 
 export function AdviserInfo({
     adviser,
     email,
-    phone,
+    contact,
     isLoading = false,
 }: AdviserInfoProps) {
     return (
@@ -28,8 +28,8 @@ export function AdviserInfo({
                 skeletonLength={160}
             />
             <Info
-                label="Phone"
-                value={phone}
+                label="Contact"
+                value={contact}
                 isLoading={isLoading}
                 skeletonLength={110}
             />

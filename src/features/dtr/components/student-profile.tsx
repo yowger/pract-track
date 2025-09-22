@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { violationTypeMap } from "@/data/violationts"
 import { StudentInfo } from "../components/student-info"
 import { AgencyInfo } from "../components/tables/agency-info"
+import { useAdviser } from "@/api/hooks/use-get-schedules"
+import { AdviserInfo } from "./adviser-info"
 
 interface StudentProfileProps {
     studentId: string
@@ -39,7 +41,9 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             enabled: Boolean(student?.assignedAgencyID),
         }
     )
-    const adviser = undefined
+    const { data: adviser, loading: adviserLoading } = useAdviser(
+        student?.assignedAgencyID || ""
+    )
     const { data: violations, loading: violationsLoading } = useGetViolations({
         studentId,
         limitCount: 3,
@@ -127,16 +131,13 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                 </CardHeader>
                                 <CardContent>
                                     {adviser ? (
-                                        <div>Adviser</div>
+                                        <AdviserInfo
+                                            adviser={adviser.displayName || ""}
+                                            email={adviser.email}
+                                            isLoading={adviserLoading}
+                                            contact={"-"}
+                                        />
                                     ) : (
-                                        // <AgencyInfo
-                                        //     agencyName={
-                                        //         adviser.department ?? "-"
-                                        //     }
-                                        //     supervisor={adviser.name}
-                                        //     location={adviser.location ?? "-"}
-                                        //     contact={adviser.contact ?? "-"}
-                                        // />
                                         <p className="text-muted-foreground text-sm">
                                             No adviser assigned
                                         </p>
