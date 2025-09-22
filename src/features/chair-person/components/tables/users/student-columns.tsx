@@ -104,14 +104,27 @@ export const studentColumns: ColumnDef<Student>[] = [
         },
     },
     {
-        accessorKey: "adviserNAme",
+        accessorKey: "assignedAdviserName",
         header: "Adviser",
         cell: ({ row }) => {
-            const adviserName = row.getValue("adviserNAme") as string
-            return adviserName ? (
-                adviserName
+            const agencyId = row.original.assignedAgencyID
+            const adviserName = row.getValue("assignedAdviserName") as
+                | string
+                | null
+
+            if (!adviserName) {
+                return <span className="text-muted-foreground">Unassigned</span>
+            }
+
+            return agencyId ? (
+                <Link
+                    to={`/agencies/${agencyId}`}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                    {adviserName}
+                </Link>
             ) : (
-                <span className="text-muted-foreground">Unassigned</span>
+                adviserName
             )
         },
     },

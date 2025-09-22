@@ -25,6 +25,9 @@ import { useAssignStudentsToAgency } from "@/api/hooks/use-create-students-to-ag
 import { toast } from "sonner"
 import { useStudentStats } from "@/api/hooks/use-student-stats"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePracticumAdvisers } from "@/api/hooks/use-get-practicum-advisers"
+import { AssignAdviserModal } from "../components/assign-adviser-modal"
+import { useAssignStudentsToAdviser } from "@/api/hooks/use-create-students-to-advisers"
 
 export default function StudentManagerDashboard() {
     const { user } = useUser()
@@ -43,7 +46,6 @@ export default function StudentManagerDashboard() {
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
     const [selectedStudents, setSelectedStudents] = useState<Student[]>([])
-    const hasAssignedAgency = selectedStudents.some((s) => s.assignedAgencyID)
 
     const [modalOpen, setModalOpen] = useState(false)
     const [checkedIds, setCheckedIds] = useState<string[]>([])
@@ -114,6 +116,20 @@ export default function StudentManagerDashboard() {
         totalStudents: studentCount,
         refetch: refetchStats,
     } = useStudentStats({ enabled: !!user })
+
+    const [adviserModalOpen, setAdviserModalOpen] = useState(false)
+    const [selectedAdviserId, setSelectedAdviserId] = useState<string | null>(
+        null
+    )
+
+    const handleOpenAdviserModal = () => {
+        setCheckedIds(selectedStudents.map((s) => s.uid))
+        setAdviserModalOpen(true)
+    }
+
+    const { data: advisers } = usePracticumAdvisers()
+    const { mutate: assignStudentsToAdviser, loading: isAssignAdviserLoading } =
+        useAssignStudentsToAdviser()
 
     return (
         <>
@@ -213,16 +229,18 @@ export default function StudentManagerDashboard() {
                                             <Button>Actions</Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onSelect={handleOpenModal}
+                                            >
+                                                Assign Agency
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onSelect={
+                                                    handleOpenAdviserModal
+                                                }
+                                            >
                                                 Assign Adviser
                                             </DropdownMenuItem>
-                                            {!hasAssignedAgency && (
-                                                <DropdownMenuItem
-                                                    onSelect={handleOpenModal}
-                                                >
-                                                    Assign Agency
-                                                </DropdownMenuItem>
-                                            )}
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 )}
@@ -286,8 +304,8 @@ export default function StudentManagerDashboard() {
 
                     await assignStudents({
                         studentIds: checkedIds,
-                        agencyId: selectedAgencyId,
-                        agencyName:
+                        newAgencyId: selectedAgencyId,
+                        newAgencyName:
                             agencies?.find((a) => a.id === selectedAgencyId)
                                 ?.name || "",
                     })
@@ -297,11 +315,50 @@ export default function StudentManagerDashboard() {
                             setCheckedIds([])
                             setSelectedStudents([])
                             setModalOpen(false)
+                            setRowSelection({})
                             toast.success("Successfully assigned students")
                         })
                         .catch(() => {
                             toast.error("Failed to assign students to agency")
                             setModalOpen(false)
+                        })
+                }}
+            />
+
+            <AssignAdviserModal
+                open={adviserModalOpen}
+                setOpen={setAdviserModalOpen}
+                selectedIds={checkedIds}
+                advisers={advisers || []}
+                selectedAdviserId={selectedAdviserId}
+                onAdviserChange={setSelectedAdviserId}
+                onSearch={() => {}} // TODO
+                onCancel={() => setAdviserModalOpen(false)}
+                loading={isAssignAdviserLoading}
+                onSubmit={async () => {
+                    if (!selectedAdviserId) return
+
+                    await assignStudentsToAdviser({
+                        studentIds: checkedIds,
+                        newAdviserId: selectedAdviserId,
+                        newAdviserName:
+                            advisers?.find((a) => a.uid === selectedAdviserId)
+                                ?.displayName || "",
+                    })
+                        .then(() => {
+                            refetchStudents()
+                            refetchStats()
+                            setCheckedIds([])
+                            setSelectedStudents([])
+                            setAdviserModalOpen(false)
+                            setRowSelection({})
+                            toast.success(
+                                "Successfully assigned students to adviser"
+                            )
+                        })
+                        .catch(() => {
+                            toast.error("Failed to assign students to adviser")
+                            setAdviserModalOpen(false)
                         })
                 }}
             />

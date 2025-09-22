@@ -71,7 +71,7 @@ export default function PreServiceStudentForm() {
                 section: values.section,
             })
 
-            window.location.reload() // TODO:
+            window.location.reload() 
         } catch (error) {
             if (error instanceof FirebaseError) {
                 const friendlyMessage =

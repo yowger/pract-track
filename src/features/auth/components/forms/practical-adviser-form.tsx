@@ -19,7 +19,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useUser } from "@/hooks/use-user"
+import { useCreatePracticumAdviser } from "@/api/hooks/use-create-practicum-adviser"
 
 const adviserSchema = z.object({
     firstName: z.string().min(1, "Given name is required"),
@@ -31,7 +32,9 @@ const adviserSchema = z.object({
 type AdviserFormValues = z.infer<typeof adviserSchema>
 
 export default function PracticumAdviserForm() {
-    const [loading, setLoading] = useState(false)
+    const { loading, error, mutate } = useCreatePracticumAdviser()
+
+    const { user } = useUser()
 
     const form = useForm<AdviserFormValues>({
         resolver: zodResolver(adviserSchema),
@@ -44,10 +47,18 @@ export default function PracticumAdviserForm() {
     })
 
     function onSubmit(values: AdviserFormValues) {
-        setLoading(true)
-        console.log("Form submitted:", values)
-        // TODO: Firebase create account logic
-        setLoading(false)
+        if (!user) return
+
+        mutate({
+            uid: user.uid,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: user.email ?? null,
+            displayName: `${values.firstName} ${values.lastName}`,
+            department: values.department,
+        }).then(() => {
+            window.location.reload()
+        })
     }
 
     return (
@@ -114,6 +125,8 @@ export default function PracticumAdviserForm() {
                         </FormItem>
                     )}
                 />
+
+                {error && <p className="text-sm text-red-500">{error}</p>}
 
                 <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating..." : "Create Account"}

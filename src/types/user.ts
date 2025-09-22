@@ -60,6 +60,7 @@ export interface Student {
 }
 
 export interface PracticumAdviser {
+    studentCount: number
     department: string
 }
 

@@ -18,9 +18,9 @@ import { Label } from "@/components/ui/label"
 import PreServiceStudentForm from "./forms/pre-service-student-form"
 import { Skeleton } from "@/components/ui/skeleton"
 
-// const PracticumAdviserForm = lazy(
-//     () => import("./forms/practical-adviser-form")
-// )
+const PracticumAdviserForm = lazy(
+    () => import("./forms/practical-adviser-form")
+)
 const ChairpersonForm = lazy(() => import("./forms/chair-person-form"))
 const AgencySupervisorForm = lazy(
     () => import("./forms/agency-supervisor-form")
@@ -38,8 +38,8 @@ export default function RoleSwitcher({
                 return <AgencySupervisorForm />
             case "chair_person":
                 return <ChairpersonForm />
-            // case "adviser":
-            //     return <PracticumAdviserForm />
+            case "adviser":
+                return <PracticumAdviserForm />
             default:
             case "student":
                 return <PreServiceStudentForm />
