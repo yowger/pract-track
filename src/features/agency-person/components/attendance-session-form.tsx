@@ -18,6 +18,7 @@ import "leaflet.locatecontrol/dist/L.Control.Locate.min.css"
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -133,7 +134,7 @@ export function AttendanceSessionsForm({
                                     <FormItem>
                                         {enableGeo && field.value && (
                                             <div className="flex flex-col md:flex-row gap-5">
-                                                <div className="h-64 md:h-80 md:w-[60%] border rounded">
+                                                <div className="h-64 md:h-80 md:w-[60%] border border-2 rounded-lg overflow-hidden">
                                                     <MapSelector
                                                         value={field.value}
                                                         onChange={
@@ -188,14 +189,9 @@ export function AttendanceSessionsForm({
                                                     </div>
 
                                                     <div>
-                                                        <FormLabel className="mb-1">
+                                                        <FormLabel className="mb-2">
                                                             Radius
                                                         </FormLabel>
-                                                        <p className="text-sm text-muted-foreground mb-2">
-                                                            The allowed area for
-                                                            attendance. Measured
-                                                            in meters.
-                                                        </p>
                                                         <Input
                                                             type="number"
                                                             value={
@@ -213,6 +209,11 @@ export function AttendanceSessionsForm({
                                                                 })
                                                             }
                                                         />
+                                                        <FormDescription className="mt-2">
+                                                            The allowed area for
+                                                            attendance. Measured
+                                                            in meters.
+                                                        </FormDescription>
                                                     </div>
                                                 </div>
                                             </div>
@@ -346,6 +347,10 @@ function SessionFields({
                         <FormControl>
                             <Input type="number" {...field} />
                         </FormControl>
+                        <FormDescription>
+                            Number of minutes allowed after start time before
+                            marking as late.
+                        </FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}
@@ -359,6 +364,10 @@ function SessionFields({
                         <FormControl>
                             <Input type="number" {...field} />
                         </FormControl>
+                        <FormDescription>
+                            Number of minutes before scheduled end time that
+                            counts as undertime.
+                        </FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}
@@ -372,6 +381,10 @@ function SessionFields({
                         <FormControl>
                             <Input type="number" {...field} />
                         </FormControl>
+                        <FormDescription>
+                            Maximum number of minutes before start time an
+                            employee can clock in.
+                        </FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}
@@ -431,6 +444,8 @@ function LocateControlWrapper({
         return () => {
             map.removeControl(control)
         }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [map])
 
     return null
