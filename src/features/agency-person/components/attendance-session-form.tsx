@@ -67,6 +67,7 @@ export function AttendanceSessionsForm({
     loading?: boolean
     defaultGeo?: { lat: number; lng: number; radius: number }
 }) {
+    const [enableGeo, setEnableGeo] = useState(!!defaultGeo)
     const [enablePm, setEnablePm] = useState(true)
     const form = useForm<AttendanceForm>({
         resolver: zodResolver(attendanceFormSchema),
@@ -113,14 +114,13 @@ export function AttendanceSessionsForm({
                                 name="geo"
                                 render={({ field }) => (
                                     <Switch
-                                        checked={!!field.value}
-                                        onCheckedChange={(val) =>
-                                            val
-                                                ? field.onChange(
-                                                      defaultGeo ?? DEFAULT_GEO
-                                                  )
-                                                : field.onChange(undefined)
-                                        }
+                                        checked={enableGeo}
+                                        onCheckedChange={(val) => {
+                                            setEnableGeo(val)
+                                            field.onChange(
+                                                val ? defaultGeo : undefined
+                                            )
+                                        }}
                                     />
                                 )}
                             />
@@ -131,7 +131,7 @@ export function AttendanceSessionsForm({
                                 name="geo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        {field.value && (
+                                        {enableGeo && field.value && (
                                             <div className="flex flex-col md:flex-row gap-5">
                                                 <div className="h-64 md:h-80 md:w-[60%] border rounded">
                                                     <MapSelector
@@ -431,7 +431,7 @@ function LocateControlWrapper({
         return () => {
             map.removeControl(control)
         }
-    }, [map, onChange, value])
+    }, [map])
 
     return null
 }
@@ -443,7 +443,9 @@ export function MapSelector({
     value: { lat: number; lng: number; radius: number }
     onChange: (val: { lat: number; lng: number; radius: number }) => void
 }) {
-    const defaultPos = value || { lat: 7.1907, lng: 125.4553, radius: 100 }
+    if (!value) return null
+
+    const defaultPos = value || DEFAULT_GEO
 
     return (
         <MapContainer center={defaultPos} zoom={18} className="h-full w-full">
