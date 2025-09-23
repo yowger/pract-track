@@ -134,7 +134,7 @@ export function AttendanceSessionsForm({
                                     <FormItem>
                                         {enableGeo && field.value && (
                                             <div className="flex flex-col md:flex-row gap-5">
-                                                <div className="h-64 md:h-80 md:w-[60%] border border-2 rounded-lg overflow-hidden">
+                                                <div className="h-64 md:h-80 md:w-[60%] border-2 rounded-lg overflow-hidden">
                                                     <MapSelector
                                                         value={field.value}
                                                         onChange={
