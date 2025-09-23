@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import DataTable from "@/components/data-table"
 import { studentColumns } from "@/features/chair-person/components/tables/users/student-columns"
-import AssignAgencyDrawer from "@/features/chair-person/components/tables/users/assign-agency-drawer"
+// import {  } from "@/features/chair-person/components/tables/users/assign-agency-drawer"
 import type { Student } from "@/types/user"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { useUser } from "@/hooks/use-user"
@@ -50,7 +50,7 @@ export default function InternshipDashboardPage() {
         totalItems: totalStudents,
         // totalReviewed: totalReviewedStudents,
         pageCount: studentPageCount,
-        refetch: refetchStudents,
+        // refetch: refetchStudents,
         nextPage,
         prevPage,
     } = usePaginatedStudents(
@@ -127,7 +127,7 @@ export default function InternshipDashboardPage() {
                     {selectedStudents.length} row(s) selected
                 </span>
 
-                {selectedStudents.length > 0 && (
+                {/* {selectedStudents.length > 0 && (
                     <AssignAgencyDrawer
                         selectedStudents={selectedStudents}
                         onSuccess={() => {
@@ -136,7 +136,7 @@ export default function InternshipDashboardPage() {
                             setRowSelection({})
                         }}
                     />
-                )}
+                )} */}
             </div>
 
             <div className="p-4 flex">
