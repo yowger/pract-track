@@ -21,6 +21,7 @@ export interface Profile {
 }
 
 export interface Student {
+    id: string
     uid: string
     studentID: string
     program: string

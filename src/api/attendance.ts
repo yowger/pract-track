@@ -10,6 +10,7 @@ import {
     getDocs,
     updateDoc,
     getDoc,
+    writeBatch,
 } from "firebase/firestore"
 import { nanoid } from "nanoid"
 
@@ -43,7 +44,6 @@ export async function updateAttendance(
     id: string,
     updates: Partial<Omit<Attendance, "id">>
 ) {
-    console.log("🚀 ~ updateAttendance ~ updates:", updates)
     const docRef = doc(db, "attendances", id)
 
     await updateDoc(docRef, {
@@ -163,6 +163,7 @@ export async function getOrCreateAttendance(data: {
             date: today,
         },
         agencyId,
+        agencyName: "",
         user: { id: user.id, name: user.name, photoUrl: user.photoUrl },
         sessions,
         markedBy: "self",
@@ -177,4 +178,45 @@ export async function getOrCreateAttendance(data: {
         console.error("Failed to create attendance:", err)
         return null
     }
+}
+
+interface CreateAttendanceForStudentsInput {
+    students: { id: string; name: string; photoUrl: string | null }[]
+    sessions: AttendanceSession[]
+    schedule: { id: string; date: Date | Timestamp }
+    agency: { id: string; name: string }
+}
+
+export async function createAttendanceForStudents({
+    students,
+    sessions,
+    schedule,
+    agency,
+}: CreateAttendanceForStudentsInput) {
+    const batch = writeBatch(db)
+
+    students.forEach((student) => {
+        const attendanceRef = doc(collection(db, "attendance"))
+
+        const sessionsWithId = sessions.map((s) => ({
+            ...s,
+            id: crypto.randomUUID(),
+        }))
+
+        batch.set(attendanceRef, {
+            id: attendanceRef.id,
+            agencyId: agency.id,
+            agencyName: agency.name,
+            schedule,
+            user: student,
+            sessions: sessionsWithId,
+            overallStatus: "absent",
+            markedBy: "agency",
+            totalWorkMinutes: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        })
+    })
+
+    await batch.commit()
 }

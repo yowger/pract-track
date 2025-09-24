@@ -57,7 +57,7 @@ const attendanceFormSchema = z.object({
         .optional(),
 })
 
-type AttendanceForm = z.infer<typeof attendanceFormSchema>
+export type AttendanceForm = z.infer<typeof attendanceFormSchema>
 
 export function AttendanceSessionsForm({
     onSubmit,

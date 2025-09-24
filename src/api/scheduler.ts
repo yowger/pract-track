@@ -8,8 +8,10 @@ import {
     where,
     type Query,
     updateDoc,
+    serverTimestamp,
+    setDoc,
 } from "firebase/firestore"
-import type { Scheduler } from "@/types/scheduler"
+import type { PlannedSession, Schedule, Scheduler } from "@/types/scheduler"
 import { db } from "@/service/firebase/firebase"
 
 export async function saveSchedule(schedule: Omit<Scheduler, "id">) {
@@ -72,4 +74,25 @@ export async function getScheduleById(
         id: snapshot.id,
         ...snapshot.data(),
     } as Scheduler
+}
+
+export async function createSchedule(
+    date: Date,
+    agency: { id: string; name: string },
+    sessions: PlannedSession[] = []
+): Promise<Schedule> {
+    const scheduleRef = doc(collection(db, "schedules"))
+
+    const schedule: Schedule = {
+        id: scheduleRef.id,
+        date,
+        agencyId: agency.id,
+        agencyName: agency.name,
+        sessions,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    }
+
+    await setDoc(scheduleRef, schedule)
+    return schedule
 }

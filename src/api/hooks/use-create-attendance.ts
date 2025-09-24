@@ -23,6 +23,7 @@ export const useCreateAttendance = () => {
                 throw err
             } else {
                 setError("Failed to clock in/out")
+                throw new Error("Failed to clock in/out")
             }
         } finally {
             setLoading(false)

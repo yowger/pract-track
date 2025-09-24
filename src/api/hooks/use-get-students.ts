@@ -27,6 +27,7 @@ export function useStudents(
         try {
             const all = await getAllStudents(filter)
             setStudents(all)
+            return all
         } catch (err) {
             setError("Failed to fetch students")
             throw err

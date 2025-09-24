@@ -1,4 +1,5 @@
 import type { FieldValue, Timestamp } from "firebase/firestore"
+import type { PlannedSession } from "./scheduler"
 
 export interface GeoLocation {
     lat: number
@@ -14,17 +15,18 @@ export type StatusTypes =
 
 export interface AttendanceSession {
     id: string
-    schedule: {
-        start?: Date | Timestamp
-        end?: Date | Timestamp
-        geoLocation?: GeoLocation
-        geoRadius?: number
-        photoStart?: boolean
-        photoEnd?: boolean
-        lateThresholdMins?: number
-        undertimeThresholdMins?: number
-        earlyClockInMins?: number
-    }
+    // schedule: {
+    //     start?: Date | Timestamp
+    //     end?: Date | Timestamp
+    //     geoLocation?: GeoLocation
+    //     geoRadius?: number
+    //     photoStart?: boolean
+    //     photoEnd?: boolean
+    //     lateThresholdMins?: number
+    //     undertimeThresholdMins?: number
+    //     earlyClockInMins?: number
+    // }
+    schedule: PlannedSession
     checkInInfo?: {
         time: Date | Timestamp
         geo: GeoLocation
@@ -47,6 +49,7 @@ export interface AttendanceSession {
 export interface Attendance {
     id: string
     agencyId: string
+    agencyName: string
     schedule: {
         id: string
         name: string
