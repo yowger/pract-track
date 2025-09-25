@@ -196,7 +196,7 @@ export async function createAttendanceForStudents({
     const batch = writeBatch(db)
 
     students.forEach((student) => {
-        const attendanceRef = doc(collection(db, "attendance"))
+        const attendanceRef = doc(collection(db, "attendances"))
 
         const sessionsWithId = sessions.map((s) => ({
             ...s,

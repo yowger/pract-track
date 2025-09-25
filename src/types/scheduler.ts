@@ -39,6 +39,7 @@ export interface Scheduler {
 export interface PlannedSession {
     start: Date | Timestamp
     end: Date | Timestamp
+    address?: string
     geoLocation?: GeoLocation
     geoRadius?: number
     photoStart?: boolean

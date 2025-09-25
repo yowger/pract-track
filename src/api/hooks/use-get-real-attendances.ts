@@ -68,7 +68,6 @@ export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
                 ...conditions,
                 orderBy("updatedAt", "desc")
             )
-            console.log("🚀 ~ useGetRealAttendances ~ filters:", filters)
 
             const unsubscribe = onSnapshot(
                 q,
@@ -114,6 +113,7 @@ export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
             setLoading(false)
         }
     }, [
+        filters.agencyId,
         filters.userId,
         filters.scheduleId,
         filters.status,

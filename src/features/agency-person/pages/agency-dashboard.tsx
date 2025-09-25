@@ -1,21 +1,72 @@
+import { Timestamp } from "firebase/firestore"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Link } from "react-router-dom"
+
 import { useGetRealAttendances } from "@/api/hooks/use-get-real-attendances"
-import DataTable from "@/components/data-table"
+import { useGetSchedules } from "@/api/hooks/use-get-real-schedule"
 import { useUser } from "@/hooks/use-user"
 import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
 import type { Attendance } from "@/types/attendance"
+import type { PlannedSession } from "@/types/scheduler"
 import { isAgency } from "@/types/user"
-import type { ColumnDef } from "@tanstack/react-table"
+import DataTable from "@/components/data-table"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { useMemo } from "react"
+
+const statusColors: Record<NonNullable<Attendance["overallStatus"]>, string> = {
+    present: "bg-green-500",
+    late: "bg-yellow-500",
+    absent: "bg-red-500",
+    excused: "bg-blue-500",
+    undertime: "bg-orange-500",
+    overtime: "bg-purple-500",
+}
 
 const attendanceColumns: ColumnDef<Attendance>[] = [
+    // {
+    //     accessorKey: "schedule.date",
+    //     header: "Date",
+    //     cell: ({ row }) => {
+    //         const date = row.original.schedule.date
+    //         const d = date instanceof Date ? date : date?.toDate?.()
+    //         return (
+    //             <div className="align-top flex items-start">
+    //                 <span>{d ? d.toLocaleDateString("en-US") : null}</span>
+    //             </div>
+    //         )
+    //     },
+    // },
     {
-        accessorKey: "schedule.date",
-        header: "Date",
+        id: "name",
+        accessorKey: "user.name",
+        header: "Name",
         cell: ({ row }) => {
-            const date = row.original.schedule.date
-            const d = date instanceof Date ? date : date?.toDate?.()
+            const { name, photoUrl } = row.original.user
+            const initials = name
+                ? name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                : "?"
+
             return (
-                <div className="align-top flex items-start">
-                    <span>{d ? d.toLocaleDateString("en-US") : null}</span>
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={photoUrl} alt={name} />
+                        <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <span>{name}</span>
                 </div>
             )
         },
@@ -170,21 +221,41 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
             )
         },
     },
+    {
+        id: "status",
+        accessorKey: "overallStatus",
+        header: "Status",
+        cell: ({ row }) => {
+            const status = row.original.overallStatus || "absent"
+            const color = statusColors[status] || "bg-gray-500"
+
+            return (
+                <Badge className={`${color} text-white capitalize`}>
+                    {status}
+                </Badge>
+            )
+        },
+    },
 ]
+
+const today = new Date()
 
 export default function AgencyDashboardPage() {
     const { user } = useUser()
-    console.log("🚀 ~ AgencyDashboardPage ~ user:", user)
+    const agencyId = user && isAgency(user) ? user.companyData?.ownerId : ""
 
-    const { data: attendances, error: attendancesError } =
-        useGetRealAttendances({
-            agencyId: user && isAgency(user) ? user.companyData?.ownerId : "",
-        })
-    console.log(
-        "🚀 ~ AgencyDashboardPage ~ attendancesError:",
-        attendancesError
-    )
-    console.log("🚀 ~ AgencyDashboardPage ~ attendances:", attendances)
+    const { data: attendances } = useGetRealAttendances({
+        agencyId,
+    })
+    const { data: todaySchedules } = useGetSchedules({
+        date: today,
+        agencyId,
+        limitCount: 1,
+    })
+    const firstSchedule = todaySchedules?.[0]
+
+    const stats = useAttendanceStats(attendances)
+    console.log("🚀 ~ AgencyDashboardPage ~ stats:", stats)
 
     return (
         <div className="flex flex-col p-4 gap-4">
@@ -201,13 +272,200 @@ export default function AgencyDashboardPage() {
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
-                <div className="col-span-12">
-                    <DataTable
-                        columns={attendanceColumns}
-                        data={attendances || []}
-                    />
+                <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex justify-between items-center">
+                                <span>Today’s schedule</span>
+                                {firstSchedule && (
+                                    <Button size="sm">Generate QR</Button>
+                                )}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {!firstSchedule ? (
+                                <div className="flex flex-col items-center">
+                                    <p className="text-muted-foreground mb-2">
+                                        No session created yet
+                                    </p>
+                                    <Button asChild size="sm">
+                                        <Link to="/dtr">Generate Session</Link>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    <SessionTable
+                                        sessions={firstSchedule.sessions}
+                                    />
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-12 gap-4">
+                        <div className="col-span-6 md:col-span-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Present</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl font-bold">
+                                        {stats.present}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="col-span-6 md:col-span-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Late</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl font-bold">
+                                        {stats.late}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="col-span-6 md:col-span-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Excused</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl font-bold">
+                                        {stats.excused}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="col-span-6 md:col-span-3">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Absent</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-2xl font-bold">
+                                        {stats.absent}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Attendance Records</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                                columns={attendanceColumns}
+                                data={attendances || []}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="col-span-12 lg:col-span-4 flex flex-col gap-5">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Complaints</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p>Complaints here</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Excuse Approvals</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p>Excuse Approvals here</p>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>
     )
+}
+
+interface SessionTableProps {
+    sessions: PlannedSession[]
+}
+
+export function SessionTable({ sessions }: SessionTableProps) {
+    const formatTime = (time: Date | Timestamp) => {
+        const d = time instanceof Timestamp ? time.toDate() : new Date(time)
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    }
+
+    return (
+        <div className="rounded-md border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Start</TableHead>
+                        <TableHead>End</TableHead>
+                        {/* <TableHead>Late</TableHead>
+                        <TableHead>Undertime</TableHead>
+                        <TableHead>Early In</TableHead> */}
+                        <TableHead>Location</TableHead>
+                        <TableHead>Photo</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {sessions.map((s, idx) => (
+                        <TableRow key={idx}>
+                            <TableCell>{formatTime(s.start)}</TableCell>
+                            <TableCell>{formatTime(s.end)}</TableCell>
+                            {/* <TableCell>{s.lateThresholdMins} m</TableCell>
+                            <TableCell>{s.undertimeThresholdMins} m</TableCell>
+                            <TableCell>{s.earlyClockInMins} m</TableCell> */}
+                            {/* <TableCell > */}
+                            {/* {s.geoLocation?.lat}, {s.geoLocation?.lng} (
+                                {s.geoRadius}m) */}
+                            {/* {s.address} */}
+                            {/* </TableCell> */}
+                            <TableCell
+                                className="max-w-[200px] truncate"
+                                title={s.address}
+                            >
+                                {s.address}
+                            </TableCell>
+                            <TableCell>
+                                {s.photoStart || s.photoEnd ? "Yes" : "No"}
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+    )
+}
+
+function useAttendanceStats(attendances?: Attendance[]) {
+    return useMemo(() => {
+        const stats = {
+            present: 0,
+            late: 0,
+            excused: 0,
+            absent: 0,
+            undertime: 0,
+            overtime: 0,
+        }
+
+        if (!attendances) return stats
+
+        for (const att of attendances) {
+            if (att.overallStatus && stats[att.overallStatus] !== undefined) {
+                stats[att.overallStatus]++
+            }
+        }
+
+        return stats
+    }, [attendances])
 }

@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom"
+
 import { useStudents } from "@/api/hooks/use-get-students"
 import {
     AttendanceSessionsForm,
@@ -12,6 +14,7 @@ import type { PlannedSession } from "@/types/scheduler"
 import type { AttendanceSession } from "@/types/attendance"
 
 export default function AgencyCreateDtr() {
+    const navigate = useNavigate()
     const { user } = useUser()
     const agencyId = user && isAgency(user) ? user.companyData?.ownerId : null
 
@@ -54,8 +57,20 @@ export default function AgencyCreateDtr() {
 
                             const today = new Date()
 
+                            let address = ""
+                            if (values.geo?.lat && values.geo?.lng) {
+                                address = await getAddressFromCoords(
+                                    values.geo.lat,
+                                    values.geo.lng
+                                )
+                            }
+
                             const sessions: PlannedSession[] =
-                                mapAttendanceFormToSessions(today, values)
+                                mapAttendanceFormToSessions(
+                                    today,
+                                    values,
+                                    address
+                                )
 
                             const attendanceSession: AttendanceSession[] = []
 
@@ -86,6 +101,8 @@ export default function AgencyCreateDtr() {
                                 agency: { id: agencyId, name: agencyName },
                                 schedule: { id: schedule.id, date: today },
                             })
+
+                            navigate("/", { replace: true })
                         }}
                     />
                 </div>
@@ -96,7 +113,8 @@ export default function AgencyCreateDtr() {
 
 function mapAttendanceFormToSessions(
     date: Date,
-    values: AttendanceForm
+    values: AttendanceForm,
+    address: string
 ): PlannedSession[] {
     const sessions: PlannedSession[] = []
 
@@ -109,6 +127,7 @@ function mapAttendanceFormToSessions(
                 lng: values.geo?.lng || 0,
             },
             geoRadius: values.geo?.radius,
+            address,
             photoStart: values.am.photoStart,
             photoEnd: values.am.photoEnd,
             lateThresholdMins: values.am.lateThresholdMins,
@@ -119,13 +138,14 @@ function mapAttendanceFormToSessions(
 
     if (values.pm) {
         sessions.push({
-            start: combineDateAndTime(date, values.am.start),
-            end: combineDateAndTime(date, values.am.end),
+            start: combineDateAndTime(date, values.pm.start),
+            end: combineDateAndTime(date, values.pm.end),
             geoLocation: {
                 lat: values.geo?.lat || 0,
                 lng: values.geo?.lng || 0,
             },
             geoRadius: values.geo?.radius,
+            address,
             photoStart: values.pm.photoStart,
             photoEnd: values.pm.photoEnd,
             lateThresholdMins: values.pm.lateThresholdMins,
@@ -142,4 +162,21 @@ function combineDateAndTime(date: Date, time: string): Date {
     const now = date
 
     return setMinutes(setHours(now, hours), minutes)
+}
+
+async function getAddressFromCoords(lat: number, lng: number): Promise<string> {
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        )
+        const data = await res.json()
+
+        return data.display_name || ""
+    } catch (error) {
+        if (error instanceof Error) {
+            return "unknown address"
+        }
+
+        return "unknown address"
+    }
 }
