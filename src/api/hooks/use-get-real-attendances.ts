@@ -16,8 +16,7 @@ export type AttendanceFilter = {
     scheduleId?: string
     agencyId?: string
     status?: string
-    from?: Date
-    to?: Date
+    date?: Date | Timestamp
 }
 
 export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
@@ -47,26 +46,47 @@ export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
                 conditions.push(where("overallStatus", "==", filters.status))
             }
 
-            if (filters.from) {
+            // if (filters.from) {
+            //     conditions.push(
+            //         where(
+            //             "schedule.date",
+            //             ">=",
+            //             Timestamp.fromDate(filters.from)
+            //         )
+            //     )
+            // }
+
+            // if (filters.to) {
+            //     conditions.push(
+            //         where("schedule.date", "<=", Timestamp.fromDate(filters.to))
+            //     )
+            // }
+            if (filters.date) {
+                const date =
+                    filters.date instanceof Date
+                        ? filters.date
+                        : (filters.date as Timestamp).toDate()
+
+                const startOfDay = new Date(date)
+                startOfDay.setHours(0, 0, 0, 0)
+
+                const endOfDay = new Date(date)
+                endOfDay.setHours(23, 59, 59, 999)
+
                 conditions.push(
                     where(
                         "schedule.date",
                         ">=",
-                        Timestamp.fromDate(filters.from)
-                    )
-                )
-            }
-
-            if (filters.to) {
-                conditions.push(
-                    where("schedule.date", "<=", Timestamp.fromDate(filters.to))
+                        Timestamp.fromDate(startOfDay)
+                    ),
+                    where("schedule.date", "<=", Timestamp.fromDate(endOfDay))
                 )
             }
 
             const q = query(
                 attendancesRef,
                 ...conditions,
-                orderBy("updatedAt", "desc")
+                orderBy("schedule.date", "asc")
             )
 
             const unsubscribe = onSnapshot(
@@ -117,8 +137,9 @@ export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
         filters.userId,
         filters.scheduleId,
         filters.status,
-        filters.from,
-        filters.to,
+        // filters.from,
+        // filters.to,
+        filters.date,
     ])
 
     return { data: attendances, loading, error }

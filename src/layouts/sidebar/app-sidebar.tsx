@@ -154,11 +154,11 @@ const sidebarConfig: SidebarConfig = {
             url: "/",
             icon: LayoutDashboard,
         },
-        {
-            title: "Daily Time Record",
-            url: "/dtr",
-            icon: Timer,
-        },
+        // {
+        //     title: "Daily Time Record",
+        //     url: "/dtr",
+        //     icon: Timer,
+        // },
         // {
         //     title: "Interns",
         //     url: "/interns",

@@ -24,6 +24,9 @@ import AttendanceHistory from "./features/dtr/pages/attendance-history"
 // const ViewScheudulePage = lazy(
 //     () => import("@/features/agency-person/pages/view-schedule")
 // )
+const AgencyDtrQrPage = lazy(
+    () => import("@/features/agency-person/pages/agency-dtr-qr")
+)
 const AgencyCreateDtrPage = lazy(
     () => import("@/features/agency-person/pages/agency-create-dtr")
 )
@@ -173,6 +176,7 @@ const agencySupervisorRoutes = (
                         element={<CreateSchedulePage />}
                     />
                     <Route path="/dtr" element={<AgencyCreateDtrPage />} />
+                    <Route path="/dtr/qr" element={<AgencyDtrQrPage />} />
                     <Route
                         path="/schedules/:scheduleId"
                         element={<ViewSchedule />}

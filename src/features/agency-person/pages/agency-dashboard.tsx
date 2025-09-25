@@ -244,18 +244,18 @@ export default function AgencyDashboardPage() {
     const { user } = useUser()
     const agencyId = user && isAgency(user) ? user.companyData?.ownerId : ""
 
-    const { data: attendances } = useGetRealAttendances({
-        agencyId,
-    })
     const { data: todaySchedules } = useGetSchedules({
         date: today,
         agencyId,
         limitCount: 1,
     })
     const firstSchedule = todaySchedules?.[0]
+    const { data: attendances } = useGetRealAttendances({
+        agencyId,
+        date: today,
+    })
 
     const stats = useAttendanceStats(attendances)
-    console.log("🚀 ~ AgencyDashboardPage ~ stats:", stats)
 
     return (
         <div className="flex flex-col p-4 gap-4">
@@ -278,7 +278,11 @@ export default function AgencyDashboardPage() {
                             <CardTitle className="flex justify-between items-center">
                                 <span>Today’s schedule</span>
                                 {firstSchedule && (
-                                    <Button size="sm">Generate QR</Button>
+                                    <Button size="sm" asChild>
+                                        <Link to={`/dtr/${firstSchedule.id}`}>
+                                            Generate QR
+                                        </Link>
+                                    </Button>
                                 )}
                             </CardTitle>
                         </CardHeader>
@@ -288,8 +292,11 @@ export default function AgencyDashboardPage() {
                                     <p className="text-muted-foreground mb-2">
                                         No session created yet
                                     </p>
+
                                     <Button asChild size="sm">
-                                        <Link to="/dtr">Generate Session</Link>
+                                        <Link to="/dtr/qr">
+                                            Generate Session
+                                        </Link>
                                     </Button>
                                 </div>
                             ) : (
