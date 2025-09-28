@@ -22,7 +22,14 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from "@/components/ui/hover-card"
+import { DialogTitle } from "@radix-ui/react-dialog"
 
 const statusColors: Record<NonNullable<Attendance["overallStatus"]>, string> = {
     present: "bg-green-500",
@@ -169,25 +176,11 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
                     photos.push(s.checkOutInfo.photoUrl)
             })
 
-            if (!photos.length)
-                return <span className="text-muted-foreground"></span>
+            if (!photos.length) {
+                return <span className="text-muted-foreground">-</span>
+            }
 
-            return (
-                <div className="flex flex-col gap-1">
-                    {photos.map((url, idx) => (
-                        <a
-                            key={idx}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 block max-w-[150px] truncate"
-                            title={url}
-                        >
-                            {url}
-                        </a>
-                    ))}
-                </div>
-            )
+            return <SharedImagePreview photos={photos} />
         },
     },
     {
@@ -279,9 +272,7 @@ export default function AgencyDashboardPage() {
                                 <span>Today’s schedule</span>
                                 {firstSchedule && (
                                     <Button size="sm" asChild>
-                                        <Link to={`/dtr/qr`}>
-                                            Generate QR
-                                        </Link>
+                                        <Link to={`/dtr/qr`}>Generate QR</Link>
                                     </Button>
                                 )}
                             </CardTitle>
@@ -294,9 +285,7 @@ export default function AgencyDashboardPage() {
                                     </p>
 
                                     <Button asChild size="sm">
-                                        <Link to="/dtr">
-                                            Generate Session
-                                        </Link>
+                                        <Link to="/dtr">Generate Session</Link>
                                     </Button>
                                 </div>
                             ) : (
@@ -475,4 +464,55 @@ function useAttendanceStats(attendances?: Attendance[]) {
 
         return stats
     }, [attendances])
+}
+
+interface SharedImagePreviewProps {
+    photos: string[]
+}
+
+export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
+    const [selected, setSelected] = useState<string | null>(null)
+
+    return (
+        <>
+            <div className="flex gap-2 flex-wrap">
+                {photos.map((url, idx) => (
+                    <HoverCard key={idx} openDelay={150} closeDelay={100}>
+                        <HoverCardTrigger asChild>
+                            <img
+                                src={url}
+                                alt={`Preview ${idx}`}
+                                onClick={() => setSelected(url)}
+                                className="h-10 w-10 rounded object-cover cursor-pointer"
+                            />
+                        </HoverCardTrigger>
+                        <HoverCardContent
+                            className="w-auto p-0 bg-transparent border-none shadow-none"
+                            side="right"
+                            align="start"
+                        >
+                            <img
+                                src={url}
+                                alt={`Preview ${idx}`}
+                                className="max-h-64 rounded shadow-lg border"
+                            />
+                        </HoverCardContent>
+                    </HoverCard>
+                ))}
+            </div>
+
+            <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
+                <DialogContent className="p-0 bg-transparent border-none shadow-none [&>button:last-child]:absolute [&>button:last-child]:top-4 [&>button:last-child]:right-10">
+                    <DialogTitle className="sr-only"></DialogTitle>
+                    {selected && (
+                        <img
+                            src={selected}
+                            alt="Full Preview"
+                            className="max-h-[80vh] mx-auto rounded shadow-lg"
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
+    )
 }

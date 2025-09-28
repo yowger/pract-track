@@ -13,7 +13,7 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
     {
         accessorKey: "timeRange",
         header: "Clock-in & Out",
-        size: 50,
+        size: 150,
         cell: ({ row, column }) => {
             const { checkInInfo, checkOutInfo, schedule } = row.original
 
