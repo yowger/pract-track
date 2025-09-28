@@ -1,63 +1,46 @@
-import { format } from "date-fns"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { useGeolocated } from "react-geolocated"
 import { toast } from "sonner"
+import BarcodeScannerComponent from "react-qr-barcode-scanner"
+import Webcam from "react-webcam"
 
-import { useSchedule } from "@/api/hooks/use-fetch-schedule-by-id"
+import { useGetRealAttendances } from "@/api/hooks/use-get-real-attendances"
 import { useServerTime } from "@/api/hooks/use-get-server-time"
-import { useGetOrCreateAttendance } from "@/api/hooks/use-get-or-create-attendance"
 import { useCreateAttendance } from "@/api/hooks/use-create-attendance"
-import TimeTrackingCard from "../components/time-tracking-card"
-import { AttendanceList } from "../components/attendance-list"
 import { useUser } from "@/hooks/use-user"
-import { isStudent } from "@/types/user"
-import type { Attendance } from "@/types/attendance"
+import { useCloudinaryUpload } from "@/api/hooks/use-upload-files"
+import TimeTrackingCardQr from "../components/time-tracking-card-qr"
+import { AttendanceList } from "../components/attendance-list"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { DialogTitle } from "@radix-ui/react-dialog"
+import { Button } from "@/components/ui/button"
+import { getCurrentSession, reverseGeocode } from "@/service/attendance-service"
+
+const today = new Date()
 
 export default function Attendance() {
     const { user } = useUser()
     const { serverTime } = useServerTime()
 
-    const [currentTime, setCurrentTime] = useState(serverTime || null)
-    const [isClockedIn] = useState(false)
-    // console.log("🚀 ~ Attendance ~ setIsClockedIn:", setIsClockedIn)
-    const isInRange = true
+    const [currentTime, setCurrentTime] = useState<Date | null>(
+        serverTime || null
+    )
+    const [showScanner, setShowScanner] = useState(false)
+    const [showCamera, setShowCamera] = useState(false)
+    const [capturedImage, setCapturedImage] = useState<string | null>(null)
+
+    const webcamRef = useRef<Webcam>(null)
+    const scanningRef = useRef(false)
 
     const { coords } = useGeolocated({
         positionOptions: { enableHighAccuracy: false },
         userDecisionTimeout: 5000,
     })
 
-    const today = format(new Date(), "EEEE").toLowerCase()
-    const attendance =
-        user && isStudent(user) ? user.studentData.assignedSchedule : null
-    const { schedule, loading: loadingSchedule } = useSchedule(attendance?.id, {
-        enabled: !!attendance,
-    })
-    const todaysSchedule = schedule?.weeklySchedule.find(
-        (day) => day.day === today
-    )
-    const hasSession = todaysSchedule?.sessions.some((s) => s.start && s.end)
-    const hasData = !!user && !!serverTime && !loadingSchedule
+    const { data: attendances, loading: loadingAttendances } =
+        useGetRealAttendances({ userId: user?.uid || "", date: today })
 
-    const {
-        attendance: attendanceList,
-        loading: loadingAttendance,
-        refetch: refetchAttendance,
-    } = useGetOrCreateAttendance(
-        {
-            user: {
-                id: user?.uid || "",
-                name: user?.displayName || "",
-                photoUrl: user?.photoUrl || "",
-            },
-            scheduler: schedule || undefined,
-
-            today: serverTime || undefined,
-        },
-        {
-            enabled: hasData,
-        }
-    )
+    const firstAttendance = attendances?.[0]
 
     const {
         loading: loadingCreateAttendance,
@@ -65,36 +48,11 @@ export default function Attendance() {
         handleToggleClock,
     } = useCreateAttendance()
 
+    const { upload } = useCloudinaryUpload()
+
     useEffect(() => {
         if (errorCreateAttendance) toast.error(errorCreateAttendance)
     }, [errorCreateAttendance])
-
-    async function handleClockToggle() {
-        if (
-            !user ||
-            !todaysSchedule ||
-            !schedule ||
-            !currentTime ||
-            !hasSession ||
-            !coords
-        )
-            return
-
-        if (!attendanceList) {
-            return toast.error("You are not assigned to any schedule")
-        }
-
-        await handleToggleClock({
-            attendance: attendanceList,
-            date: serverTime || new Date(),
-            geo: {
-                lat: coords.latitude,
-                lng: coords.longitude,
-            },
-        })
-
-        refetchAttendance()
-    }
 
     useEffect(() => {
         if (!serverTime) return
@@ -103,45 +61,257 @@ export default function Attendance() {
             () => setCurrentTime(new Date(Date.now() + offset)),
             1000
         )
-
         return () => clearInterval(timer)
     }, [serverTime])
 
+    const handleClocker = useCallback(() => {
+        if (!attendances) {
+            toast.error("No schedule found for today.", { duration: 5000 })
+            return
+        }
+        setShowScanner(true)
+    }, [attendances])
+
+    const handleClockToggle = useCallback(
+        async (agencyId?: string) => {
+            if (scanningRef.current) return
+            scanningRef.current = true
+
+            try {
+                if (!user || !currentTime || !coords || !agencyId) {
+                    throw new Error(
+                        "Unable to process attendance. Please try again."
+                    )
+                }
+
+                const {
+                    session: currentSession,
+                    reason,
+                    sessionIndex,
+                    isClockIn,
+                    isClockOut,
+                } = getCurrentSession({
+                    attendance: firstAttendance,
+                    date: serverTime || new Date(),
+                })
+
+                if (!currentSession || sessionIndex === undefined) {
+                    throw new Error(reason || "No active session available")
+                }
+
+                const needsPhoto =
+                    (isClockIn &&
+                        firstAttendance?.sessions[sessionIndex].schedule
+                            .photoStart) ||
+                    (isClockOut &&
+                        firstAttendance?.sessions[sessionIndex].schedule
+                            .photoEnd)
+
+                if (needsPhoto) {
+                    setShowCamera(true)
+                    return
+                }
+
+                const address = await reverseGeocode({
+                    lat: coords.latitude,
+                    lng: coords.longitude,
+                })
+
+                await handleToggleClock({
+                    attendance: firstAttendance,
+                    currentSession,
+                    date: serverTime || new Date(),
+                    geo: { lat: coords.latitude, lng: coords.longitude },
+                    address,
+                    ...(isClockIn ? { isClockIn: true } : { isClockOut: true }),
+                })
+
+                toast.success("Attendance updated successfully")
+                setShowScanner(false)
+            } catch (err) {
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to process attendance"
+                toast.error(message)
+            } finally {
+                setTimeout(() => (scanningRef.current = false), 2000)
+            }
+        },
+        [
+            user,
+            currentTime,
+            coords,
+            firstAttendance,
+            serverTime,
+            handleToggleClock,
+        ]
+    )
+
+    const capturePhoto = () => {
+        const imageSrc = webcamRef.current?.getScreenshot()
+        if (imageSrc) setCapturedImage(imageSrc)
+    }
+
+    const confirmPhoto = useCallback(async () => {
+        const { session: currentSession, isClockIn } = getCurrentSession({
+            attendance: firstAttendance,
+            date: serverTime || new Date(),
+        })
+
+        if (!capturedImage || !currentSession || !coords) {
+            toast.error("No active session available or no photo captured")
+            return
+        }
+
+        try {
+            const blob = await (await fetch(capturedImage)).blob()
+            const file = new File([blob], "attendance.jpg", {
+                type: "image/jpeg",
+            })
+            const uploaded = await upload(file)
+
+            const address = await reverseGeocode({
+                lat: coords.latitude,
+                lng: coords.longitude,
+            })
+
+            await handleToggleClock({
+                attendance: firstAttendance,
+                currentSession,
+                date: serverTime || new Date(),
+                geo: { lat: coords.latitude, lng: coords.longitude },
+                photoUrl: uploaded.secure_url,
+                address,
+                ...(isClockIn ? { isClockIn: true } : { isClockOut: true }),
+            })
+
+            toast.success("Attendance updated with photo")
+            setShowCamera(false)
+            setCapturedImage(null)
+        } catch (err) {
+            console.error(err)
+            toast.error("Failed to upload photo")
+        }
+    }, [
+        capturedImage,
+        coords,
+        upload,
+        firstAttendance,
+        serverTime,
+        handleToggleClock,
+    ])
+
     return (
-        <div className="flex flex-col p-4 gap-4">
-            <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">
-                        Clock-in & Out
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Manage your work sessions and track your daily schedule.
-                    </p>
+        <>
+            <div className="flex flex-col p-4 gap-4">
+                <div className="flex flex-col items-start justify-between space-y-2 md:flex-row md:items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">
+                            Clock-in & Out
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Manage your work sessions and track your daily
+                            schedule.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid auto-rows-auto grid-cols-12 gap-5">
+                    <TimeTrackingCardQr
+                        attendance={firstAttendance}
+                        time={currentTime || new Date()}
+                        isClockedIn={false}
+                        isInRange={true}
+                        onClockToggle={handleClocker}
+                        isDisabled={
+                            !coords ||
+                            loadingCreateAttendance ||
+                            loadingAttendances
+                        }
+                    />
+
+                    <AttendanceList
+                        attendances={firstAttendance}
+                        loading={loadingAttendances}
+                    />
                 </div>
             </div>
 
-            <div className="grid auto-rows-auto grid-cols-12 gap-5">
-                <TimeTrackingCard
-                    attendance={attendanceList!}
-                    time={currentTime || new Date()}
-                    isClockedIn={isClockedIn}
-                    isInRange={isInRange}
-                    onClockToggle={handleClockToggle}
-                    isLoading={!hasData}
-                    isDisabled={
-                        !attendanceList ||
-                        !isInRange ||
-                        !hasSession ||
-                        loadingAttendance ||
-                        loadingCreateAttendance
-                    }
-                />
+            {showScanner && (
+                <Dialog open={showScanner} onOpenChange={setShowScanner}>
+                    <DialogContent>
+                        <DialogTitle className="text-center">
+                            Scan QR Code
+                        </DialogTitle>
+                        <div className="flex items-center justify-center rounded-md overflow-hidden">
+                            <BarcodeScannerComponent
+                                delay={300}
+                                onUpdate={(_err, result) => {
+                                    if (result) {
+                                        handleClockToggle(result.getText())
+                                        setShowScanner(false)
+                                    }
+                                }}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
 
-                <AttendanceList
-                    attendances={attendanceList}
-                    loading={!hasData}
-                />
-            </div>
-        </div>
+            {showCamera && (
+                <Dialog
+                    open={showCamera}
+                    onOpenChange={(open) => {
+                        setShowCamera(open)
+                        if (!open) setCapturedImage(null)
+                    }}
+                >
+                    <DialogContent>
+                        <DialogTitle className="text-center">
+                            Take a Photo
+                        </DialogTitle>
+                        <div className="flex flex-col items-center gap-4">
+                            {capturedImage ? (
+                                <img
+                                    src={capturedImage}
+                                    alt="Captured"
+                                    className="rounded-md"
+                                />
+                            ) : (
+                                <Webcam
+                                    audio={false}
+                                    ref={webcamRef}
+                                    screenshotFormat="image/jpeg"
+                                    className="rounded-md"
+                                />
+                            )}
+
+                            <div className="flex gap-3">
+                                {!capturedImage ? (
+                                    <Button onClick={capturePhoto}>
+                                        Capture
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() =>
+                                                setCapturedImage(null)
+                                            }
+                                        >
+                                            Retake
+                                        </Button>
+                                        <Button onClick={confirmPhoto}>
+                                            Confirm
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </>
     )
 }

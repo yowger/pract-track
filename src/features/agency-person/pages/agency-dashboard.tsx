@@ -279,7 +279,7 @@ export default function AgencyDashboardPage() {
                                 <span>Today’s schedule</span>
                                 {firstSchedule && (
                                     <Button size="sm" asChild>
-                                        <Link to={`/dtr/${firstSchedule.id}`}>
+                                        <Link to={`/dtr/qr`}>
                                             Generate QR
                                         </Link>
                                     </Button>
@@ -294,7 +294,7 @@ export default function AgencyDashboardPage() {
                                     </p>
 
                                     <Button asChild size="sm">
-                                        <Link to="/dtr/qr">
+                                        <Link to="/dtr">
                                             Generate Session
                                         </Link>
                                     </Button>

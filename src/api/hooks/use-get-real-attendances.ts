@@ -31,7 +31,7 @@ export const useGetRealAttendances = (filters: AttendanceFilter = {}) => {
             const conditions: QueryConstraint[] = []
 
             if (filters.userId) {
-                conditions.push(where("userId", "==", filters.userId))
+                conditions.push(where("user.id", "==", filters.userId))
             }
 
             if (filters.scheduleId) {

@@ -51,6 +51,7 @@
     "react-geolocated": "^4.3.0",
     "react-hook-form": "^7.62.0",
     "react-leaflet": "^5.0.0",
+    "react-qr-barcode-scanner": "^2.1.14",
     "react-router-dom": "^7.7.1",
     "react-webcam": "^7.2.0",
     "recharts": "^2.15.4",

@@ -61,9 +61,11 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                             isLate ? "text-red-600 dark:text-red-700" : ""
                         }`}
                     >
-                        {inDate ? formatTime(inDate) : "—"}
+                        {inDate ? formatTime(inDate) : ""}
                     </span>
-                    <span className="text-muted-foreground mx-1">→</span>
+                    {outDate && (
+                        <span className="text-muted-foreground mx-1">-</span>
+                    )}
                     <span
                         className={`${outDate ? "" : "text-muted-foreground"} ${
                             isUndertime
@@ -71,7 +73,7 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                                 : ""
                         }`}
                     >
-                        {outDate ? formatTime(outDate) : "—"}
+                        {outDate ? formatTime(outDate) : ""}
                     </span>
                 </div>
             )
@@ -90,7 +92,7 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
                 : null
 
             if (!checkIn || !checkOut)
-                return <span className="text-muted-foreground">-</span>
+                return <span className="text-muted-foreground"></span>
 
             const mins = Math.floor((+checkOut - +checkIn) / 60000)
             const h = Math.floor(mins / 60)
@@ -108,7 +110,7 @@ const attendanceColumns: ColumnDef<AttendanceSession>[] = [
             ) as string[]
 
             if (!statuses.length)
-                return <span className="text-muted-foreground">-</span>
+                return <span className="text-muted-foreground"></span>
 
             const order = [
                 "present",

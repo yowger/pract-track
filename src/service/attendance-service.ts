@@ -119,7 +119,13 @@ export function deriveOverallStatus(
 export function getCurrentSession(data: {
     attendance: Attendance | null
     date?: Date
-}): { session: AttendanceSession | null; reason?: string } {
+}): {
+    session: AttendanceSession | null
+    reason?: string
+    sessionIndex?: number
+    isClockIn?: boolean
+    isClockOut?: boolean
+} {
     const { attendance, date: now = new Date() } = data
     if (!attendance) return { session: null, reason: "No attendance record." }
 
@@ -147,7 +153,11 @@ export function getCurrentSession(data: {
             now <= scheduleEnd
 
         if (activeSession) {
-            return { session, reason: undefined }
+            const sessionIndex = attendance.sessions.indexOf(session)
+            const isClockIn = !session.checkInInfo
+            const isClockOut = !!session.checkInInfo && !session.checkOutInfo
+
+            return { session, sessionIndex, isClockIn, isClockOut }
         }
 
         if (now < earliestClockIn) {
@@ -185,26 +195,41 @@ export function calculateTotalMinutes(sessions: AttendanceSession[]): number {
     }, 0)
 }
 
-export async function toggleClock(params: {
+type ClockBase = {
     attendance: Attendance
+    currentSession: AttendanceSession
     date: Date
     geo: GeoLocation
     photoUrl?: string
+    address?: string
     remarks?: string
-}) {
-    const { attendance, date: now, geo, photoUrl, remarks } = params
+}
 
-    const { session: currentSession, reason } = getCurrentSession({
+type ClockIn = ClockBase & { isClockIn: true; isClockOut?: never }
+type ClockOut = ClockBase & { isClockOut: true; isClockIn?: never }
+
+export type ToggleClockParams = ClockIn | ClockOut
+
+export async function toggleClock(params: ToggleClockParams) {
+    const {
         attendance,
         date: now,
-    })
-    if (!currentSession)
-        throw new Error(reason || "No active session available")
+        currentSession,
+        isClockIn,
+        isClockOut,
+        geo,
+        photoUrl,
+        remarks,
+        address,
+    } = params
 
-    const isClockIn = !currentSession.checkInInfo
-    const isClockOut =
-        currentSession.checkInInfo && !currentSession.checkOutInfo
-    const address = await reverseGeocode(geo)
+    if (!params.isClockIn && !params.isClockOut) {
+        throw new Error("No clock action specified.")
+    }
+
+    if (!currentSession) {
+        throw new Error("No active session available")
+    }
 
     const updatedSessions: AttendanceSession[] = attendance.sessions.map(
         (session) => {
@@ -265,9 +290,6 @@ export async function toggleClock(params: {
 
     const totalWorkMinutes = calculateTotalMinutes(updatedSessions)
     const overallStatus = deriveOverallStatus(updatedSessions)
-
-    console.log("🚀 ~ toggleClock ~ attendance:", attendance)
-    console.log("🚀 ~ toggleClock ~ updatedSessions:", updatedSessions)
 
     const updatedAttendance: Attendance = {
         ...attendance,
