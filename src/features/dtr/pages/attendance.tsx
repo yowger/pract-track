@@ -51,7 +51,8 @@ export default function Attendance() {
     const { upload } = useCloudinaryUpload()
 
     useEffect(() => {
-        if (errorCreateAttendance) toast.error(errorCreateAttendance)
+        if (errorCreateAttendance)
+            toast.error(errorCreateAttendance, { duration: 5000 })
     }, [errorCreateAttendance])
 
     useEffect(() => {
@@ -73,15 +74,22 @@ export default function Attendance() {
     }, [attendances])
 
     const handleClockToggle = useCallback(
-        async (agencyId?: string) => {
+        async (attendanceId?: string) => {
             if (scanningRef.current) return
             scanningRef.current = true
 
             try {
-                if (!user || !currentTime || !coords || !agencyId) {
+                if (!user || !currentTime || !coords || !attendanceId) {
                     throw new Error(
                         "Unable to process attendance. Please try again."
                     )
+                }
+
+                const matchedAttendance =
+                    firstAttendance?.schedule.id === attendanceId
+
+                if (!matchedAttendance) {
+                    throw new Error("Scanned QR does not match your schedule")
                 }
 
                 const {
@@ -99,12 +107,34 @@ export default function Attendance() {
                     throw new Error(reason || "No active session available")
                 }
 
+                const scheduleCoords =
+                    firstAttendance.sessions[sessionIndex].schedule.geoLocation
+                const scheduleRadius =
+                    firstAttendance.sessions[sessionIndex].schedule.geoRadius
+
+                if (!scheduleCoords || !scheduleRadius) {
+                    throw new Error("Schedule does not have geolocation data")
+                }
+
+                const distance = getDistanceMeters(
+                    coords.latitude,
+                    coords.longitude,
+                    scheduleCoords.lat,
+                    scheduleCoords.lng
+                )
+
+                const isInside = distance <= scheduleRadius
+
+                if (!isInside) {
+                    throw new Error("You are outside the allowed range")
+                }
+
                 const needsPhoto =
                     (isClockIn &&
-                        firstAttendance?.sessions[sessionIndex].schedule
+                        firstAttendance.sessions[sessionIndex].schedule
                             .photoStart) ||
                     (isClockOut &&
-                        firstAttendance?.sessions[sessionIndex].schedule
+                        firstAttendance.sessions[sessionIndex].schedule
                             .photoEnd)
 
                 if (needsPhoto) {
@@ -314,4 +344,27 @@ export default function Attendance() {
             )}
         </>
     )
+}
+
+function getDistanceMeters(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+): number {
+    const R = 6371e3
+    const toRad = (deg: number) => (deg * Math.PI) / 180
+
+    const φ1 = toRad(lat1)
+    const φ2 = toRad(lat2)
+    const Δφ = toRad(lat2 - lat1)
+    const Δλ = toRad(lon2 - lon1)
+
+    const a =
+        Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+    return R * c
 }
