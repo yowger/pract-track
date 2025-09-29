@@ -221,7 +221,13 @@ export default function Attendance() {
             setCapturedImage(null)
         } catch (err) {
             console.error(err)
-            toast.error("Failed to upload photo")
+            // toast.error("Failed to upload photo")
+            toast.error(
+                err instanceof Error ? err.message : "Failed to upload photo",
+                {
+                    duration: 10000,
+                }
+            )
         }
     }
 
