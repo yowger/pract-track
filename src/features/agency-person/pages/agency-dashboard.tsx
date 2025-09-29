@@ -183,7 +183,11 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
                 return <span className="text-muted-foreground">-</span>
             }
 
-            return <SharedImagePreview photos={photos} />
+            return (
+                <div className="size-12 overflow-hidden">
+                    <SharedImagePreview photos={photos} />
+                </div>
+            )
         },
     },
     {

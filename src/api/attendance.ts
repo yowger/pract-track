@@ -67,7 +67,7 @@ export async function getAttendances(filter: AttendanceFilter = {}) {
     const conditions = []
 
     if (filter.userId) {
-        conditions.push(where("userId", "==", filter.userId))
+        conditions.push(where("user.id", "==", filter.userId))
     }
 
     if (filter.scheduleId) {

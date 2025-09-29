@@ -178,7 +178,7 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
             }
 
             return (
-                <div className="flex items-center gap-2 relative size-14">
+                <div className="flex items-center gap-2 relative size-14 overflow-hidden">
                     <SharedImagePreview photos={photos} />
                 </div>
             )
