@@ -238,6 +238,18 @@ export default function Attendance() {
                             schedule.
                         </p>
                     </div>
+
+                    <div>
+                        {coords ? (
+                            <span className="text-sm text-muted-foreground">
+                                {coords.latitude}, {coords.longitude}
+                            </span>
+                        ) : (
+                            <span className="text-sm text-muted-foreground">
+                                Location not available
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid auto-rows-auto grid-cols-12 gap-5">
