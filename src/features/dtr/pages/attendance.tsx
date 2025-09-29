@@ -150,7 +150,7 @@ export default function Attendance() {
                 await handleToggleClock({
                     attendance: firstAttendance,
                     currentSession,
-                    date: serverTime || new Date(),
+                    date: currentTime,
                     geo: { lat: coords.latitude, lng: coords.longitude },
                     address,
                     ...(isClockIn ? { isClockIn: true } : { isClockOut: true }),
@@ -183,13 +183,13 @@ export default function Attendance() {
         if (imageSrc) setCapturedImage(imageSrc)
     }
 
-    const confirmPhoto = useCallback(async () => {
+    const confirmPhoto = async () => {
         const { session: currentSession, isClockIn } = getCurrentSession({
             attendance: firstAttendance,
             date: serverTime || new Date(),
         })
 
-        if (!capturedImage || !currentSession || !coords) {
+        if (!capturedImage || !currentSession || !coords || !currentTime) {
             toast.error("No active session available or no photo captured")
             return
         }
@@ -209,7 +209,7 @@ export default function Attendance() {
             await handleToggleClock({
                 attendance: firstAttendance,
                 currentSession,
-                date: serverTime || new Date(),
+                date: currentTime,
                 geo: { lat: coords.latitude, lng: coords.longitude },
                 photoUrl: uploaded.secure_url,
                 address,
@@ -223,14 +223,7 @@ export default function Attendance() {
             console.error(err)
             toast.error("Failed to upload photo")
         }
-    }, [
-        capturedImage,
-        coords,
-        upload,
-        firstAttendance,
-        serverTime,
-        handleToggleClock,
-    ])
+    }
 
     return (
         <>

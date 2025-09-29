@@ -22,13 +22,16 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { useMemo, useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { useEffect, useMemo, useState } from "react"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-} from "@/components/ui/hover-card"
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
+    type CarouselApi,
+} from "@/components/ui/carousel"
 import { DialogTitle } from "@radix-ui/react-dialog"
 
 const statusColors: Record<NonNullable<Attendance["overallStatus"]>, string> = {
@@ -471,48 +474,92 @@ interface SharedImagePreviewProps {
 }
 
 export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
-    const [selected, setSelected] = useState<string | null>(null)
+    const ordered = [...photos].reverse()
+    const [open, setOpen] = useState(false)
+    const [api, setApi] = useState<CarouselApi>()
+    const [selected, setSelected] = useState(0)
+
+    useEffect(() => {
+        if (!api) return
+        onSelect()
+        api.on("select", onSelect)
+    }, [api])
+
+    if (!ordered.length) return null
+
+    const firstPhoto = ordered[0]
+    const extraCount = ordered.length - 1
+
+    const onSelect = () => {
+        if (!api) return
+        setSelected(api.selectedScrollSnap())
+    }
 
     return (
-        <>
-            <div className="flex gap-2 flex-wrap">
-                {photos.map((url, idx) => (
-                    <HoverCard key={idx} openDelay={150} closeDelay={100}>
-                        <HoverCardTrigger asChild>
-                            <img
-                                src={url}
-                                alt={`Preview ${idx}`}
-                                onClick={() => setSelected(url)}
-                                className="h-10 w-10 rounded object-cover cursor-pointer"
-                            />
-                        </HoverCardTrigger>
-                        <HoverCardContent
-                            className="w-auto p-0 bg-transparent border-none shadow-none"
-                            side="right"
-                            align="start"
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <div className="relative w-14 h-14 cursor-pointer">
+                    <img
+                        src={firstPhoto}
+                        alt="Thumbnail"
+                        className="rounded-xs object-cover"
+                    />
+                    {extraCount > 0 && (
+                        <Badge
+                            variant="secondary"
+                            className="rounded-sm absolute top-0.5 right-0.5 text-xs px-1.5 bg-black/50 text-white"
+                        >
+                            +{extraCount}
+                        </Badge>
+                    )}
+                </div>
+            </DialogTrigger>
+
+            <DialogContent className="max-w-4xl p-2 [&>button]:hidden">
+                <DialogTitle className="p-0 m-0"></DialogTitle>
+                <Carousel
+                    className="w-full"
+                    opts={{ align: "start", loop: true }}
+                    setApi={setApi}
+                >
+                    <CarouselContent>
+                        {ordered.map((url, idx) => (
+                            <CarouselItem
+                                key={idx}
+                                className="flex justify-center"
+                            >
+                                <img
+                                    src={url}
+                                    alt={`Photo ${idx + 1}`}
+                                    className="rounded-xs object-contain max-h-[75vh] bg-red-100"
+                                />
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="-left-14" />
+                    <CarouselNext className="-right-14" />
+                </Carousel>
+
+                <div className="flex gap-2 overflow-x-auto pb-2 px-3.5">
+                    {ordered.map((url, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => api?.scrollTo(idx)}
+                            className={`relative w-16 h-16 flex-shrink-0 rounded-sm overflow-hidden border-2 ${
+                                selected === idx
+                                    ? "border-primary"
+                                    : "border-transparent"
+                            }`}
                         >
                             <img
                                 src={url}
-                                alt={`Preview ${idx}`}
-                                className="max-h-64 rounded shadow-lg border"
+                                alt={`Thumb ${idx + 1}`}
+                                className="w-full h-full object-cover"
                             />
-                        </HoverCardContent>
-                    </HoverCard>
-                ))}
-            </div>
-
-            <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-                <DialogContent className="p-0 bg-transparent border-none shadow-none [&>button:last-child]:absolute [&>button:last-child]:top-4 [&>button:last-child]:right-10">
-                    <DialogTitle className="sr-only"></DialogTitle>
-                    {selected && (
-                        <img
-                            src={selected}
-                            alt="Full Preview"
-                            className="max-h-[80vh] mx-auto rounded shadow-lg"
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
-        </>
+                        </button>
+                    ))}
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }
