@@ -33,7 +33,7 @@ export default function Attendance() {
     const scanningRef = useRef(false)
 
     const { coords } = useGeolocated({
-        positionOptions: { enableHighAccuracy: false },
+        positionOptions: { enableHighAccuracy: true },
         userDecisionTimeout: 5000,
     })
 

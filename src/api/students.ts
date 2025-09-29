@@ -203,6 +203,7 @@ export async function getAllStudents(
 
     return snapshot.docs.map((doc) => ({
         ...(doc.data() as Student),
+        id: doc.id,
     }))
 }
 

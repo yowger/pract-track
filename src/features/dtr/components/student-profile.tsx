@@ -12,7 +12,9 @@ import { StudentInfo } from "../components/student-info"
 import { AgencyInfo } from "../components/tables/agency-info"
 import { useAdviser } from "@/api/hooks/use-get-schedules"
 import { AdviserInfo } from "./adviser-info"
-import AttendanceTab from "./attendance-tab"
+import { lazy } from "react"
+
+const AttendanceTabPage = lazy(() => import("./attendance-tab"))
 
 interface StudentProfileProps {
     studentId: string
@@ -268,7 +270,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
 
                 <TabsContent value="attendance" className="mt-4">
                     {student ? (
-                        <AttendanceTab userId={student.id} />
+                        <AttendanceTabPage userId={student.uid} />
                     ) : (
                         <p className="text-sm text-muted-foreground">
                             No student selected
