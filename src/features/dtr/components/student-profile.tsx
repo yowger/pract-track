@@ -12,6 +12,7 @@ import { StudentInfo } from "../components/student-info"
 import { AgencyInfo } from "../components/tables/agency-info"
 import { useAdviser } from "@/api/hooks/use-get-schedules"
 import { AdviserInfo } from "./adviser-info"
+import AttendanceTab from "./attendance-tab"
 
 interface StudentProfileProps {
     studentId: string
@@ -76,7 +77,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <Tabs defaultValue="info" className="w-full">
                 <TabsList className="grid grid-cols-4 w-full max-w-lg">
                     <TabsTrigger value="info">Info</TabsTrigger>
-                    <TabsTrigger value="progress">Progress</TabsTrigger>
+                    <TabsTrigger value="attendance">Attendance</TabsTrigger>
                     <TabsTrigger value="evaluations">Evaluations</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
                 </TabsList>
@@ -265,17 +266,14 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="progress" className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Progress / Attendance</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                                Show clock-ins, hours, and completion % here
-                            </p>
-                        </CardContent>
-                    </Card>
+                <TabsContent value="attendance" className="mt-4">
+                    {student ? (
+                        <AttendanceTab userId={student.id} />
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            No student selected
+                        </p>
+                    )}
                 </TabsContent>
 
                 <TabsContent value="evaluations" className="mt-4">

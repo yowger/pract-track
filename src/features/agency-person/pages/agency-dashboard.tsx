@@ -498,7 +498,7 @@ export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="relative w-14 h-14 cursor-pointer">
+                <div className="relative cursor-pointer">
                     <img
                         src={firstPhoto}
                         alt="Thumbnail"
@@ -507,7 +507,7 @@ export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
                     {extraCount > 0 && (
                         <Badge
                             variant="secondary"
-                            className="rounded-sm absolute top-0.5 right-0.5 text-xs px-1.5 bg-black/50 text-white"
+                            className="rounded-sm absolute top-[1px] right-[1px] text-xs px-1 bg-black/60 text-white"
                         >
                             +{extraCount}
                         </Badge>
@@ -515,7 +515,6 @@ export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
                 </div>
             </DialogTrigger>
 
-            {/* <DialogOverlay className="bg-black/50" /> */}
             <DialogContent className="max-w-4xl p-2 [&>button]:hidden">
                 <DialogTitle className="p-0 m-0"></DialogTitle>
                 <Carousel
@@ -532,7 +531,7 @@ export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
                                 <img
                                     src={url}
                                     alt={`Photo ${idx + 1}`}
-                                    className="rounded-xs object-contain max-h-[75vh] bg-red-100"
+                                    className="rounded-xs object-contain max-h-[75vh]"
                                 />
                             </CarouselItem>
                         ))}
