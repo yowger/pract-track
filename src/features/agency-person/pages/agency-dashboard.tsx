@@ -515,6 +515,7 @@ export function SharedImagePreview({ photos }: SharedImagePreviewProps) {
                 </div>
             </DialogTrigger>
 
+            {/* <DialogOverlay className="bg-black/50" /> */}
             <DialogContent className="max-w-4xl p-2 [&>button]:hidden">
                 <DialogTitle className="p-0 m-0"></DialogTitle>
                 <Carousel

@@ -7,7 +7,7 @@ import { getStudentsPaginated } from "@/api/students"
 import { Input } from "@/components/ui/input"
 import DataTable from "@/components/data-table"
 import { studentColumns } from "@/features/chair-person/components/tables/users/student-columns"
-import AssignAgencyDrawer from "@/features/chair-person/components/tables/users/assign-agency-drawer"
+// import AssignAgencyDrawer from "@/features/chair-person/components/tables/users/assign-agency-drawer"
 import type { Student } from "@/types/user"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
@@ -117,7 +117,7 @@ export default function AgencyInterns() {
                     {selectedStudents.length} row(s) selected
                 </span>
 
-                {selectedStudents.length > 0 && (
+                {/* {selectedStudents.length > 0 && (
                     <AssignAgencyDrawer
                         selectedStudents={selectedStudents}
                         onSuccess={() => {
@@ -126,7 +126,7 @@ export default function AgencyInterns() {
                             setRowSelection({})
                         }}
                     />
-                )}
+                )} */}
             </div>
 
             <div className="p-4 flex">

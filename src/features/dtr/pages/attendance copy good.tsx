@@ -62,7 +62,7 @@ export default function Attendance() {
     const {
         loading: loadingCreateAttendance,
         error: errorCreateAttendance,
-        handleToggleClock,
+        // handleToggleClock,
     } = useCreateAttendance()
 
     useEffect(() => {
@@ -84,14 +84,14 @@ export default function Attendance() {
             return toast.error("You are not assigned to any schedule")
         }
 
-        await handleToggleClock({
-            attendance: attendanceList,
-            date: serverTime || new Date(),
-            geo: {
-                lat: coords.latitude,
-                lng: coords.longitude,
-            },
-        })
+        // await handleToggleClock({
+        //     attendance: attendanceList,
+        //     date: serverTime || new Date(),
+        //     geo: {
+        //         lat: coords.latitude,
+        //         lng: coords.longitude,
+        //     },
+        // })
 
         refetchAttendance()
     }
