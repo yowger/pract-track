@@ -355,14 +355,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                 </p>
                             }
                         >
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Excuses</CardTitle>
-                                </CardHeader>
-                                <CardContent className="overflow-x-scroll">
-                                    <ExcuseTabPage userId={student.uid} />
-                                </CardContent>
-                            </Card>
+                            <ExcuseTabPage userId={student.uid} />
                         </Suspense>
                     ) : (
                         <p className="text-sm text-muted-foreground">
@@ -373,32 +366,4 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             </Tabs>
         </div>
     )
-}
-
-{
-    /* <Card>
-    <CardContent>
-        <Calendar
-            mode="single"
-            selected={new Date()}
-            modifiers={{
-                present: [
-                    new Date(2025, 8, 1),
-                    new Date(2025, 8, 2),
-                    new Date(2025, 8, 5),
-                    new Date(2025, 8, 17),
-                ],
-                absent: [
-                    new Date(2025, 8, 3),
-                    new Date(2025, 8, 4),
-                ],
-            }}
-            modifiersClassNames={{
-                present:
-                    "bg-green-100 text-green-700 rounded-md",
-                absent: "bg-red-100 text-red-700 rounded-md",
-            }}
-        />
-    </CardContent>
-</Card> */
 }

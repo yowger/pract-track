@@ -1,14 +1,24 @@
 import { useState } from "react"
-import { addDoc, collection, serverTimestamp, setDoc } from "firebase/firestore"
+import {
+    addDoc,
+    collection,
+    serverTimestamp,
+    setDoc,
+    Timestamp,
+} from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
 
 export interface CreateExcuseRequestParams {
     studentId: string
+    studentName?: string
     agencyId: string
+    agencyName?: string
     attendanceId?: string | null
     title: string
     reason: string
+    date: Date | Timestamp
     filesUrl?: string[]
+    filesName?: string[]
     photosUrl?: string[]
 }
 

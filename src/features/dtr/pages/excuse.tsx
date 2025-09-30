@@ -18,7 +18,7 @@ export default function Excuse() {
         const agencyId =
             user && isStudent(user) ? user.studentData.assignedAgencyID : null
 
-        if (!user || !agencyId) {
+        if (!user || !agencyId || !isStudent(user)) {
             toast.error("User not found. Please log in again.")
 
             return
@@ -26,11 +26,13 @@ export default function Excuse() {
 
         try {
             const fileUploadsUrls: string[] = []
+            const uploadedFilesName: string[] = []
             const photoUploadsUrls: string[] = []
 
             if (data.files && data.files.length > 0) {
                 const uploadedFiles = await upload(data.files)
                 fileUploadsUrls.push(...uploadedFiles.map((f) => f.url))
+                uploadedFilesName.push(...data.files.map((f) => f.name))
             }
 
             if (data.photos && data.photos.length > 0) {
@@ -39,12 +41,16 @@ export default function Excuse() {
             }
 
             await handleCreateExcuseRequest({
+                date: data.date,
                 studentId: user.uid,
+                studentName: user.displayName ?? "",
                 agencyId: agencyId,
+                agencyName: user.studentData.assignedAgencyName ?? "",
                 attendanceId: null,
                 title: data.title,
                 reason: data.reason,
                 filesUrl: fileUploadsUrls,
+                filesName: uploadedFilesName,
                 photosUrl: photoUploadsUrls,
             })
 

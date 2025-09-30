@@ -59,12 +59,19 @@ export const useGetExcuseRequests = (filters: ExcuseFilters = {}) => {
                         const d = doc.data()
                         return {
                             id: doc.id,
+                            date:
+                                d.date instanceof Timestamp
+                                    ? d.date.toDate()
+                                    : d.date,
                             studentId: d.studentId,
+                            studentName: d.studentName,
                             agencyId: d.agencyId,
+                            agencyName: d.agencyName,
                             attendanceId: d.attendanceId ?? null,
                             title: d.title,
                             reason: d.reason,
                             filesUrl: d.filesUrl || [],
+                            filesName: d.filesName || [],
                             photosUrl: d.photosUrl || [],
                             status: d.status,
                             reviewedBy: d.reviewedBy,

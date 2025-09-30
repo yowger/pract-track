@@ -30,17 +30,32 @@ import {
 } from "@/components/ui/select"
 import StarRequired from "@/components/star-required"
 
+export const EXCUSES = [
+    { value: "sick", label: "Sick" },
+    { value: "family", label: "Family Emergency" },
+    { value: "school", label: "School Activity" },
+    { value: "other", label: "Other" },
+    { value: "personal", label: "Personal Reasons" },
+    { value: "medical", label: "Medical Appointment" },
+    { value: "travel", label: "Travel" },
+] as const
+
+export type ExcuseValue = (typeof EXCUSES)[number]["value"]
+
 const today = new Date()
 today.setHours(0, 0, 0, 0)
 
 const excuseSchema = z.object({
     date: z.date().min(today, "Date cannot be in the past"),
-    title: z.enum(["sick", "family", "school", "other"], {
-        error: () => ({ message: "Please select a title" }),
-    }),
+    title: z.enum(
+        EXCUSES.map((e) => e.value) as [ExcuseValue, ...ExcuseValue[]],
+        {
+            error: () => ({ message: "Please select a title" }),
+        }
+    ),
     reason: z.string().min(3, "Reason must be at least 3 characters."),
     files: z
-        .array(z.any())
+        .array(z.instanceof(File))
         .max(5, "You can only upload up to 5 supporting files")
         .optional(),
     photos: z
@@ -132,16 +147,17 @@ export function ExcuseForm({
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="sick">Sick</SelectItem>
-                                    <SelectItem value="family">
-                                        Family Emergency
-                                    </SelectItem>
-                                    <SelectItem value="school">
-                                        School Activity
-                                    </SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
+                                    {EXCUSES.map((excuse) => (
+                                        <SelectItem
+                                            key={excuse.value}
+                                            value={excuse.value}
+                                        >
+                                            {excuse.label}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
+
                             <FormMessage />
                         </FormItem>
                     )}
