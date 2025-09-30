@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore"
 import { db } from "@/service/firebase/firebase"
 import type { ExcuseRequest } from "@/types/excuse"
+import { EXCUSES } from "@/features/dtr/components/excuse-form"
 
 type ExcuseFilters = {
     studentId?: string
@@ -57,6 +58,11 @@ export const useGetExcuseRequests = (filters: ExcuseFilters = {}) => {
                 (snapshot) => {
                     const data: ExcuseRequest[] = snapshot.docs.map((doc) => {
                         const d = doc.data()
+
+                        const titleLabel =
+                            EXCUSES.find((e) => e.value === d.title)?.label ||
+                            d.title
+
                         return {
                             id: doc.id,
                             date:
@@ -68,7 +74,7 @@ export const useGetExcuseRequests = (filters: ExcuseFilters = {}) => {
                             agencyId: d.agencyId,
                             agencyName: d.agencyName,
                             attendanceId: d.attendanceId ?? null,
-                            title: d.title,
+                            title: titleLabel,
                             reason: d.reason,
                             filesUrl: d.filesUrl || [],
                             filesName: d.filesName || [],

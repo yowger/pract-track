@@ -25,9 +25,6 @@ import AttendanceHistory from "./features/dtr/pages/attendance-history"
 //     () => import("@/features/agency-person/pages/view-schedule")
 // )
 const ExcusePage = lazy(() => import("@/features/dtr/pages/excuse"))
-const ExcuseDetailPage = lazy(
-    () => import("@/features/dtr/pages/excuse-detail")
-)
 const AgencyDtrQrPage = lazy(
     () => import("@/features/agency-person/pages/agency-dtr-qr")
 )
@@ -202,7 +199,6 @@ const studentRoutes = (
             <Route path="/dashboard" element={<StudentDashboardPage />} />
             <Route path="/excuse" element={<ExcusePage />} />
             <Route path="/profile" element={<StudentProfilePage />} />
-            <Route path="/excuses/:excuseId" element={<ExcuseDetailPage />} />
             {/* <Route path="/excuse" element={<ExcusePage />} /> */}
             {/* <Route path="/seeder" element={<AttendanceSeeder />} /> */}
             {/* <Route path="/dtr" element={<DtrPage />} /> */}

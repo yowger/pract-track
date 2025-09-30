@@ -109,7 +109,7 @@ export default function ExcuseCard({
                         <Button
                             size="sm"
                             variant="link"
-                            className="p-0 text-gray-600 hover:underline"
+                            className="p-0 text-gray-600 dark:text-gray-300 hover:underline"
                             onClick={toggleExpand}
                         >
                             {expanded ? "See less" : "See more"}
@@ -126,16 +126,16 @@ export default function ExcuseCard({
                             {filesUrl.map((file, idx) => (
                                 <div
                                     key={idx}
-                                    className="flex items-center bg-gray-100 text-muted-foreground px-2 py-1 rounded-md gap-1.5 text-sm"
+                                    className="flex items-center bg-gray-100 dark:bg-gray-900 text-muted-foreground px-2 py-1 rounded-md gap-1.5"
                                 >
-                                    <span className="truncate w-28">
+                                    <span className="truncate w-28 dark:text-gray-400 text-xs">
                                         {filesName?.[idx] || `File ${idx + 1}`}
                                     </span>
 
                                     <a
                                         href={file}
                                         download
-                                        className="text-blue-600 hover:text-blue-800"
+                                        className="text-blue-600 hover:text-blue-800 dark:hover:text-blue-500 dark:text-blue-400"
                                     >
                                         <FileDown size={16} />
                                     </a>
@@ -195,6 +195,8 @@ export default function ExcuseCard({
 const InfoItem = ({ label, value }: { label: string; value?: string }) => (
     <div>
         <span className="text-muted-foreground text-sm">{label}</span>
-        <p className="font-medium text-sm text-gray-800">{value || "-"}</p>
+        <p className="font-medium text-sm text-gray-800 dark:text-gray-100">
+            {value || "-"}
+        </p>
     </div>
 )

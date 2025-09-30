@@ -60,7 +60,7 @@ const excuseSchema = z.object({
         .optional(),
     photos: z
         .array(z.any())
-        .max(5, "You can only upload up to 3 photos")
+        .max(5, "You can only upload up to 5 photos")
         .optional(),
 })
 
@@ -240,9 +240,9 @@ export function ExcuseForm({
                                         const files = Array.from(
                                             e.target.files || []
                                         )
-                                        if (files.length > 3) {
+                                        if (files.length > 5) {
                                             alert(
-                                                "You can only upload up to 3 photos"
+                                                "You can only upload up to 5 photos"
                                             )
                                             return
                                         }
