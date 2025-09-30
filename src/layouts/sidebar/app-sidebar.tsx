@@ -3,10 +3,10 @@ import {
     Bot,
     Command,
     GalleryVerticalEnd,
-    Settings2,
+    // Settings2,
     FileUp,
     // History,
-    UserCheck,
+    // UserCheck,
     // CalendarDays,
     Map,
     BookOpen,
@@ -104,15 +104,20 @@ const sidebarConfig: SidebarConfig = {
             icon: Timer,
         },
         {
-            title: "Dashboard",
-            url: "/dashboard",
-            icon: Settings2,
+            title: "Excuse",
+            url: "/excuse",
+            icon: FileUp,
         },
-        {
-            title: "Attendance",
-            url: "/attendance",
-            icon: UserCheck,
-        },
+        // {
+        //     title: "Dashboard",
+        //     url: "/dashboard",
+        //     icon: Settings2,
+        // },
+        // {
+        //     title: "Attendance",
+        //     url: "/attendance",
+        //     icon: UserCheck,
+        // },
         // {
         //     title: "Schedule",
         //     url: "/schedule",
@@ -154,11 +159,11 @@ const sidebarConfig: SidebarConfig = {
             url: "/",
             icon: LayoutDashboard,
         },
-        // {
-        //     title: "Daily Time Record",
-        //     url: "/dtr",
-        //     icon: Timer,
-        // },
+        {
+            title: "Daily Time Record",
+            url: "/dtr",
+            icon: Timer,
+        },
         // {
         //     title: "Interns",
         //     url: "/interns",
