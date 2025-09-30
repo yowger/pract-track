@@ -4,6 +4,7 @@ export interface ExcuseRequest {
     id: string
     studentId: string
     attendanceId: string | null
+    agencyId: string
     title: string
     reason: string
     filesUrl?: string[]

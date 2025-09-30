@@ -4,6 +4,7 @@ import { db } from "@/service/firebase/firebase"
 
 export interface CreateExcuseRequestParams {
     studentId: string
+    agencyId: string
     attendanceId?: string | null
     title: string
     reason: string
@@ -39,7 +40,7 @@ export const useCreateExcuseRequest = () => {
 }
 
 export async function createExcuseRequest(params: CreateExcuseRequestParams) {
-    const docRef = await addDoc(collection(db, "excuseRequests"), {
+    const docRef = await addDoc(collection(db, "excuses"), {
         ...params,
         attendanceId: params.attendanceId ?? null,
         status: "pending",

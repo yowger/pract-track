@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
 import { useAttendances } from "@/api/hooks/use-fetch-attendance"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { Attendance } from "@/types/attendance"
 import { firebaseTimestampToDate } from "@/lib/date-utils"
@@ -235,17 +234,5 @@ export default function AttendanceTab({
         to: dateRange?.to ?? undefined,
     })
 
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Attendance</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <DataTable
-                    columns={attendanceColumns}
-                    data={attendances || []}
-                />
-            </CardContent>
-        </Card>
-    )
+    return <DataTable columns={attendanceColumns} data={attendances || []} />
 }

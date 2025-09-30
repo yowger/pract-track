@@ -1,22 +1,33 @@
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 
 import { useCloudinaryBulkUpload } from "@/api/hooks/use-upload-bulk"
 import { useUser } from "@/hooks/use-user"
 import { useCreateExcuseRequest } from "@/api/hooks/use-create-excuse"
 import { ExcuseForm, type ExcuseFormValues } from "../components/excuse-form"
+import { isStudent } from "@/types/user"
 
 export default function Excuse() {
+    const navigate = useNavigate()
     const { user } = useUser()
     const { upload, uploading } = useCloudinaryBulkUpload()
     const { handleCreateExcuseRequest, loading, error } =
         useCreateExcuseRequest()
 
     async function handleSubmit(data: ExcuseFormValues) {
-        if (!user) return
+        const agencyId =
+            user && isStudent(user) ? user.studentData.assignedAgencyID : null
+
+        if (!user || !agencyId) {
+            toast.error("User not found. Please log in again.")
+
+            return
+        }
+
         try {
             const fileUploadsUrls: string[] = []
             const photoUploadsUrls: string[] = []
-            
+
             if (data.files && data.files.length > 0) {
                 const uploadedFiles = await upload(data.files)
                 fileUploadsUrls.push(...uploadedFiles.map((f) => f.url))
@@ -29,6 +40,7 @@ export default function Excuse() {
 
             await handleCreateExcuseRequest({
                 studentId: user.uid,
+                agencyId: agencyId,
                 attendanceId: null,
                 title: data.title,
                 reason: data.reason,
@@ -37,6 +49,8 @@ export default function Excuse() {
             })
 
             toast.success("Excuse request submitted successfully!")
+
+            navigate("/profile")
         } catch (err) {
             console.error(err)
             toast.error("Failed to submit excuse request. Please try again.")

@@ -15,6 +15,7 @@ import { AdviserInfo } from "./adviser-info"
 import { lazy, Suspense } from "react"
 
 const AttendanceTabPage = lazy(() => import("./attendance-tab"))
+const ExcuseTabPage = lazy(() => import("./excuse-tab"))
 
 interface StudentProfileProps {
     studentId: string
@@ -64,7 +65,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
     }
 
     return (
-        <div className="flex flex-col p-4 gap-4">
+        <div className="flex flex-col p-4 gap-4 overflow-hidden">
             <div className="flex flex-col md:flex-row  md:justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight">
@@ -77,11 +78,37 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             </div>
 
             <Tabs defaultValue="info" className="w-full">
-                <TabsList className="grid grid-cols-4 w-full max-w-lg">
-                    <TabsTrigger value="info">Info</TabsTrigger>
-                    <TabsTrigger value="attendance">Attendance</TabsTrigger>
-                    <TabsTrigger value="evaluations">Evaluations</TabsTrigger>
-                    <TabsTrigger value="documents">Documents</TabsTrigger>
+                <TabsList className="flex w-full max-w-full gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+                    <TabsTrigger
+                        value="info"
+                        className="flex-shrink-0 px-3 snap-start"
+                    >
+                        Info
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="attendance"
+                        className="flex-shrink-0 px-3 snap-start"
+                    >
+                        Attendance
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="evaluations"
+                        className="flex-shrink-0 px-3 snap-start"
+                    >
+                        Evaluations
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="documents"
+                        className="flex-shrink-0 px-3 snap-start"
+                    >
+                        Documents
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="excuses"
+                        className="flex-shrink-0 px-3 snap-start"
+                    >
+                        Excuses
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="info" className="mt-4">
@@ -277,7 +304,14 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                 </p>
                             }
                         >
-                            <AttendanceTabPage userId={student.uid} />
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Attendance</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <AttendanceTabPage userId={student.uid} />
+                                </CardContent>
+                            </Card>
                         </Suspense>
                     ) : (
                         <p className="text-sm text-muted-foreground">
@@ -310,6 +344,31 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                             </p>
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="excuses" className="mt-4">
+                    {student ? (
+                        <Suspense
+                            fallback={
+                                <p className="text-sm text-muted-foreground">
+                                    Loading excuses...
+                                </p>
+                            }
+                        >
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Excuses</CardTitle>
+                                </CardHeader>
+                                <CardContent className="overflow-x-scroll">
+                                    <ExcuseTabPage userId={student.uid} />
+                                </CardContent>
+                            </Card>
+                        </Suspense>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            No student selected
+                        </p>
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
