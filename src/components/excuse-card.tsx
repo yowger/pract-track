@@ -6,6 +6,7 @@ import "react-medium-image-zoom/dist/styles.css"
 import { Button } from "@/components/ui/button"
 import type { ExcuseRequest } from "@/types/excuse"
 import { capitalizeWords } from "@/lib/utils"
+import { Info, InfoLabel } from "./info"
 
 interface ExcuseSheetContentProps {
     excuse: ExcuseRequest
@@ -39,7 +40,7 @@ export default function ExcuseSheetContent({
         createdAt instanceof Date
             ? createdAt.toLocaleDateString("en-US", {
                   year: "numeric",
-                  month: "short",
+                  month: "long",
                   day: "numeric",
               })
             : "-"
@@ -55,54 +56,51 @@ export default function ExcuseSheetContent({
         date instanceof Date
             ? date.toLocaleDateString("en-US", {
                   year: "numeric",
-                  month: "short",
+                  month: "long",
                   day: "numeric",
               })
             : "-"
 
     return (
-        <div className="space-y-4 p-4">
+        <div className="space-y-4 px-4">
             <div className="flex flex-col gap-4">
-                <InfoItem
-                    label="Student"
-                    value={capitalizeWords(studentName)}
-                />
-                <InfoItem label="Date of Absence" value={formattedDate} />
-                <InfoItem label="Agency" value={agencyName} />
-                <InfoItem
+                <Info label="Student" value={capitalizeWords(studentName)} />
+                <Info label="Date of Absence" value={formattedDate} />
+                <Info label="Agency" value={agencyName} />
+                <Info
                     label="Status"
                     value={status.charAt(0).toUpperCase() + status.slice(1)}
                 />
-                <InfoItem
+                <Info
                     label="Submitted On"
                     value={`${formatCreatedAt} ${formattedTime}`}
                 />
             </div>
 
             <div>
-                <h3 className="text-gray-600 dark:text-gray-400 text-sm">
-                    Reason of Excuse
-                </h3>
-                <p className={`text-sm ${expanded ? "" : "line-clamp-3"}`}>
+                <InfoLabel label="Reason of Excuse" />
+                <p
+                    className={`text-sm font-medium ${
+                        expanded ? "" : "line-clamp-3"
+                    }`}
+                >
                     {reason}
                 </p>
                 {reason.split(" ").length > 20 && (
                     <Button
                         size="sm"
                         variant="link"
-                        className="p-0 text-gray-600 dark:text-gray-300 hover:underline"
+                        className="p-0 text-gray-500 dark:text-gray-300 hover:underline font-normal"
                         onClick={toggleExpand}
                     >
-                        {expanded ? "See less" : "See more"}
+                        {expanded ? "see less" : "see more"}
                     </Button>
                 )}
             </div>
 
             {filesUrl && filesUrl.length > 0 && (
                 <div className="flex flex-col gap-2">
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">
-                        Attached Files
-                    </span>
+                    <InfoLabel label="Attached Files" />
                     {filesUrl.map((file, idx) => (
                         <div
                             key={idx}
@@ -125,9 +123,7 @@ export default function ExcuseSheetContent({
 
             {photosUrl && photosUrl.length > 0 && (
                 <div>
-                    <span className="text-gray-600 dark:text-gray-400 text-sm">
-                        Attached Photos:
-                    </span>
+                    <InfoLabel label="Attached Photos" />
                     <div className="flex flex-wrap gap-2 mt-1">
                         {photosUrl.map((photo, idx) => (
                             <Zoom key={idx}>
@@ -168,14 +164,3 @@ export default function ExcuseSheetContent({
         </div>
     )
 }
-
-const InfoItem = ({ label, value }: { label: string; value?: string }) => (
-    <div>
-        <span className="text-gray-600 dark:text-gray-400 text-sm">
-            {label}
-        </span>
-        <p className="font-medium text-sm text-gray-800 dark:text-gray-100">
-            {value || "-"}
-        </p>
-    </div>
-)

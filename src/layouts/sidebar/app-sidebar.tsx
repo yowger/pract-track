@@ -174,24 +174,24 @@ const sidebarConfig: SidebarConfig = {
             url: "/students",
             icon: Users2Icon,
         },
-        {
-            title: "Schedules",
-            icon: Timer,
-            items: [
-                {
-                    title: "View Schedules",
-                    url: "/schedules",
-                },
-                // {
-                //     title: "Assign Schedule",
-                //     url: "/schedules/assign",
-                // },
-                {
-                    title: "Create New Schedule",
-                    url: "/schedules/new",
-                },
-            ],
-        },
+        // {
+        //     title: "Schedules",
+        //     icon: Timer,
+        //     items: [
+        //         {
+        //             title: "View Schedules",
+        //             url: "/schedules",
+        //         },
+        //         // {
+        //         //     title: "Assign Schedule",
+        //         //     url: "/schedules/assign",
+        //         // },
+        //         {
+        //             title: "Create New Schedule",
+        //             url: "/schedules/new",
+        //         },
+        //     ],
+        // },
         {
             title: "Profile",
             url: "/",

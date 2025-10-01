@@ -16,15 +16,23 @@ export function Info({
 }: InfoProps) {
     return (
         <div>
-            <Label className="text-sm text-muted-foreground">{label}</Label>
+            <InfoLabel label={label} />
             {isLoading ? (
                 <Skeleton
                     className="h-4 mt-1"
                     style={{ width: skeletonLength }}
                 />
             ) : (
-                <p className="font-medium text-sm">{value}</p>
+                <p className="font-medium text-sm text-gray-800">{value}</p>
             )}
         </div>
+    )
+}
+
+export function InfoLabel({ label }: { label: string }) {
+    return (
+        <Label className="text-sm font-medium text-muted-foreground">
+            {label}
+        </Label>
     )
 }

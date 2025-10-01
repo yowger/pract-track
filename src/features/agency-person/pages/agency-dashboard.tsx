@@ -11,7 +11,13 @@ import type { PlannedSession } from "@/types/scheduler"
 import { isAgency } from "@/types/user"
 import DataTable from "@/components/data-table"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
 import {
     Table,
     TableBody,
@@ -33,15 +39,7 @@ import {
     type CarouselApi,
 } from "@/components/ui/carousel"
 import { DialogTitle } from "@radix-ui/react-dialog"
-
-const statusColors: Record<NonNullable<Attendance["overallStatus"]>, string> = {
-    present: "bg-green-500",
-    late: "bg-yellow-500",
-    absent: "bg-red-500",
-    excused: "bg-blue-500",
-    undertime: "bg-orange-500",
-    overtime: "bg-purple-500",
-}
+import { CustomBadge, type BadgeTypes } from "@/components/custom-badge"
 
 const attendanceColumns: ColumnDef<Attendance>[] = [
     // {
@@ -227,13 +225,29 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
         header: "Status",
         cell: ({ row }) => {
             const status = row.original.overallStatus || "absent"
-            const color = statusColors[status] || "bg-gray-500"
+            let badgeColor: NonNullable<BadgeTypes["variant"]> = "default"
 
-            return (
-                <Badge className={`${color} text-white capitalize`}>
-                    {status}
-                </Badge>
-            )
+            switch (status) {
+                case "present":
+                    badgeColor = "green"
+                    break
+                case "absent":
+                    badgeColor = "red"
+                    break
+                case "late":
+                    badgeColor = "yellow"
+                    break
+                case "excused":
+                    badgeColor = "blue"
+                    break
+                case "undertime":
+                    badgeColor = "orange"
+                    break
+                default:
+                    badgeColor = "default"
+            }
+
+            return <CustomBadge variant={badgeColor}>{status}</CustomBadge>
         },
     },
 ]
@@ -264,110 +278,71 @@ export default function AgencyDashboardPage() {
                     <h1 className="text-2xl font-bold tracking-tight">
                         Dashboard
                     </h1>
-                    <p className="text-muted-foreground">
-                        View attendance history, complains and more in real
-                        time.
-                    </p>
                 </div>
+
+                {firstSchedule ? (
+                    <Button size="sm" asChild>
+                        <Link to={`/dtr/qr`}>View QR</Link>
+                    </Button>
+                ) : (
+                    <Button asChild size="sm">
+                        <Link to="/dtr">New Session</Link>
+                    </Button>
+                )}
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex justify-between items-center">
-                                <span>Today’s schedule</span>
-                                {firstSchedule && (
-                                    <Button size="sm" asChild>
-                                        <Link to={`/dtr/qr`}>Generate QR</Link>
-                                    </Button>
-                                )}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {!firstSchedule ? (
-                                <div className="flex flex-col items-center">
-                                    <p className="text-muted-foreground mb-2">
-                                        No session created yet
-                                    </p>
-
-                                    <Button asChild size="sm">
-                                        <Link to="/dtr">Generate Session</Link>
-                                    </Button>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-2">
-                                    <SessionTable
-                                        sessions={firstSchedule.sessions}
-                                    />
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <div className="grid grid-cols-12 gap-4">
-                        <div className="col-span-6 md:col-span-3">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Present</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-bold">
-                                        {stats.present}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div className="col-span-6 md:col-span-3">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Late</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-bold">
-                                        {stats.late}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div className="col-span-6 md:col-span-3">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Excused</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-bold">
-                                        {stats.excused}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div className="col-span-6 md:col-span-3">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Absent</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-bold">
-                                        {stats.absent}
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
                             <CardTitle>Attendance Records</CardTitle>
+                            <CardDescription>
+                                Summary of today's attendance across all
+                                scheduled staff.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DataTable
-                                columns={attendanceColumns}
-                                data={attendances || []}
-                            />
+                            <div className="flex flex-col gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                    <div className="flex flex-col">
+                                        <p className="text-2xl font-semibold">
+                                            {stats.present}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Present
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <p className="text-2xl font-semibold">
+                                            {stats.late}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Late
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <p className="text-2xl font-semibold">
+                                            {stats.excused}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Excused
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <p className="text-2xl font-semibold">
+                                            {stats.absent}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Absent
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <DataTable
+                                    columns={attendanceColumns}
+                                    data={attendances || []}
+                                />
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
