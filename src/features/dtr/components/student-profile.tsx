@@ -13,6 +13,7 @@ import { AgencyInfo } from "../components/tables/agency-info"
 import { useAdviser } from "@/api/hooks/use-get-schedules"
 import { AdviserInfo } from "./adviser-info"
 import { lazy, Suspense } from "react"
+import { capitalizeWords } from "@/lib/utils"
 
 const AttendanceTabPage = lazy(() => import("./attendance-tab"))
 const ExcuseTabPage = lazy(() => import("./excuse-tab"))
@@ -69,10 +70,11 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <div className="flex flex-col md:flex-row  md:justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-bold tracking-tight">
-                        Student Profile
+                        {capitalizeWords(student?.displayName)}
                     </h1>
                     <p className="text-muted-foreground">
-                        View details, progress, and evaluations
+                        View student details, attendance, and evaluations,
+                        documents and excuses.
                     </p>
                 </div>
             </div>
