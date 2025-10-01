@@ -29,7 +29,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { violationTypes } from "@/data/violationts"
+import { violationTypes } from "@/data/violations"
 
 const violationSchema = z.object({
     studentId: z.string().min(1, "Student ID is required"),

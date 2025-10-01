@@ -103,10 +103,7 @@ export default function ExcuseTab({ userId }: ExcuseTabProps) {
                 open={!!selectedExcuse}
                 onOpenChange={(open) => !open && setSelectedExcuse(null)}
             >
-                <SheetContent
-                    style={{ maxWidth: "50vw" }}
-                    className="overflow-auto"
-                >
+                <SheetContent className="overflow-auto">
                     <SheetHeader>
                         <SheetTitle>{selectedExcuse?.title}</SheetTitle>
                     </SheetHeader>

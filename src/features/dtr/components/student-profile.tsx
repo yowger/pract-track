@@ -1,5 +1,6 @@
 import { DownloadIcon, FileText } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
+import { lazy, Suspense } from "react"
 
 import { useStudent } from "@/api/hooks/use-get-student"
 import { useAgency } from "@/api/hooks/use-get-agency"
@@ -7,12 +8,11 @@ import { useGetViolations } from "@/api/hooks/use-get-real-violations"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { violationTypeMap } from "@/data/violationts"
+import { violationTypeMap } from "@/data/violations"
 import { StudentInfo } from "../components/student-info"
 import { AgencyInfo } from "../components/tables/agency-info"
 import { useAdviser } from "@/api/hooks/use-get-schedules"
 import { AdviserInfo } from "./adviser-info"
-import { lazy, Suspense } from "react"
 import { capitalizeWords } from "@/lib/utils"
 
 const AttendanceTabPage = lazy(() => import("./attendance-tab"))
