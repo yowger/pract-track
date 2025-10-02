@@ -8,14 +8,14 @@ import { toDateSafe } from "../../../lib/date-utils"
 interface ExcuseRequestsFeedProps {
     excuses: ExcuseRequest[]
     limit?: number
-    // onViewDetails?: (excuse: ExcuseRequest) => void
+    onViewDetails?: (excuse: ExcuseRequest) => void
 }
 
 export function ExcuseRequestsFeed({
     excuses,
     limit = 5,
-}: // onViewDetails,
-ExcuseRequestsFeedProps) {
+    onViewDetails,
+}: ExcuseRequestsFeedProps) {
     if (!excuses || excuses.slice(0, limit).length === 0) {
         return (
             <div className="text-center py-8">
@@ -32,6 +32,7 @@ ExcuseRequestsFeedProps) {
             {excuses.slice(0, limit).map((request) => (
                 <div
                     key={request.id}
+                    onClick={() => onViewDetails?.(request)}
                     className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all"
                 >
                     <div className="flex items-start justify-between mb-3">

@@ -44,6 +44,11 @@ import { useGetExcuseRequests } from "@/api/hooks/use-real-time-excuse"
 import { ExcuseRequestsFeed } from "../components/excuse-list"
 import { ViolationsFeed } from "../components/violation-list"
 import { useGetViolations } from "@/api/hooks/use-get-real-violations"
+import { AttendanceStats } from "@/features/dtr/components/attendance-stats"
+import ViolationSideSheet from "../components/violation-sheet"
+import type { Violation } from "@/types/violation"
+import ExcuseSideSheet from "../components/excuse-sheet"
+import type { ExcuseRequest } from "@/types/excuse"
 
 const attendanceColumns: ColumnDef<Attendance>[] = [
     // {
@@ -281,11 +286,19 @@ export default function AgencyDashboardPage() {
         limitCount: 3,
     })
 
-    const { data: violations, error } = useGetViolations({
+    const { data: violations } = useGetViolations({
         agencyId,
         limitCount: 3,
     })
-    console.log("🚀 ~ AgencyDashboardPage ~ error:", error)
+
+    const [selectedViolation, setSelectedViolation] =
+        useState<Violation | null>(null)
+    const [openViolationSheet, setOpenViolationSheet] = useState(false)
+
+    const [selectedExcuse, setSelectedExcuse] = useState<ExcuseRequest | null>(
+        null
+    )
+    const [openExcuseSheet, setOpenExcuseSheet] = useState(false)
 
     return (
         <div className="flex flex-col p-4 gap-4">
@@ -319,40 +332,7 @@ export default function AgencyDashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-col gap-4">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                    <div className="flex flex-col">
-                                        <p className="text-2xl font-semibold">
-                                            {stats.present}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Present
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-2xl font-semibold">
-                                            {stats.late}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Late
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-2xl font-semibold">
-                                            {stats.excused}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Excused
-                                        </p>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <p className="text-2xl font-semibold">
-                                            {stats.absent}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Absent
-                                        </p>
-                                    </div>
-                                </div>
+                                <AttendanceStats stats={stats} />
 
                                 <DataTable
                                     columns={attendanceColumns}
@@ -367,10 +347,10 @@ export default function AgencyDashboardPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>
-                                <div className="flex justify-between">
+                                <div className="flex justify-between items-center">
                                     Recent Excuse Requests
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         className=" text-sm"
                                     >
                                         See all
@@ -381,20 +361,52 @@ export default function AgencyDashboardPage() {
                         <CardContent className="space-y-4">
                             <ExcuseRequestsFeed
                                 excuses={excuseRequests || []}
+                                onViewDetails={(excuse) => {
+                                    setSelectedExcuse(excuse)
+                                    setOpenExcuseSheet(true)
+                                }}
                             />
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recent Complaints</CardTitle>
+                            <CardTitle>
+                                <div className="flex justify-between items-center">
+                                    Recent Complaints
+                                    <Button
+                                        variant="ghost"
+                                        className=" text-sm"
+                                    >
+                                        See all
+                                    </Button>
+                                </div>
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <ViolationsFeed violations={violations || []} />
+                            <ViolationsFeed
+                                violations={violations || []}
+                                onViewDetails={(violation) => {
+                                    setSelectedViolation(violation)
+                                    setOpenViolationSheet(true)
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </div>
             </div>
+
+            <ExcuseSideSheet
+                excuse={selectedExcuse}
+                isOpen={openExcuseSheet}
+                onClose={() => setSelectedExcuse(null)}
+            />
+
+            <ViolationSideSheet
+                violation={selectedViolation}
+                isOpen={openViolationSheet}
+                onClose={() => setSelectedViolation(null)}
+            />
         </div>
     )
 }

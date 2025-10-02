@@ -36,6 +36,24 @@ export function formatDate(date: Date): string {
     return format(date, "MMM d, yyyy")
 }
 
+export function formatDateSafe(
+    value: Date | Timestamp | FieldValue | null,
+    dateFormat: string = "MMM d, yyyy"
+): string {
+    const date = toDateSafe(value)
+    if (!date) return "—"
+    return format(date, dateFormat)
+}
+
+export function formatTimeSafe(
+    value: Date | Timestamp | FieldValue | null,
+    timeFormat: string = "hh:mm a"
+): string {
+    const date = toDateSafe(value)
+    if (!date) return "—"
+    return format(date, timeFormat)
+}
+
 export function getRelativeTime(
     value: Date | Timestamp | FieldValue | null
 ): string {

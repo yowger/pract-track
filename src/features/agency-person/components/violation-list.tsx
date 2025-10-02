@@ -8,6 +8,7 @@ import {
     // MessageSquare,
 } from "lucide-react"
 import { getRelativeTime } from "@/lib/date-utils"
+import { violationTypeMap } from "@/data/violations"
 
 interface ViolationsFeedProps {
     violations: Violation[]
@@ -20,27 +21,6 @@ export function ViolationsFeed({
     limit = 5,
     onViewDetails,
 }: ViolationsFeedProps) {
-    // const formatDate = (date: Date) =>
-    //     new Intl.DateTimeFormat("en-US", {
-    //         month: "short",
-    //         day: "numeric",
-    //         year: "numeric",
-    //     }).format(new Date(date))
-
-    // const getRelativeTime = (date: Date) => {
-    //     const d = date instanceof Date ? date : new Date(date)
-    //     const now = new Date()
-    //     const diffMs = now.getTime() - d.getTime()
-    //     const diffMins = Math.floor(diffMs / 60000)
-    //     const diffHours = Math.floor(diffMs / 3600000)
-    //     const diffDays = Math.floor(diffMs / 86400000)
-
-    //     if (diffMins < 60) return `${diffMins}m ago`
-    //     if (diffHours < 24) return `${diffHours}h ago`
-    //     if (diffDays < 7) return `${diffDays}d ago`
-    //     return formatDate(d)
-    // }
-
     if (!violations || violations.length === 0) {
         return (
             <div className="text-center py-8">
@@ -62,7 +42,9 @@ export function ViolationsFeed({
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-3">
                                 <h4 className="font-medium text-sm text-gray-900 truncate">
-                                    {violation.violationType}
+                                    {violationTypeMap[
+                                        violation.violationType
+                                    ] || violation.violationType}
                                 </h4>
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border border-red-200 bg-red-50 text-red-700">
                                     <Flag className="w-3 h-3" />
