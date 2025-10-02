@@ -3,7 +3,6 @@ import type { FieldValue, Timestamp } from "firebase/firestore"
 export interface Violation {
     id: string
     studentId: string
-
     name: string
     violationType: string
     remarks: string

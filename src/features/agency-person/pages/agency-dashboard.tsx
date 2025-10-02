@@ -40,6 +40,10 @@ import {
 } from "@/components/ui/carousel"
 import { DialogTitle } from "@radix-ui/react-dialog"
 import { CustomBadge, type BadgeTypes } from "@/components/custom-badge"
+import { useGetExcuseRequests } from "@/api/hooks/use-real-time-excuse"
+import { ExcuseRequestsFeed } from "../components/excuse-list"
+import { ViolationsFeed } from "../components/violation-list"
+import { useGetViolations } from "@/api/hooks/use-get-real-violations"
 
 const attendanceColumns: ColumnDef<Attendance>[] = [
     // {
@@ -178,7 +182,7 @@ const attendanceColumns: ColumnDef<Attendance>[] = [
             })
 
             if (!photos.length) {
-                return <span className="text-muted-foreground">-</span>
+                return <span className="text-muted-foreground"></span>
             }
 
             return (
@@ -257,6 +261,7 @@ const today = new Date()
 export default function AgencyDashboardPage() {
     const { user } = useUser()
     const agencyId = user && isAgency(user) ? user.companyData?.ownerId : ""
+    console.log("🚀 ~ AgencyDashboardPage ~ agencyId:", agencyId)
 
     const { data: todaySchedules } = useGetSchedules({
         date: today,
@@ -271,6 +276,17 @@ export default function AgencyDashboardPage() {
 
     const stats = useAttendanceStats(attendances)
 
+    const { data: excuseRequests } = useGetExcuseRequests({
+        agencyId,
+        limitCount: 3,
+    })
+
+    const { data: violations, error } = useGetViolations({
+        agencyId,
+        limitCount: 3,
+    })
+    console.log("🚀 ~ AgencyDashboardPage ~ error:", error)
+
     return (
         <div className="flex flex-col p-4 gap-4">
             <div className="flex flex-col md:flex-row  md:justify-between gap-4">
@@ -282,7 +298,7 @@ export default function AgencyDashboardPage() {
 
                 {firstSchedule ? (
                     <Button size="sm" asChild>
-                        <Link to={`/dtr/qr`}>View QR</Link>
+                        <Link to={`/dtr/qr`}>Generate QR</Link>
                     </Button>
                 ) : (
                     <Button asChild size="sm">
@@ -295,7 +311,7 @@ export default function AgencyDashboardPage() {
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Attendance Records</CardTitle>
+                            <CardTitle>Daily Attendance Records</CardTitle>
                             <CardDescription>
                                 Summary of today's attendance across all
                                 scheduled staff.
@@ -350,19 +366,31 @@ export default function AgencyDashboardPage() {
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-5">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recent Complaints</CardTitle>
+                            <CardTitle>
+                                <div className="flex justify-between">
+                                    Recent Excuse Requests
+                                    <Button
+                                        variant="outline"
+                                        className=" text-sm"
+                                    >
+                                        See all
+                                    </Button>
+                                </div>
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p>Complaints here</p>
+                            <ExcuseRequestsFeed
+                                excuses={excuseRequests || []}
+                            />
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Excuse Approvals</CardTitle>
+                            <CardTitle>Recent Complaints</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p>Excuse Approvals here</p>
+                            <ViolationsFeed violations={violations || []} />
                         </CardContent>
                     </Card>
                 </div>

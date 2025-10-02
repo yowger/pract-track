@@ -1,5 +1,5 @@
-import { parse } from "date-fns"
-import type { Timestamp } from "firebase/firestore"
+import { format, formatDistanceToNow, parse } from "date-fns"
+import type { FieldValue, Timestamp } from "firebase/firestore"
 
 type ToDateInput = Date | Timestamp | number | string | null | undefined
 
@@ -23,12 +23,29 @@ export function formatTime(date: Date | null) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
-export function formatDate(date: Date | null) {
-    if (!date) return "-"
+export function toDateSafe(
+    value: Date | Timestamp | FieldValue | null
+): Date | null {
+    if (!value) return null
+    if (value instanceof Date) return value
+    if ((value as Timestamp).toDate) return (value as Timestamp).toDate()
+    return null
+}
 
-    return date.toLocaleDateString([], {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    })
+export function formatDate(date: Date): string {
+    return format(date, "MMM d, yyyy")
+}
+
+export function getRelativeTime(
+    value: Date | Timestamp | FieldValue | null
+): string {
+    const date = toDateSafe(value)
+    if (!date) return "N/A"
+
+    const diff = Date.now() - date.getTime()
+    if (diff < 0) return formatDate(date)
+    if (diff < 1000 * 60 * 60 * 24 * 7) {
+        return formatDistanceToNow(date, { addSuffix: true })
+    }
+    return formatDate(date)
 }
