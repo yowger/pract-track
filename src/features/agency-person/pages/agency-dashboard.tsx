@@ -307,6 +307,9 @@ export default function AgencyDashboardPage() {
                     <h1 className="text-2xl font-bold tracking-tight">
                         Dashboard
                     </h1>
+                    <p className="text-muted-foreground">
+                        Overview of today's attendance and recent activities.
+                    </p>
                 </div>
 
                 {firstSchedule ? (
@@ -344,21 +347,20 @@ export default function AgencyDashboardPage() {
                 </div>
 
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-5">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>
-                                <div className="flex justify-between items-center">
-                                    Recent Excuse Requests
-                                    <Button
-                                        variant="ghost"
-                                        className=" text-sm"
-                                    >
-                                        See all
-                                    </Button>
-                                </div>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-base font-semibold text-gray-900">
+                                Recent Excuse Requests
+                            </h3>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-sm"
+                            >
+                                See all
+                            </Button>
+                        </div>
+                        <div className="space-y-4">
                             <ExcuseRequestsFeed
                                 excuses={excuseRequests || []}
                                 onViewDetails={(excuse) => {
@@ -366,24 +368,24 @@ export default function AgencyDashboardPage() {
                                     setOpenExcuseSheet(true)
                                 }}
                             />
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </section>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>
-                                <div className="flex justify-between items-center">
-                                    Recent Complaints
-                                    <Button
-                                        variant="ghost"
-                                        className=" text-sm"
-                                    >
-                                        See all
-                                    </Button>
-                                </div>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    {/* Complaints */}
+                    <section>
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-base font-semibold text-gray-900">
+                                Recent Complaints
+                            </h3>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-sm"
+                            >
+                                See all
+                            </Button>
+                        </div>
+                        <div className="space-y-4">
                             <ViolationsFeed
                                 violations={violations || []}
                                 onViewDetails={(violation) => {
@@ -391,8 +393,8 @@ export default function AgencyDashboardPage() {
                                     setOpenViolationSheet(true)
                                 }}
                             />
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </section>
                 </div>
             </div>
 
