@@ -46,7 +46,7 @@ export const attendanceColumns: ColumnDef<Attendance>[] = [
     },
     {
         id: "amIn",
-        header: "AM In",
+        header: "Am in",
         cell: ({ row }) => {
             const session = row.original.sessions[0]
             const inDate = session?.checkInInfo
@@ -61,7 +61,7 @@ export const attendanceColumns: ColumnDef<Attendance>[] = [
     },
     {
         id: "amOut",
-        header: "AM Out",
+        header: "Am out",
         cell: ({ row }) => {
             const session = row.original.sessions[0]
             const outDate = session?.checkOutInfo
@@ -76,7 +76,7 @@ export const attendanceColumns: ColumnDef<Attendance>[] = [
     },
     {
         id: "pmIn",
-        header: "PM In",
+        header: "Pm in",
         cell: ({ row }) => {
             const session = row.original.sessions[1]
             const inDate = session?.checkInInfo
@@ -91,7 +91,7 @@ export const attendanceColumns: ColumnDef<Attendance>[] = [
     },
     {
         id: "pmOut",
-        header: "PM Out",
+        header: "Pm out",
         cell: ({ row }) => {
             const session = row.original.sessions[1]
             const outDate = session?.checkOutInfo
@@ -104,33 +104,33 @@ export const attendanceColumns: ColumnDef<Attendance>[] = [
             )
         },
     },
-    {
-        id: "duration",
-        header: "Duration",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-            let totalMins = 0
+    // {
+    //     id: "duration",
+    //     header: "Duration",
+    //     cell: ({ row }) => {
+    //         const sessions = row.original.sessions
+    //         let totalMins = 0
 
-            sessions.forEach((s) => {
-                const inDate = s.checkInInfo
-                    ? firebaseTimestampToDate(s.checkInInfo.time)
-                    : null
-                const outDate = s.checkOutInfo
-                    ? firebaseTimestampToDate(s.checkOutInfo.time)
-                    : null
-                if (inDate && outDate) {
-                    totalMins += Math.floor((+outDate - +inDate) / 60000)
-                }
-            })
+    //         sessions.forEach((s) => {
+    //             const inDate = s.checkInInfo
+    //                 ? firebaseTimestampToDate(s.checkInInfo.time)
+    //                 : null
+    //             const outDate = s.checkOutInfo
+    //                 ? firebaseTimestampToDate(s.checkOutInfo.time)
+    //                 : null
+    //             if (inDate && outDate) {
+    //                 totalMins += Math.floor((+outDate - +inDate) / 60000)
+    //             }
+    //         })
 
-            if (!totalMins)
-                return <span className="text-muted-foreground"></span>
+    //         if (!totalMins)
+    //             return <span className="text-muted-foreground"></span>
 
-            const h = Math.floor(totalMins / 60)
-            const m = totalMins % 60
-            return <span>{`${h}h ${m}m`}</span>
-        },
-    },
+    //         const h = Math.floor(totalMins / 60)
+    //         const m = totalMins % 60
+    //         return <span>{`${h}h ${m}m`}</span>
+    //     },
+    // },
     {
         id: "photos",
         header: "Photos",
