@@ -8,6 +8,8 @@ interface AttendanceStatsProps {
 }
 
 export function AttendanceStats({ stats }: AttendanceStatsProps) {
+    const total = stats.present + stats.late + stats.excused + stats.absent || 1 // prevent divide by 0
+
     const items = [
         { label: "Present", value: stats.present },
         { label: "Late", value: stats.late },
@@ -17,14 +19,25 @@ export function AttendanceStats({ stats }: AttendanceStatsProps) {
 
     return (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {items.map((item) => (
-                <div key={item.label} className="flex flex-col">
-                    <p className="text-2xl font-semibold">{item.value}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {item.label}
-                    </p>
-                </div>
-            ))}
+            {items.map((item) => {
+                const percentage = ((item.value / total) * 100).toFixed(1)
+                return (
+                    <div key={item.label} className="flex flex-col">
+                        <p className="text-sm text-muted-foreground mb-2">
+                            {item.label}
+                        </p>
+
+                        <div className="space-y-1">
+                            <p className="text-2xl font-semibold">
+                                {item.value}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                {percentage}% of total
+                            </p>
+                        </div>
+                    </div>
+                )
+            })}
         </div>
     )
 }

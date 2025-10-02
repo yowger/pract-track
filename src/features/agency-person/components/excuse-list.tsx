@@ -1,6 +1,6 @@
 import { CustomBadge } from "@/components/custom-badge"
 import type { ExcuseRequest } from "@/types/excuse"
-import { Calendar, FileText, User, Building } from "lucide-react"
+import { Calendar, FileText, User, Building, Image } from "lucide-react"
 import { capitalizeWords } from "../../../lib/utils"
 import { formatDate, getRelativeTime } from "@/lib/date-utils"
 import { toDateSafe } from "../../../lib/date-utils"
@@ -74,6 +74,24 @@ export function ExcuseRequestsFeed({
                                             : "N/A"}
                                     </span>
                                 </div>
+                                {request.filesUrl &&
+                                    request.filesUrl.length > 0 && (
+                                        <span className="inline-flex items-center gap-1 text-blue-600">
+                                            <FileText className="w-3.5 h-3.5" />
+                                            <span>
+                                                {request.filesUrl.length}
+                                            </span>
+                                        </span>
+                                    )}
+                                {request.photosUrl &&
+                                    request.photosUrl.length > 0 && (
+                                        <span className="inline-flex items-center gap-1 text-purple-600">
+                                            <Image className="w-3.5 h-3.5" />
+                                            <span>
+                                                {request.photosUrl.length}
+                                            </span>
+                                        </span>
+                                    )}
                             </div>
                         </div>
                         <span className="text-xs text-gray-500 flex-shrink-0">

@@ -1,11 +1,9 @@
 import { Timestamp } from "firebase/firestore"
-import type { ColumnDef } from "@tanstack/react-table"
 import { Link } from "react-router-dom"
 
 import { useGetRealAttendances } from "@/api/hooks/use-get-real-attendances"
 import { useGetSchedules } from "@/api/hooks/use-get-real-schedule"
 import { useUser } from "@/hooks/use-user"
-import { firebaseTimestampToDate, formatTime } from "@/lib/date-utils"
 import type { Attendance } from "@/types/attendance"
 import type { PlannedSession } from "@/types/scheduler"
 import { isAgency } from "@/types/user"
@@ -26,7 +24,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useMemo, useState } from "react"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
@@ -39,7 +36,6 @@ import {
     type CarouselApi,
 } from "@/components/ui/carousel"
 import { DialogTitle } from "@radix-ui/react-dialog"
-import { CustomBadge, type BadgeTypes } from "@/components/custom-badge"
 import { useGetExcuseRequests } from "@/api/hooks/use-real-time-excuse"
 import { ExcuseRequestsFeed } from "../components/excuse-list"
 import { ViolationsFeed } from "../components/violation-list"
@@ -49,217 +45,8 @@ import ViolationSideSheet from "../components/violation-sheet"
 import type { Violation } from "@/types/violation"
 import ExcuseSideSheet from "../components/excuse-sheet"
 import type { ExcuseRequest } from "@/types/excuse"
-
-const attendanceColumns: ColumnDef<Attendance>[] = [
-    // {
-    //     accessorKey: "schedule.date",
-    //     header: "Date",
-    //     cell: ({ row }) => {
-    //         const date = row.original.schedule.date
-    //         const d = date instanceof Date ? date : date?.toDate?.()
-    //         return (
-    //             <div className="align-top flex items-start">
-    //                 <span>{d ? d.toLocaleDateString("en-US") : null}</span>
-    //             </div>
-    //         )
-    //     },
-    // },
-    {
-        id: "name",
-        accessorKey: "user.name",
-        header: "Name",
-        cell: ({ row }) => {
-            const { name, photoUrl } = row.original.user
-            const initials = name
-                ? name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                : "?"
-
-            return (
-                <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={photoUrl} alt={name} />
-                        <AvatarFallback>{initials}</AvatarFallback>
-                    </Avatar>
-                    <span>{name}</span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "am",
-        header: "AM",
-        cell: ({ row }) => {
-            const session = row.original.sessions[0]
-            if (!session) return null
-
-            const inDate = session.checkInInfo
-                ? firebaseTimestampToDate(session.checkInInfo.time)
-                : null
-            const outDate = session.checkOutInfo
-                ? firebaseTimestampToDate(session.checkOutInfo.time)
-                : null
-
-            if (!inDate && !outDate) return null
-
-            return (
-                <div className="inline-flex items-center gap-1">
-                    <span className={inDate ? "" : "text-muted-foreground"}>
-                        {inDate ? formatTime(inDate) : "-"}
-                    </span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className={outDate ? "" : "text-muted-foreground"}>
-                        {outDate ? formatTime(outDate) : ""}
-                    </span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "pm",
-        header: "PM",
-        cell: ({ row }) => {
-            const session = row.original.sessions[1]
-            if (!session) return null
-
-            const inDate = session.checkInInfo
-                ? firebaseTimestampToDate(session.checkInInfo.time)
-                : null
-            const outDate = session.checkOutInfo
-                ? firebaseTimestampToDate(session.checkOutInfo.time)
-                : null
-
-            if (!inDate && !outDate) return null
-
-            return (
-                <div className="inline-flex items-center gap-1">
-                    <span className={inDate ? "" : "text-muted-foreground"}>
-                        {inDate ? formatTime(inDate) : "-"}
-                    </span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className={outDate ? "" : "text-muted-foreground"}>
-                        {outDate ? formatTime(outDate) : ""}
-                    </span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "duration",
-        header: "Duration",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-            let totalMins = 0
-
-            sessions.forEach((s) => {
-                const inDate = s.checkInInfo
-                    ? firebaseTimestampToDate(s.checkInInfo.time)
-                    : null
-                const outDate = s.checkOutInfo
-                    ? firebaseTimestampToDate(s.checkOutInfo.time)
-                    : null
-                if (inDate && outDate) {
-                    totalMins += Math.floor((+outDate - +inDate) / 60000)
-                }
-            })
-
-            if (!totalMins)
-                return <span className="text-muted-foreground"></span>
-
-            const h = Math.floor(totalMins / 60)
-            const m = totalMins % 60
-            return <span>{`${h}h ${m}m`}</span>
-        },
-    },
-    {
-        id: "photos",
-        header: "Photos",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-            const photos: string[] = []
-
-            sessions.forEach((s) => {
-                if (s.checkInInfo?.photoUrl) photos.push(s.checkInInfo.photoUrl)
-                if (s.checkOutInfo?.photoUrl)
-                    photos.push(s.checkOutInfo.photoUrl)
-            })
-
-            if (!photos.length) {
-                return <span className="text-muted-foreground"></span>
-            }
-
-            return (
-                <div className="size-12 overflow-hidden">
-                    <SharedImagePreview photos={photos} />
-                </div>
-            )
-        },
-    },
-    {
-        id: "location",
-        header: "Location",
-        cell: ({ row }) => {
-            const sessions = row.original.sessions
-            const geo =
-                sessions[0]?.checkInInfo?.geo ||
-                sessions[0]?.checkOutInfo?.geo ||
-                sessions[1]?.checkInInfo?.geo ||
-                sessions[1]?.checkOutInfo?.geo
-            const address =
-                sessions[0]?.checkInInfo?.address ||
-                sessions[0]?.checkOutInfo?.address ||
-                sessions[1]?.checkInInfo?.address ||
-                sessions[1]?.checkOutInfo?.address
-
-            if (!geo) return <span className="text-muted-foreground"></span>
-
-            return (
-                <a
-                    href={`https://maps.google.com/?q=${geo.lat},${geo.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 block max-w-[150px] truncate"
-                    title={address || "Unknown Address"}
-                >
-                    {address || "Unknown Address"}
-                </a>
-            )
-        },
-    },
-    {
-        id: "status",
-        accessorKey: "overallStatus",
-        header: "Status",
-        cell: ({ row }) => {
-            const status = row.original.overallStatus || "absent"
-            let badgeColor: NonNullable<BadgeTypes["variant"]> = "default"
-
-            switch (status) {
-                case "present":
-                    badgeColor = "green"
-                    break
-                case "absent":
-                    badgeColor = "red"
-                    break
-                case "late":
-                    badgeColor = "yellow"
-                    break
-                case "excused":
-                    badgeColor = "blue"
-                    break
-                case "undertime":
-                    badgeColor = "orange"
-                    break
-                default:
-                    badgeColor = "default"
-            }
-
-            return <CustomBadge variant={badgeColor}>{status}</CustomBadge>
-        },
-    },
-]
+import { attendanceColumns } from "../components/attendance-column"
+import { QrCodeIcon } from "lucide-react"
 
 const today = new Date()
 
@@ -311,23 +98,33 @@ export default function AgencyDashboardPage() {
                         Overview of today's attendance and recent activities.
                     </p>
                 </div>
-
-                {firstSchedule ? (
-                    <Button size="sm" asChild>
-                        <Link to={`/dtr/qr`}>Generate QR</Link>
-                    </Button>
-                ) : (
-                    <Button asChild size="sm">
-                        <Link to="/dtr">New Session</Link>
-                    </Button>
-                )}
             </div>
 
             <div className="grid auto-rows-auto grid-cols-12 gap-5">
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Daily Attendance Records</CardTitle>
+                            <CardTitle>
+                                <div className="flex items-center justify-between">
+                                    <span>Daily Attendance Records</span>
+
+                                    {firstSchedule ? (
+                                        <Button
+                                            size="icon"
+                                            variant="outline"
+                                            asChild
+                                        >
+                                            <Link to={`/dtr/qr`}>
+                                                <QrCodeIcon />
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button size="sm" asChild>
+                                            <Link to={`/dtr`}>New Session</Link>
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardTitle>
                             <CardDescription>
                                 Summary of today's attendance across all
                                 scheduled staff.
