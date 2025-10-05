@@ -229,7 +229,7 @@ export default function PreServiceStudentForm() {
                     )}
 
                     <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Creating..." : "Create Account"}
+                        {loading ? "Creating.." : "Create Account"}
                     </Button>
                 </div>
             </form>
