@@ -123,6 +123,8 @@ export async function createStudent(data: {
             firstName,
             lastName,
             displayName,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         },
         { merge: true }
     )
