@@ -62,9 +62,9 @@ const CreateSchedulePage = lazy(
     () => import("@/features/agency-person/pages/create-schedule")
 )
 const SeedPage = lazy(() => import("@/seeders/page/seed"))
-const InternshipDashboardPage = lazy(
-    () => import("@/features/chair-person/pages/internship-dashboard")
-)
+// const InternshipDashboardPage = lazy(
+//     () => import("@/features/chair-person/pages/internship-dashboard")
+// )
 const StudentManagerDashboardPage = lazy(
     () => import("@/features/chair-person/pages/student-manager-dashboard")
 )
@@ -143,7 +143,8 @@ const authRoutes = (
 const chairPersonRoutes = (
     <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
-            <Route path="/" element={<InternshipDashboardPage />} />
+            {/* <Route path="/" element={<InternshipDashboardPage />} /> */}
+            <Route path="/" element={<StudentManagerDashboardPage />} />
             <Route path="/students" element={<StudentManagerDashboardPage />} />
             <Route
                 path="/agencies/:agencyId"

@@ -60,11 +60,11 @@ const teams = [
 
 const sidebarConfig: SidebarConfig = {
     chair_person: [
-        {
-            title: "Internship",
-            url: "/",
-            icon: Briefcase,
-        },
+        // {
+        //     title: "Internship",
+        //     url: "/",
+        //     icon: Briefcase,
+        // },
         {
             title: "Students",
             url: "/students",
